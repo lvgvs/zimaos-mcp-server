@@ -28,11 +28,11 @@ summaries are preferred.
 
 ## API base paths (confirmed)
 
-| Service | Base path (`servers.url`) | Notes |
-|---|---|---|
-| User service (auth) | `/v1/users` | login only for this project |
-| App management | `/v2/app_management` | compose app lifecycle + logs |
-| ZimaOS core | `/v2/zimaos` | device/system info |
+| Service             | Base path (`servers.url`) | Notes                        |
+| ------------------- | ------------------------- | ---------------------------- |
+| User service (auth) | `/v1/users`               | login only for this project  |
+| App management      | `/v2/app_management`      | compose app lifecycle + logs |
+| ZimaOS core         | `/v2/zimaos`              | device/system info           |
 
 All endpoints are plain HTTP on the integration VM. No `curl -k`/`--insecure`.
 
@@ -56,16 +56,19 @@ All responses use the ZimaOS envelope `{ success, message, data }` unless noted.
 field carries the payload described below.
 
 ### List installed compose apps — `GET /compose`
+
 - **Response 200** → `ComposeAppListOK`: envelope with `data` = object keyed by app id, each
   value a `ComposeAppWithStoreInfo`. (Live v1.7.1 confirmed: top-level `{ data }`, where
   `data` is an object map; empty when no apps installed.)
 - **Implementation implication:** parse `data` as a record/map of app-id → app, not an array.
 
 ### App detail — `GET /compose/{id}`
+
 - **Response 200** → `ComposeAppOK`: envelope with `data` = single `ComposeAppWithStoreInfo`.
 - Accepts `Accept: application/json` or `application/yaml` (yaml returns interpolated compose).
 
 ### Install a compose app — `POST /compose`
+
 - **Request:** body is the Docker Compose YAML content; `Content-Type: application/yaml`.
   Query params: `dry_run=true` (validate only), `check_port_conflict`, `uncontrolled`.
 - **Response 200** → `ComposeAppInstallOK`: envelope (`BaseResponse`).
@@ -73,6 +76,7 @@ field carries the payload described below.
   permission layer and disabled by default.
 
 ### Start / restart / stop — `PUT /compose/{id}/status`
+
 - **Request body:** a raw JSON **string** enum, not an object: `"start"`, `"restart"`, or
   `"stop"` (per `requestBodies/RequestComposeAppStatus`). Content-Type `application/json`.
 - **Response 200** → `RequestComposeAppStatusOK`: envelope (`BaseResponse`).
@@ -80,20 +84,24 @@ field carries the payload described below.
   `JSON.stringify("start")` etc. This is a control operation (gated, off by default).
 
 ### Containers — `GET /compose/{id}/containers`
+
 - **Response 200** → `ComposeAppContainersOK`: envelope with `data` = array of containers.
 
 ### Logs — `GET /compose/{id}/logs?lines=N`
+
 - **Query param:** `lines` (number) bounds the log size.
 - **Response 200** → `ComposeAppLogsOK`: envelope with `data` = string (the logs).
 - **Implementation implication:** always pass a bounded `lines`; cap output length in the MCP
   tool to avoid unbounded payloads.
 
 ### Health check — `GET /compose/{id}/healthcheck`
+
 - **Response 200** → `ComposeAppHealthCheckOK`: envelope with health status data.
 
 ## ZimaOS core (`/v2/zimaos`)
 
 ### Device info — `GET /device/info`
+
 - **Response 200:** a **bare payload** (no `{success,message,data}` wrapper) of type
   `DeviceInfo`. Live v1.7.1 top-level keys:
   - `arch`, `can_control_powerled`, `cpu` (`{cores, frequency, model, threads}`),
@@ -109,13 +117,13 @@ unwrap a `data` key for `/v2/zimaos/*`.
 
 ## Response-envelope rules (confirmed live)
 
-| Endpoint | Envelope |
-|---|---|
-| `POST /v1/users/login` | wrapped `{success,message,data}`; `data.token={access_token,refresh_token}` |
-| `GET /v2/app_management/compose` | wrapped; `data` = object map of app-id → `ComposeAppWithStoreInfo` |
-| `PUT /v2/app_management/compose/{id}/status` | wrapped (`BaseResponse`) |
-| `GET /v2/app_management/compose/{id}/logs` | wrapped; `data` = string |
-| `GET /v2/zimaos/device/info` | **bare** payload (no wrapper) |
+| Endpoint                                     | Envelope                                                                    |
+| -------------------------------------------- | --------------------------------------------------------------------------- |
+| `POST /v1/users/login`                       | wrapped `{success,message,data}`; `data.token={access_token,refresh_token}` |
+| `GET /v2/app_management/compose`             | wrapped; `data` = object map of app-id → `ComposeAppWithStoreInfo`          |
+| `PUT /v2/app_management/compose/{id}/status` | wrapped (`BaseResponse`)                                                    |
+| `GET /v2/app_management/compose/{id}/logs`   | wrapped; `data` = string                                                    |
+| `GET /v2/zimaos/device/info`                 | **bare** payload (no wrapper)                                               |
 
 ## Compatibility note
 
