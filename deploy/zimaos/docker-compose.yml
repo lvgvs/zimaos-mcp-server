@@ -1,0 +1,72 @@
+# =============================================================================
+# zimaos-mcp-server — ZimaOS Custom App (paste-ready Docker Compose)
+# -----------------------------------------------------------------------------
+# Target flow:
+#   1. Open the ZimaOS application interface.
+#   2. Choose "install a customized application".
+#   3. Choose "Docker Compose / YAML import".
+#   4. Paste this file.
+#   5. Fill in the values marked CONFIGURE BELOW (replace every placeholder).
+#   6. Install.
+#
+# This is standard Docker Compose plus a top-level `name`. It uses no ZimaOS
+# store metadata, no Docker socket, no privileged mode, and no host mounts.
+#
+# SECURITY: replace every placeholder before installing. The server fails to
+# start if MCP_AUTH_TOKEN is missing or shorter than 32 characters, so an
+# unedited file will not run — that is intentional. Do not commit real values.
+# =============================================================================
+
+name: zimaos-mcp-server
+
+services:
+  zimaos-mcp-server:
+    # Long-term image reference (GHCR). During initial private development the
+    # package is not anonymously pullable yet; see README "Private-image
+    # limitation" for how to build/run locally until it is published.
+    image: ghcr.io/lvgvs/zimaos-mcp-server:latest
+    container_name: zimaos-mcp-server
+    restart: unless-stopped
+
+    # Reach the ZimaOS API on this host. Inside a container, `localhost` is NOT
+    # the host; `host.docker.internal` (mapped to host-gateway) resolves to the
+    # Docker host. This is the least-privileged way to reach the host API — no
+    # host networking mode and no Docker socket are used.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    environment:
+      # ---------------------------------------------------------------------
+      # CONFIGURE BELOW — required
+      # ---------------------------------------------------------------------
+      # Address of the ZimaOS web/API as seen from this host's API port.
+      # Default assumes ZimaOS serves on port 80 (the common default). If your
+      # install uses a different port, change it here (e.g. http://host.docker.internal:8080).
+      - ZIMAOS_URL=http://host.docker.internal
+
+      # A ZimaOS account that is allowed to manage compose apps and read system info.
+      - ZIMAOS_USERNAME=CHANGE_ME_zimaos_username
+
+      # Password for the above account. Never commit real values.
+      - ZIMAOS_PASSWORD=CHANGE_ME_zimaos_password
+
+      # Bearer token MCP clients must present on `Authorization: Bearer <token>`.
+      # Must be at least 32 characters; there is no default. Generate one, e.g.:
+      #   openssl rand -hex 32
+      - MCP_AUTH_TOKEN=CHANGE_ME_at_least_32_characters_long_secret_token
+
+      # ---------------------------------------------------------------------
+      # CONFIGURE BELOW — optional (defaults shown)
+      # ---------------------------------------------------------------------
+      # Enable reversible app controls (start_app/stop_app/restart_app).
+      # Keep false unless you specifically want control operations.
+      - ALLOW_APP_CONTROL=false
+
+      # Log verbosity: debug | info | warn | error.
+      - LOG_LEVEL=info
+
+    # The container always listens on internal port 3000 (matches the image's
+    # EXPOSE and health check). Only the published host port is configurable;
+    # change the left side if 3900 conflicts with something else on this host.
+    ports:
+      - "3900:3000"
