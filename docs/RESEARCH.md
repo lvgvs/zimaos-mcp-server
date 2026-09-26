@@ -125,6 +125,21 @@ unwrap a `data` key for `/v2/zimaos/*`.
 | `GET /v2/app_management/compose/{id}/logs`   | wrapped; `data` = string                                                    |
 | `GET /v2/zimaos/device/info`                 | **bare** payload (no wrapper)                                               |
 
+## Container-to-host networking (Custom App deployment)
+
+- **Verified:** A container cannot reach the host's ZimaOS API via `localhost`
+  (that is the container itself). The official ZimaSpace developer docs for
+  Docker app publishing recommend mapping `host.docker.internal` to the Docker
+  host gateway so a Custom App container can call the host API.
+- **Authoritative source:** https://www.zimaspace.com/docs/developer/docker-app-publishing
+  (ZimaOS developer documentation, "Docker app publishing").
+- **Implementation implication:** `deploy/zimaos/docker-compose.yml` uses
+  `extra_hosts: ["host.docker.internal:host-gateway"]` and sets
+  `ZIMAOS_URL=http://host.docker.internal`. This is the least-privileged option
+  — no host networking mode, no Docker socket, no privileged container. The
+  disposable integration VM serves its API on port **80**, so the default URL
+  omits an explicit port; installs on a non-default port must set it in Compose.
+
 ## Compatibility note
 
 - Verified against ZimaOS **v1.7.1** on the authorized disposable integration VM (x86_64).
