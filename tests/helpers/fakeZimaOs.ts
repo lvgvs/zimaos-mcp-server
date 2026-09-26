@@ -8,7 +8,7 @@
  * network access.
  */
 
-import { AppError } from "../../src/errors.js";
+import type { AppError } from "../../src/errors.js";
 
 export interface RecordedRequest {
   method: string;
