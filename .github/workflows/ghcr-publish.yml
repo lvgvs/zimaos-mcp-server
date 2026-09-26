@@ -1,0 +1,57 @@
+# Build and push the production image to GitHub Container Registry (GHCR).
+# Uses only the auto-provided GITHUB_TOKEN; never depends on the disposable VM.
+name: ghcr-publish
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    name: build + push to GHCR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build once, then push the required refs.
+      #   - push to main  -> :latest
+      #   - push a v* tag -> :<tag> and :latest
+      - name: Build image
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker build -t "${IMAGE}:ci" .
+
+      - name: Push tags
+        run: |
+          set -euo pipefail
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          TAGS=()
+          if [ -n "${GITHUB_REF_NAME:-}" ] && [[ "${GITHUB_REF_NAME}" == v* ]]; then
+            # Tagged release (e.g. v1.0.0): push the version tag and latest.
+            docker tag "${IMAGE}:ci" "${IMAGE}:${GITHUB_REF_NAME}"
+            TAGS+=("${GITHUB_REF_NAME}")
+          fi
+          if [ "${{ github.ref_type }}" = "branch" ] || [[ "${GITHUB_REF_NAME:-}" == v* ]]; then
+            # main pushes and version tags both publish latest.
+            docker tag "${IMAGE}:ci" "${IMAGE}:latest"
+            TAGS+=("latest")
+          fi
+          if [ "${#TAGS[@]}" -eq 0 ]; then
+            echo "Nothing to push."
+            exit 0
+          fi
+          for t in "${TAGS[@]}"; do
+            docker push "${IMAGE}:${t}"
+          done

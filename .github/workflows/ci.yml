@@ -1,0 +1,55 @@
+# Quality gates for every push/PR to main. No disposable-VM credentials are used;
+# this workflow must never depend on the integration VM.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-gates:
+    name: lint + typecheck + test + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Lint (eslint)
+        run: npm run lint
+      - name: Typecheck (tsc, strict)
+        run: npm run typecheck
+      - name: Unit/integration tests (vitest, mocked)
+        run: npm test
+      - name: Production build (tsc -> dist/)
+        run: npm run build
+
+  docker-image:
+    name: production image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the production image (no push)
+        run: docker build -t zimaos-mcp-server:ci .
+
+  compose-validation:
+    name: ZimaOS Compose file is valid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install docker-compose (user-local, no sudo)
+        run: |
+          mkdir -p "$HOME/.docker/cli-plugins"
+          curl -fsSL --max-time 120 \
+            -o "$HOME/.docker/cli-plugins/docker-compose" \
+            https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+          chmod +x "$HOME/.docker/cli-plugins/docker-compose"
+      - name: Validate deploy/zimaos/docker-compose.yml
+        run: docker compose -f deploy/zimaos/docker-compose.yml config --quiet
