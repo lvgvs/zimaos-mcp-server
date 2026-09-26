@@ -51,6 +51,39 @@ Do not turn `AGENTS.md` into a development diary.
 
 Do not modify `AGENTS.md` or `PROJECT.md` unless explicitly instructed by the manager.
 
+## Tracked-file mutation safety
+
+Existing tracked repository files are source-of-truth state. Never delete and recreate an existing
+tracked file merely to bypass a file-edit/read-state guard.
+
+When modifying an existing tracked file:
+
+1. read the current on-disk file before editing;
+2. preserve the current on-disk version until the intended replacement is verified;
+3. prefer targeted edits over whole-file rewrites when practical;
+4. after a substantial edit, inspect the resulting Git diff before considering the change complete.
+
+If a normal edit/write tool remains blocked after a confirmed complete read:
+
+1. do **not** delete the original file and rebuild it from conversation context;
+2. write the intended replacement to a separate sibling/temp file;
+3. preserve a disk- or Git-backed recovery path for any uncommitted content;
+4. diff the original and replacement;
+5. replace the original only after the diff is understood;
+6. verify the final Git diff.
+
+Conversation context is not a backup or recovery source.
+
+For durable project-state files — `STATUS.md`, `DECISIONS.md`, and `docs/RESEARCH.md` — apply
+stricter discipline:
+
+- read the complete current file from disk before editing;
+- treat current disk/Git state as authoritative over remembered chat history;
+- never reconstruct the file solely from conversation memory;
+- preserve still-valid historical/current state when a full rewrite is genuinely necessary.
+
+Generated or disposable untracked artifacts may be recreated normally when appropriate.
+
 ## Clean-room requirement
 
 This project is a new implementation.
