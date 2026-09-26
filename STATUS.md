@@ -7,17 +7,17 @@ authoritative.
 ## Current phase / milestone
 
 - **Phase:** Phase 1 (implementation complete through the mocked-test milestone; packaging next).
-- **Current milestone:** Handoff-integrity correction — this file replaces an earlier, incomplete
-  status doc that was committed by mistake. No new implementation work is done in this commit.
+- **Current milestone:** Production image built and live-exercised in a container against the
+  disposable ZimaOS VM; `Dockerfile` + `.dockerignore` committed. Next: Compose → CI → GHCR → docs
+  → full quality gates → final handoff. No Phase 2 work.
 
 ## Git / repository
 
 - **Branch:** `main`
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (private)
-- **HEAD prior to this correction:** `1bd0cf1` (`docs: record Phase 1 status and architectural
-decisions for handoff`). That commit committed an incomplete/incorrect earlier STATUS.md; this
-  file corrects it. The SHA of the correction commit is whatever contains this file — see
-  `git log -1 --oneline`.
+- **HEAD:** see `git log -1 --oneline`. Latest: `acc8051` (`build: add production Docker
+  packaging (verified image build + live container run)`), on top of `0b292e3` (docs handoff
+  correction).
 
 ## Committed & pushed milestones
 
@@ -98,12 +98,21 @@ Verified against ZimaOS v1.7.1 (x86_64) on the authorized disposable VM; full de
 
 ## Docker / packaging status
 
-- **Docker availability:** Docker is **not installed/available** in the Hermes environment yet. This
-  blocks building/exercising the production image and therefore gates live-container integration.
-- **Packaging files present but UNTRACKED (intentionally uncommitted):** `Dockerfile` and
-  `.dockerignore`. They are coherent multi-stage, non-root, prod-deps-only packaging, but no Docker
-  build has verified them yet, so they are deliberately left untracked until the image builds
-  successfully. Do not commit them before a successful build.
+- **Docker availability:** installed and running in the Hermes environment (agent-installed via
+  direct foreground `sudo`; daemon active, client/server 26.1.5). The session has been restarted so
+  unprivileged `docker` works — verified with `id` (groups include `docker`) and `docker info` /
+  `docker version` without sudo. No further privileged Docker operations are needed for normal work.
+- **Production image built & live-exercised:** `zimaos-mcp-server:local` (186 MB) built from the
+  committed multi-stage, non-root, prod-deps-only `Dockerfile`. Live container run against the
+  disposable ZimaOS VM confirmed: `/health` → `{status:"ok",ready:true}`; authenticated MCP round-trip
+  over Streamable HTTP listed all 9 tools and returned real data (`get_system_info` → ZimaOS v1.7.1,
+  `list_apps` → the VM's test app); an unauthenticated `/mcp` request was correctly rejected with 401.
+- **Packaging files COMMITTED** in `acc8051`: `Dockerfile` and `.dockerignore`. The Dockerfile no longer
+  uses a `# syntax=docker/dockerfile:1` frontend directive (removed — see DECISIONS.md), so the build
+  needs no external BuildKit frontend image.
+- **Build note:** this environment has IPv6 DNS for Docker Hub but no working IPv6 egress; the daemon's
+  own pulls work over IPv4, and removing the syntax directive avoids the BuildKit frontend fetch that
+  failed on IPv6. No repo change is required to build elsewhere with full connectivity.
 
 ## Podman fallback status
 
@@ -129,15 +138,26 @@ Verified against ZimaOS v1.7.1 (x86_64) on the authorized disposable VM; full de
 
 ## Current known blocker
 
-- Docker tooling must be made available in the Hermes environment before the production image can be
-  built/verified and before downstream live-container integration. This is an environment action
-  (install `docker.io`, start/enable the daemon), not a code change.
+- **None.** Docker is installed, running, and reachable without sudo (session restarted after adding
+  `hermes` to the `docker` group). The production image builds and runs. Remaining Phase 1 work is
+  ordinary implementation/packaging/docs/CI/GHCR/live-integration — no privileged or manual step is
+  blocking at this point.
+
+## Environment notes (for a fresh chat)
+
+- **Sudo access verified:** direct foreground `sudo` works through Hermes's secure masked password
+  prompt in this environment (verified with `sudo id` → root). The earlier claim that sudo was
+  unavailable due to the non-TTY environment is incorrect and has been superseded. Use direct
+  foreground `sudo` for any future privileged step; never wrap it or handle the password yourself.
+- **Docker:** installed by the agent via direct foreground `sudo`; daemon active (client/server
+  26.1.5); `hermes` is in the `docker` group, so normal Docker operations need no sudo.
 
 ## Remaining Phase 1 work (correct order)
 
-1. Make Docker available in the Hermes environment (install + start/enable daemon).
-2. Build & exercise the production image from the already-present untracked `Dockerfile` /
-   `.dockerignore`; once it builds and runs, commit those two files.
+1. ~~Make Docker available in the Hermes environment~~ — completed (install + start/enable daemon;
+   `hermes` added to `docker` group).
+2. ~~Build & exercise the production image, then commit `Dockerfile` / `.dockerignore`~~ — completed:
+   image built and live-exercised against the disposable VM; committed in `acc8051`.
 3. Create ZimaOS paste-ready Compose: `deploy/zimaos/docker-compose.yml`.
 4. Create CI workflow (`.github/workflows/`).
 5. Create GHCR publishing workflow.
@@ -153,20 +173,22 @@ Verified against ZimaOS v1.7.1 (x86_64) on the authorized disposable VM; full de
 
 - No `README.md`, `LICENSE`, or `.env.example` yet.
 - No CI/GHCR workflows and no deploy Compose YAML yet.
-- Docker image build not performed (no Docker in the environment); production container artifact not
-  yet exercised.
-- Live integration against the disposable VM not yet performed.
+- The production image has been built and live-exercised locally (`zimaos-mcp-server:local`), but it
+  is not yet published to GHCR, so the Compose/CI references will use a local build until then.
+- Live integration against the disposable VM: container round-trip verified (see Docker section);
+  the broader live-integration pass (step 8) still pending.
 - Pre-existing formatting/lint debt on 5 test files (2 eslint errors + 5 prettier files) — see above.
 
 ## Manual actions required
 
-- None that require user interaction beyond ensuring Docker can be installed/started in the
-  environment. No manual UI step is blocking at this point; a live ZimaOS Custom App paste/install
-  may remain as one explicit manual verification item near the end (per PROJECT.md).
+- **None blocking.** The Hermes/LXC session was restarted after `usermod -aG docker hermes`; the
+  agent now has unprivileged Docker access and no further manual step is needed for packaging.
+- A live ZimaOS Custom App paste/install may remain as one explicit manual verification item near the
+  end (per PROJECT.md).
 
 ## Recommended next action for a fresh chat
 
-Make Docker available in the Hermes environment, then build and exercise the production image from
-the already-present untracked `Dockerfile` / `.dockerignore`; once it builds and runs cleanly, commit
-those two files and proceed to Compose → CI → GHCR → docs → full quality gates → live integration.
-Do not begin Phase 2.
+Continue Phase 1 from `deploy/zimaos/docker-compose.yml` → CI workflow → GHCR publishing workflow →
+docs (`README.md`, `LICENSE`, `.env.example`) → full local quality gates (fix the recorded
+eslint/prettier debt first) → live integration against the disposable VM using
+`.env.integration.local` (never echoed) → final manager handoff. Do not begin Phase 2.

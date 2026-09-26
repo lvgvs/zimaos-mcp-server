@@ -76,3 +76,18 @@ HTTP/auth boundary without depending on the disposable VM; CI stays hermetic.
 
 **Reason:** Tests were previously outside any tsconfig and therefore never type-checked; this
 closes that gap without weakening the production build config.
+
+## 2026-09-26 — Dockerfile: no external BuildKit frontend (`# syntax=` directive removed)
+
+**Decision:** The committed `Dockerfile` does not use a `# syntax=docker/dockerfile:1`
+directive; it builds with the daemon's built-in BuildKit frontend only.
+
+**Reason:** The Hermes environment resolves Docker Hub to IPv6 addresses without working IPv6
+egress, so fetching the external `docker/dockerfile:1` frontend image fails at build step 0 even
+though ordinary image pulls (IPv4) succeed. The Dockerfile uses only built-in-frontend features
+(multi-stage, `COPY --from`, `--chown`, `HEALTHCHECK`), so removing the directive is behaviorally
+neutral and makes the production image buildable in this environment without any daemon config
+change.
+
+**Rejected alternative:** Keep the directive and configure a BuildKit/daemon IPv4 workaround —
+more moving parts, and no frontend-only feature is used or planned for Phase 1.
