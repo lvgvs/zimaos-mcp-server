@@ -1,0 +1,17 @@
+node_modules
+dist
+coverage
+.git
+.github
+tests
+docs
+*.md
+.env*
+!README.md
+Dockerfile
+.dockerignore
+tsconfig.test.json
+vitest.config.ts
+eslint.config.js
+.prettierrc.json
+.prettierignore
