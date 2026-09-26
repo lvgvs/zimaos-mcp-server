@@ -48,10 +48,7 @@ describe("loadConfig", () => {
   it.each([
     ["missing token", { MCP_AUTH_TOKEN: undefined }],
     ["empty token", { MCP_AUTH_TOKEN: "" }],
-    [
-      "short token",
-      { MCP_AUTH_TOKEN: "x".repeat(MIN_MCP_TOKEN_LENGTH - 1) },
-    ],
+    ["short token", { MCP_AUTH_TOKEN: "x".repeat(MIN_MCP_TOKEN_LENGTH - 1) }],
   ])("rejects weak or missing MCP_AUTH_TOKEN (%s)", (_name, overrides) => {
     expect(() => loadConfig(envWith(overrides))).toThrowError(ConfigError);
   });

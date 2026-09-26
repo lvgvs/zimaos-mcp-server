@@ -108,6 +108,9 @@ function isRouteSpec(value: unknown): value is RouteSpec {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
-    v["status"] !== undefined || v["json"] !== undefined || v["text"] !== undefined || v["error"] !== undefined
+    v["status"] !== undefined ||
+    v["json"] !== undefined ||
+    v["text"] !== undefined ||
+    v["error"] !== undefined
   );
 }

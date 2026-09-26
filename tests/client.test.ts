@@ -103,13 +103,14 @@ describe("ZimaOsClient authentication/session behavior (mocked HTTP)", () => {
   });
 
   it("maps a timeout to ZIMAOS_UNREACHABLE", async () => {
-    const hangingFetch = (async (_input, init) => new Promise<Response>((_resolve, reject) => {
-      init?.signal?.addEventListener("abort", () => {
-        const err = new Error("aborted");
-        err.name = "AbortError";
-        reject(err);
-      });
-    })) as typeof fetch;
+    const hangingFetch = (async (_input, init) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          const err = new Error("aborted");
+          err.name = "AbortError";
+          reject(err);
+        });
+      })) as typeof fetch;
     const client = new ZimaOsClient({
       baseUrl: BASE,
       username: "admin",
@@ -165,8 +166,12 @@ describe("ZimaOsClient response normalization (mocked HTTP)", () => {
     fake.on("GET", "/v2/app_management/compose/b", { status: 429, json: {} });
     const client = makeClient(fake);
 
-    await expect(client.getComposeApp("a")).rejects.toMatchObject({ code: "ZIMAOS_UPSTREAM_ERROR" });
-    await expect(client.getComposeApp("b")).rejects.toMatchObject({ code: "ZIMAOS_RATE_LIMITED" });
+    await expect(client.getComposeApp("a")).rejects.toMatchObject({
+      code: "ZIMAOS_UPSTREAM_ERROR",
+    });
+    await expect(client.getComposeApp("b")).rejects.toMatchObject({
+      code: "ZIMAOS_RATE_LIMITED",
+    });
   });
 
   it("maps non-JSON success responses to ZIMAOS_UPSTREAM_ERROR", async () => {
@@ -216,24 +221,36 @@ describe("ZimaOsClient response normalization (mocked HTTP)", () => {
     fake.on("GET", "/v2/app_management/compose/myapp/healthcheck", {}); // empty 200
     const client = makeClient(fake);
 
-    await expect(client.probeComposeAppHealth("myapp")).resolves.toEqual({ state: "healthy" });
+    await expect(client.probeComposeAppHealth("myapp")).resolves.toEqual({
+      state: "healthy",
+    });
   });
 
   it("probeComposeAppHealth: HTTP 5xx means unhealthy, not an error", async () => {
     const fake = new FakeZimaOs();
     loginOk(fake);
-    fake.on("GET", "/v2/app_management/compose/myapp/healthcheck", { status: 503, json: {} });
+    fake.on("GET", "/v2/app_management/compose/myapp/healthcheck", {
+      status: 503,
+      json: {},
+    });
     const client = makeClient(fake);
 
-    await expect(client.probeComposeAppHealth("myapp")).resolves.toEqual({ state: "unhealthy" });
+    await expect(client.probeComposeAppHealth("myapp")).resolves.toEqual({
+      state: "unhealthy",
+    });
   });
 
   it("probeComposeAppHealth: HTTP 404 means unknown (no health signal)", async () => {
     const fake = new FakeZimaOs();
     loginOk(fake);
-    fake.on("GET", "/v2/app_management/compose/myapp/healthcheck", { status: 404, json: {} });
+    fake.on("GET", "/v2/app_management/compose/myapp/healthcheck", {
+      status: 404,
+      json: {},
+    });
     const client = makeClient(fake);
 
-    await expect(client.probeComposeAppHealth("myapp")).resolves.toEqual({ state: "unknown" });
+    await expect(client.probeComposeAppHealth("myapp")).resolves.toEqual({
+      state: "unknown",
+    });
   });
 });

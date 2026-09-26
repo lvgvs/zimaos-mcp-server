@@ -33,7 +33,11 @@ function makeDeps(): ToolDeps {
     apps: {
       listApps: async () => [{ id: "myapp", name: "My App", status: "running" }],
       getApp: async (id: string) => ({ id, name: "My App", status: "running" }),
-      getAppHealth: async (id: string) => ({ app: id, probe: { state: "healthy" }, containers: [] }),
+      getAppHealth: async (id: string) => ({
+        app: id,
+        probe: { state: "healthy" },
+        containers: [],
+      }),
       getLogs: async () => "log-line-1\nlog-line-2",
       listContainers: async () => [],
       startApp: async () => undefined,
@@ -128,9 +132,12 @@ describe("HTTP transport (mocked services)", () => {
   });
 
   it("completes an authenticated MCP initialize + tools/list over HTTP", async () => {
-    const transport = new StreamableHTTPClientTransport(new URL("/mcp", running.baseUrl), {
-      requestInit: { headers: { authorization: `Bearer ${MCP_TOKEN}` } },
-    });
+    const transport = new StreamableHTTPClientTransport(
+      new URL("/mcp", running.baseUrl),
+      {
+        requestInit: { headers: { authorization: `Bearer ${MCP_TOKEN}` } },
+      },
+    );
     const client = new Client({ name: "http-test-client", version: "0.0.1" });
     await client.connect(transport);
 

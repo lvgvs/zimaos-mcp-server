@@ -40,12 +40,15 @@ function makeDeps(overrides: { allowAppControl?: boolean } = {}): ToolDeps {
   const apps: Record<string, unknown> = {};
   const deps: ToolDeps = {
     apps: {
-      listApps: async () => [
-        { id: "myapp", name: "My App", status: "running" },
-      ],
+      listApps: async () => [{ id: "myapp", name: "My App", status: "running" }],
       getApp: async (id: string) => ({ id, name: "My App", status: "running" }),
-      getAppHealth: async (id: string) => ({ app: id, probe: { state: "healthy" }, containers: [] }),
-      getLogs: async (_id: string, lines: number) => `line-1\nline-2 (${lines} requested)`,
+      getAppHealth: async (id: string) => ({
+        app: id,
+        probe: { state: "healthy" },
+        containers: [],
+      }),
+      getLogs: async (_id: string, lines: number) =>
+        `line-1\nline-2 (${lines} requested)`,
       listContainers: async () => [],
       startApp: async (id: string) => {
         apps["start"] = id;
@@ -60,7 +63,9 @@ function makeDeps(overrides: { allowAppControl?: boolean } = {}): ToolDeps {
     system: {
       getSystemInfo: async () => ({ hostname: "zima", osVersion: "v1.7.1" }),
     } as unknown as ToolDeps["system"],
-    permissions: new PermissionLayer({ allowAppControl: overrides.allowAppControl ?? false }),
+    permissions: new PermissionLayer({
+      allowAppControl: overrides.allowAppControl ?? false,
+    }),
   };
   return deps;
 }
@@ -107,7 +112,10 @@ describe("MCP tools (mocked services)", () => {
   it("control tools are denied by default with a clear, non-leaky error", async () => {
     const { client, serverTransport } = await connect(makeDeps());
     try {
-      const result = await client.callTool({ name: "start_app", arguments: { app_id: "myapp" } });
+      const result = await client.callTool({
+        name: "start_app",
+        arguments: { app_id: "myapp" },
+      });
       expect(result.isError).toBe(true);
       const text = textOf(result);
       expect(text).toContain("APP_CONTROL_DISABLED");
@@ -122,7 +130,10 @@ describe("MCP tools (mocked services)", () => {
     const deps = makeDeps({ allowAppControl: true });
     const { client, serverTransport } = await connect(deps);
     try {
-      const result = await client.callTool({ name: "start_app", arguments: { app_id: "myapp" } });
+      const result = await client.callTool({
+        name: "start_app",
+        arguments: { app_id: "myapp" },
+      });
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).toContain("myapp");
     } finally {
@@ -168,11 +179,17 @@ describe("MCP tools (mocked services)", () => {
     const deps = makeDeps();
     // Simulate an upstream failure from the service layer.
     (deps.apps as unknown as Record<string, unknown>).getApp = async (_id: string) => {
-      throw new AppError("ZIMAOS_NOT_FOUND", "The requested resource was not found on the ZimaOS host.");
+      throw new AppError(
+        "ZIMAOS_NOT_FOUND",
+        "The requested resource was not found on the ZimaOS host.",
+      );
     };
     const { client, serverTransport } = await connect(deps);
     try {
-      const result = await client.callTool({ name: "get_app", arguments: { app_id: "nope" } });
+      const result = await client.callTool({
+        name: "get_app",
+        arguments: { app_id: "nope" },
+      });
       expect(result.isError).toBe(true);
       const text = textOf(result);
       expect(text).toContain("ZIMAOS_NOT_FOUND");
