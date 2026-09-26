@@ -180,19 +180,15 @@ export class ZimaOsClient {
    * Genuine transport/auth failures still throw AppError.
    */
   async probeComposeAppHealth(id: string): Promise<HealthProbeResult> {
+    let body: unknown;
     try {
-      const data = await this.envelopeRequest(
+      // The health endpoint is a BaseResponse: HTTP status is the signal, not
+      // an envelope success flag. Any resolved body (including empty) means
+      // healthy; 404/5xx are data, not failures.
+      body = await this.authedRequest(
         "GET",
         `/v2/app_management/compose/${encodeURIComponent(id)}/healthcheck`,
       );
-      let detail: string | undefined;
-      if (isRecord(data)) {
-        const msg = data["message"];
-        if (typeof msg === "string" && msg.length > 0) detail = msg;
-      } else if (typeof data === "string") {
-        detail = data;
-      }
-      return { state: "healthy", detail };
     } catch (err) {
       if (err instanceof AppError) {
         switch (err.code) {
@@ -206,6 +202,14 @@ export class ZimaOsClient {
       }
       throw err;
     }
+    let detail: string | undefined;
+    if (isRecord(body)) {
+      const msg = body["message"];
+      if (typeof msg === "string" && msg.length > 0) detail = msg;
+    } else if (typeof body === "string") {
+      detail = body;
+    }
+    return { state: "healthy", detail };
   }
 
   // ------------------------------------------------------------- zimaos --
