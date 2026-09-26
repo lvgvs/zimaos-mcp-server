@@ -6,20 +6,20 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 1 (implementation complete through the mocked-test milestone; packaging next).
-- **Current milestone:** Production image built and live-exercised in a container against the
-  disposable ZimaOS VM; `Dockerfile` + `.dockerignore` committed. Next: Compose → CI → GHCR → docs
-  → full quality gates → final handoff. No Phase 2 work.
+- **Phase:** Phase 1 — **complete.** All Phase 1 acceptance criteria that can be completed safely
+  have been completed and verified. No Phase 2 work has been started.
+- **Current milestone:** Final manager handoff. Production image built, live-exercised, published to
+  GHCR; CI green on push; ZimaOS paste-ready Compose committed; docs complete; full local quality
+  gates green; live integration against the disposable VM verified.
 
 ## Git / repository
 
 - **Branch:** `main`
-- **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (private)
-- **HEAD:** see `git log -1 --oneline`. Latest: `acc8051` (`build: add production Docker
-  packaging (verified image build + live container run)`), on top of `0b292e3` (docs handoff
-  correction).
+- **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (**private**, per Phase 1 rule)
+- **HEAD:** see `git log -1 --oneline`. Latest: `e612d91` (`docs(README): correct MCP tool list to
+  match registered tools`).
 
-## Committed & pushed milestones
+## Committed & pushed milestones (all on `main`, all pushed)
 
 - Core implementation (`a3cd9e8`): strict TypeScript MCP server with typed ZimaOS client (login,
   bearer session, auto re-login on 401), domain services (apps/system), permission layer (app
@@ -29,8 +29,17 @@ authoritative.
   harness; covers config validation, client session behavior, permission layer, MCP tools over
   InMemoryTransport, and the HTTP transport (auth rejection, health readiness, authenticated round
   trip). Includes the `probeComposeAppHealth` fix.
-- Docs handoff (`1bd0cf1`): added DECISIONS.md; committed an incomplete STATUS.md (now corrected by
-  this file).
+- Docs handoff (`1bd0cf1`, corrected by `0b292e3`).
+- Docker packaging (`acc8051`): multi-stage, non-root, prod-deps-only `Dockerfile` + `.dockerignore`.
+  Committed only after the production image was built and live-exercised.
+- Deploy Compose (`6bfe1ce`): `deploy/zimaos/docker-compose.yml`, paste-ready for a ZimaOS Custom
+  App (host-gateway networking, no privileged socket).
+- CI + GHCR workflows (`6da18f6`): `.github/workflows/ci.yml` and `.github/workflows/ghcr-publish.yml`.
+  Neither depends on the disposable VM; no VM credentials in Actions.
+- Docs (`a408e0d`): `README.md`, Apache-2.0 `LICENSE`, `.env.example`, host-gateway research note in
+  `docs/RESEARCH.md`.
+- Status progress record (`0797d3e`).
+- Formatting normalization (`e16ba21`) and README tool-list correction (`e612d91`).
 
 ## Automated test status (exact)
 
@@ -38,68 +47,21 @@ authoritative.
   → "Test Files 5 passed", "Tests 52 passed".
 - Suites: config, client session, permissions, tools (InMemoryTransport), HTTP transport.
 
-## Type-check / build gates that pass
+## Full local quality gates — ALL PASSING (re-verified this session)
 
-- `tsc -p tsconfig.json --noEmit` — **pass** (production type check).
-- `tsc -p tsconfig.test.json --noEmit` — **pass** (test type check, strict).
+- `npm run lint` (`eslint .`) — **pass** (0 errors). The two pre-existing
+  `consistent-type-imports` errors were fixed with `eslint --fix`.
+- `npm run typecheck` (`tsc -p tsconfig.json --noEmit`) — **pass**.
+- Test type check (`tsc -p tsconfig.test.json --noEmit`) — **pass** (strict).
+- `npm test` — **52/52 pass**.
 - `npm run build` (`tsc -p tsconfig.json`) — **passes**; emits `dist/` (gitignored).
-
-## Formatting / lint status (NOT passing — recorded honestly)
-
-The committed test milestone does NOT pass the formatter/linter. This is pre-existing debt on the
-test files, not introduced by this correction:
-
-- `eslint .` — **2 errors** (`@typescript-eslint/consistent-type-imports`):
-  - `tests/helpers/fakeZimaOs.ts:11`
-  - `tests/http.test.ts:8`
-- `prettier --check .` — **5 files fail**:
-  - `tests/client.test.ts`, `tests/config.test.ts`, `tests/helpers/fakeZimaOs.ts`,
-    `tests/http.test.ts`, `tests/tools.test.ts`
-
-Do not claim eslint/prettier pass. Fixing this debt is a small follow-up (convert the two type-only
-imports to `import type`, then run `prettier --write` on the five test files) and should be done
-before the final quality gate, but it was intentionally NOT bundled into this handoff correction.
-
-## Live disposable-ZimaOS API findings already verified (sanitized)
-
-Verified against ZimaOS v1.7.1 (x86_64) on the authorized disposable VM; full detail in
-`docs/RESEARCH.md`:
-
-- **`POST /v1/users/login`** — envelope `{success,message,data}`; `data.token` is an **object**
-  `{access_token, refresh_token}`, not a string. Downstream calls use
-  `Authorization: Bearer <access_token>`.
-- **`GET /v2/app_management/compose`** — envelope; `data` = object map keyed by app id →
-  `ComposeAppWithStoreInfo` (not an array).
-- **`GET /v2/app_management/compose/{id}/containers`** — envelope; `data` = array of containers.
-- **`PUT /v2/app_management/compose/{id}/status`** — request body is a raw JSON **string** enum
-  (`"start"`/`"restart"`/`"stop"`), not an object; response is a `BaseResponse` envelope.
-- **Logs `lines` behavior** — `GET .../logs?lines=N`; `lines` bounds the size, `data` = string.
-  Always pass a bounded `lines`.
-- **`GET /v2/zimaos/device/info`** — returns a **bare payload** (no `{success,message,data}`
-  wrapper).
-- **Envelope differences** — app-management and user-service use the `{success,message,data}`
-  envelope; the core service (`/v2/zimaos`) returns bare payloads. Clients are written to each rule.
-- **Nullable `store_info.title` fallback implication** — `title` may be null for some apps;
-  normalization falls back to the app id (`src/domain/models.ts`).
-
-## MCP SDK / transport approach (verified)
-
-- **SDK:** `@modelcontextprotocol/sdk` **1.30.1**.
-- **Transport:** authenticated Streamable HTTP over a single endpoint `POST /mcp`, plus an
-  unauthenticated `GET /health` readiness probe on the same HTTP server. Bearer auth via
-  `MCP_AUTH_TOKEN`; no default token; fail-fast at startup.
-
-## Known bug already fixed
-
-- **`probeComposeAppHealth`:** now uses the client's raw authenticated request (HTTP status is the
-  signal) instead of the `{success,message,data}` envelope parser, because the compose health
-  endpoint is a `BaseResponse`. The old path misreported a 200 with an empty body as "unhealthy".
-  Fixed in the test milestone (`7396929`).
+- `npx prettier --check .` — **pass** ("All matched files use Prettier code style!"). The 5-file
+  formatting debt recorded in the previous status was fixed with `prettier --write`.
 
 ## Docker / packaging status
 
 - **Docker availability:** installed and running in the Hermes environment (agent-installed via
-  direct foreground `sudo`; daemon active, client/server 26.1.5). The session has been restarted so
+  direct foreground `sudo`; daemon active, client/server 26.1.5). The session was restarted so
   unprivileged `docker` works — verified with `id` (groups include `docker`) and `docker info` /
   `docker version` without sudo. No further privileged Docker operations are needed for normal work.
 - **Production image built & live-exercised:** `zimaos-mcp-server:local` (186 MB) built from the
@@ -110,85 +72,67 @@ Verified against ZimaOS v1.7.1 (x86_64) on the authorized disposable VM; full de
 - **Packaging files COMMITTED** in `acc8051`: `Dockerfile` and `.dockerignore`. The Dockerfile no longer
   uses a `# syntax=docker/dockerfile:1` frontend directive (removed — see DECISIONS.md), so the build
   needs no external BuildKit frontend image.
-- **Build note:** this environment has IPv6 DNS for Docker Hub but no working IPv6 egress; the daemon's
-  own pulls work over IPv4, and removing the syntax directive avoids the BuildKit frontend fetch that
-  failed on IPv6. No repo change is required to build elsewhere with full connectivity.
 
-## Podman fallback status
+## CI status (GitHub Actions)
 
-- A previous rootless-Podman fallback attempt was **cancelled before it installed anything**. No
-  persistent Podman packages/binaries/config were introduced; there is nothing to remove. The
-  project uses Docker, not Podman.
+- **Workflow:** `.github/workflows/ci.yml` on push to `main`. Steps: install → lint → typecheck →
+  test → production build → Docker image build → Compose validation (`docker compose config`).
+- **Result:** run for the final push — **success** (all jobs green). CI does not depend on the
+  disposable VM and contains no VM credentials.
 
-## CI / GHCR status
+## GHCR status
 
-- **CI:** no `.github/workflows/` yet — CI workflow not created.
-- **GHCR:** image not built/published; publishing workflow not created.
+- **Workflow:** `.github/workflows/ghcr-publish.yml` on push to `main` (and `v*` tags), using the
+  auto-provided `GITHUB_TOKEN`. No VM dependency.
+- **Result:** run for the final push — **success**. Pushed image:
+  `ghcr.io/lvgvs/zimaos-mcp-server:latest` (digest `sha256:0f8aeb93…`, per the workflow's "Push tags"
+  log). The package inherits repository visibility (**private**); pulling requires a GitHub token
+  with `read:packages` scope. This is documented in README ("Private-image limitation").
+
+## Live integration status (authorized disposable VM)
+
+- Executed against ZimaOS v1.7.1 using `.env.integration.local` (never echoed; file remains
+  git-ignored and untracked).
+- **Verified:** container `/health` readiness; authenticated MCP round-trip over Streamable HTTP —
+  `tools/list` returned all 9 tools (`list_apps`, `get_app`, `get_app_health`, `get_app_logs`,
+  `list_app_containers`, `get_system_info`, `start_app`, `stop_app`, `restart_app`);
+  `get_system_info` returned real VM facts (hostname `ZimaOS`, v1.7.1, amd64); `list_apps` returned
+  the VM's running test app (`mcp-test-nginx`, status `running`); unauthenticated `/mcp` request was
+  rejected with **401** (negative control).
+- Control operations remain disabled by default (`ALLOW_APP_CONTROL` unset), per Phase 1 security
+  model; no destructive live actions were needed for verification.
 
 ## Documentation status
 
-- Present: `AGENTS.md`, `PROJECT.md`, `DECISIONS.md`, `docs/RESEARCH.md`, `STATUS.md`.
-- Missing (Phase 1 deliverables still to create): `README.md`, `LICENSE` (Apache-2.0), `.env.example`.
+- Present: `AGENTS.md`, `PROJECT.md`, `DECISIONS.md`, `docs/RESEARCH.md`, `STATUS.md`, `README.md`,
+  `LICENSE` (Apache-2.0), `.env.example`, `deploy/zimaos/docker-compose.yml`.
+- README documents: setup, configuration (all env vars incl. `ALLOW_APP_CONTROL` default-off), the
+  exact MCP tool list (verified against `src/mcp/tools.ts`), ZimaOS Custom App deployment via the
+  paste-ready Compose, and the private-image pull limitation.
 
 ## Secrets / integration env file
 
 - `.env.integration.local` is **ignored** (`.gitignore:9:.env.*`), **untracked**, and **unstaged**.
   No secrets are committed or staged. Its values must never be printed, logged, or copied into
-  tracked files.
-
-## Current known blocker
-
-- **None.** Docker is installed, running, and reachable without sudo (session restarted after adding
-  `hermes` to the `docker` group). The production image builds and runs. Remaining Phase 1 work is
-  ordinary implementation/packaging/docs/CI/GHCR/live-integration — no privileged or manual step is
-  blocking at this point.
-
-## Environment notes (for a fresh chat)
-
-- **Sudo access verified:** direct foreground `sudo` works through Hermes's secure masked password
-  prompt in this environment (verified with `sudo id` → root). The earlier claim that sudo was
-  unavailable due to the non-TTY environment is incorrect and has been superseded. Use direct
-  foreground `sudo` for any future privileged step; never wrap it or handle the password yourself.
-- **Docker:** installed by the agent via direct foreground `sudo`; daemon active (client/server
-  26.1.5); `hermes` is in the `docker` group, so normal Docker operations need no sudo.
-
-## Remaining Phase 1 work (correct order)
-
-1. ~~Make Docker available in the Hermes environment~~ — completed (install + start/enable daemon;
-   `hermes` added to `docker` group).
-2. ~~Build & exercise the production image, then commit `Dockerfile` / `.dockerignore`~~ — completed:
-   image built and live-exercised against the disposable VM; committed in `acc8051`.
-3. Create ZimaOS paste-ready Compose: `deploy/zimaos/docker-compose.yml`.
-4. Create CI workflow (`.github/workflows/`).
-5. Create GHCR publishing workflow.
-6. Add remaining docs: `README.md`, `LICENSE` (Apache-2.0), `.env.example`.
-7. Run full local quality gates, reported separately: formatter/linter; production TypeScript
-   build/type-check; test TypeScript type-check; full mocked suite; Docker image build. (Fix the
-   recorded eslint/prettier debt first.)
-8. Live integration against the authorized disposable VM using `.env.integration.local` (never
-   echoed).
-9. Final manager handoff.
+  tracked files. Verified with `git check-ignore -v .env.integration.local` → ignored.
 
 ## Known limitations
 
-- No `README.md`, `LICENSE`, or `.env.example` yet.
-- No CI/GHCR workflows and no deploy Compose YAML yet.
-- The production image has been built and live-exercised locally (`zimaos-mcp-server:local`), but it
-  is not yet published to GHCR, so the Compose/CI references will use a local build until then.
-- Live integration against the disposable VM: container round-trip verified (see Docker section);
-  the broader live-integration pass (step 8) still pending.
-- Pre-existing formatting/lint debt on 5 test files (2 eslint errors + 5 prettier files) — see above.
+- GHCR image is private (inherits repo visibility); consumers need a token with `read:packages`.
+  Documented in README; no action required for Phase 1 scope.
+- A live ZimaOS Custom App paste/install through the ZimaOS UI remains an optional manual
+  verification item near handoff (per PROJECT.md); the Compose file is validated by CI and is
+  paste-ready, but was not pasted into the VM's UI in this session.
 
 ## Manual actions required
 
-- **None blocking.** The Hermes/LXC session was restarted after `usermod -aG docker hermes`; the
-  agent now has unprivileged Docker access and no further manual step is needed for packaging.
-- A live ZimaOS Custom App paste/install may remain as one explicit manual verification item near the
-  end (per PROJECT.md).
+- **None blocking.** No privileged or manual step is needed for Phase 1 completion.
+- Optional: paste `deploy/zimaos/docker-compose.yml` into a ZimaOS Custom App on the disposable VM
+  as an end-to-end UI verification (the container artifact itself is already verified).
 
-## Recommended next action for a fresh chat
+## Recommended next action for the manager
 
-Continue Phase 1 from `deploy/zimaos/docker-compose.yml` → CI workflow → GHCR publishing workflow →
-docs (`README.md`, `LICENSE`, `.env.example`) → full local quality gates (fix the recorded
-eslint/prettier debt first) → live integration against the disposable VM using
-`.env.integration.local` (never echoed) → final manager handoff. Do not begin Phase 2.
+Phase 1 is complete and pushed; review the handoff. No Phase 2 work has been started, per scope
+discipline. If approved, a later phase may consider: public repository visibility decision, GHCR
+image tag strategy beyond `latest`, and additional ZimaOS API coverage — none of which are in
+Phase 1 scope.
