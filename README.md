@@ -32,28 +32,30 @@ plus reversible start/stop/restart controls (disabled by default). See
 
 ## Configuration (environment)
 
-| Variable             | Required | Description                                                        |
-| -------------------- | -------- | ------------------------------------------------------------------ |
-| `ZIMAOS_URL`         | yes      | Base URL of the ZimaOS web/API, e.g. `http://host.docker.internal`. |
-| `ZIMAOS_USERNAME`    | yes      | ZimaOS account allowed to manage compose apps and read system info.|
-| `ZIMAOS_PASSWORD`    | yes      | Password for that account.                                         |
-| `MCP_AUTH_TOKEN`     | yes      | Bearer token MCP clients must present; **min 32 chars, no default**. |
-| `ALLOW_APP_CONTROL`  | no       | `true`/`false`; enable reversible app controls (default `false`).   |
-| `PORT`               | no       | HTTP listen port (default `3000`).                                  |
-| `LOG_LEVEL`          | no       | `debug` \| `info` \| `warn` \| `error` (default `info`).            |
+| Variable            | Required | Description                                                          |
+| ------------------- | -------- | -------------------------------------------------------------------- |
+| `ZIMAOS_URL`        | yes      | Base URL of the ZimaOS web/API, e.g. `http://host.docker.internal`.  |
+| `ZIMAOS_USERNAME`   | yes      | ZimaOS account allowed to manage compose apps and read system info.  |
+| `ZIMAOS_PASSWORD`   | yes      | Password for that account.                                           |
+| `MCP_AUTH_TOKEN`    | yes      | Bearer token MCP clients must present; **min 32 chars, no default**. |
+| `ALLOW_APP_CONTROL` | no       | `true`/`false`; enable reversible app controls (default `false`).    |
+| `PORT`              | no       | HTTP listen port (default `3000`).                                   |
+| `LOG_LEVEL`         | no       | `debug` \| `info` \| `warn` \| `error` (default `info`).             |
 
 A ready-to-edit example lives in `.env.example`. Never commit real values.
 
 ## MCP tools
 
-Read-only:
+Read-only (always available):
 
-- `get_system_info` — ZimaOS version, hostname, and basic system facts.
 - `list_apps` — installed compose applications with status.
-- `get_app_status` — detailed status for one application.
-- `get_app_logs` — bounded recent logs for one application (size-limited).
+- `get_app` — normalized details for one application by its stable id.
+- `get_app_health` — health/state for an application and its containers (`unknown` when ZimaOS does not expose it).
+- `get_app_logs` — bounded recent logs for one application (default 100 lines, max 500).
+- `list_app_containers` — normalized container/service info for one application.
+- `get_system_info` — ZimaOS version, hostname, and basic system facts.
 
-Control operations (only when `ALLOW_APP_CONTROL=true`):
+Control operations (only when `ALLOW_APP_CONTROL=true`; otherwise a clear permission error):
 
 - `start_app`, `stop_app`, `restart_app`.
 
