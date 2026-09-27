@@ -76,6 +76,47 @@ The container listens on internal port `3000` and exposes a readiness endpoint
 at `/health` (no auth required). The server fails fast at startup if any
 required variable is missing or invalid.
 
+## Connecting an MCP client
+
+The server speaks **Streamable HTTP** over a single endpoint:
+
+```text
+http://<zima-host>:3900/mcp
+```
+
+Every request must carry the bearer token configured as `MCP_AUTH_TOKEN` on
+the server (no default value exists):
+
+```http
+POST /mcp HTTP/1.1
+Host: <zima-host>:3900
+Content-Type: application/json
+Authorization: Bearer <MCP_AUTH_TOKEN>
+
+{"jsonrpc":"2.0","id":1,"method":"tools/list"}
+```
+
+This is transport-level, so any MCP client that supports Streamable HTTP can
+connect — configure the endpoint URL and a static `Authorization` header in
+your client of choice (e.g. Claude Desktop, an IDE MCP integration, or your
+own SDK). The `/health` endpoint requires no authentication and is intended
+for container health checks only; it is not an MCP endpoint.
+
+## GHCR image references
+
+Published images carry these tags:
+
+| Tag                | Meaning                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------ |
+| `latest`           | Latest build pushed to `main` (and every release tag).                                           |
+| `v<version>`       | A specific release, e.g. `v1.0.0`, when a `v*` git tag is pushed.                                |
+| `sha-<GITHUB_SHA>` | **Immutable** reference for the exact commit that was built; every published build receives one. |
+
+Pin deployments to `sha-<full-commit-sha>` (visible in the GHCR publish
+workflow run) when you need a reproducible image; use `latest` or a `v*` tag
+when tracking releases is sufficient. The package remains private, so pulling
+requires a GitHub token with `read:packages`.
+
 ## ZimaOS Custom App deployment
 
 1. Open the ZimaOS application interface.
