@@ -158,3 +158,401 @@ unwrap a `data` key for `/v2/zimaos/*`.
 - Verified against ZimaOS **v1.7.1** on the authorized disposable integration VM (x86_64).
 - The app-management and user-service services use the `{success,message,data}` envelope;
   the core service (`/v2/zimaos`) returns bare payloads. Clients are written to each rule.
+
+## Phase 2 research checkpoint — 2026-09-27
+
+This is research, not implemented behavior. The Astra recovery pass started with clean
+`main` and remote main at `06fe86c267c27648e48b8616944984b795cb86ae`.
+No live ZimaOS requests or mutations were made in this pass. Evidence classes below
+separate official documentation, local synthetic experiments, and manager-provided live facts.
+
+### B. Parser: official facts and recovered scratch evidence
+
+Sources verified on 2026-09-27:
+
+- YAML v2 API/options: https://eemeli.org/yaml/
+- Exact release license: https://github.com/eemeli/yaml/blob/v2.9.1/LICENSE
+- Compose fragments/merge semantics:
+  https://github.com/compose-spec/compose-spec/blob/main/10-fragments.md
+- Service fields and both mount syntaxes:
+  https://github.com/compose-spec/compose-spec/blob/main/05-services.md
+- Named-volume drivers/options/external volumes:
+  https://github.com/compose-spec/compose-spec/blob/main/07-volumes.md
+
+The existing scratch `p2/parse-test/package.json` and lockfile contain `js-yaml`
+5.4.2 (MIT) and `yaml` 2.9.1 (ISC). These are scratch dependencies, not product dependencies.
+The original `test-parse.js` was rerun unchanged: **12 passed, 14 failed** (exit 1).
+It tests default parsing, short/long volumes, malformed YAML, scalar root, duplicate
+keys, and a standard `!!str` tag. It does **not** test a custom executable tag,
+Compose schema validation, alias exhaustion, cycles, or prototype pollution.
+Its risk fields are on service `db`, but the assertions inspect `web`; both default
+parsers leave its merge fields unapplied. Duplicate-key exceptions only print a message
+and do not increment the assertion count. Do not cite this script as a passing safety suite.
+
+**Selected parser: `yaml@2.9.1`, ISC**, compatible with original Apache-2.0 source
+while retaining the dependency copyright/permission notice. Official docs describe
+data parsing into an inspectable Document AST/native values, not Compose execution;
+no custom resolvers, revivers, file access, or command execution are needed. YAML
+parsing alone does not validate Compose or reproduce ZimaOS interpolation.
+
+Use `parseDocument` with explicit YAML 1.2/core schema, `merge: true`, `strict: true`,
+`uniqueKeys: true`, `resolveKnownTags: false`, and `prettyErrors: false`. Inspect
+`errors` **and** `warnings` before conversion. Do not log source-containing parser
+diagnostics. Do not supply custom tags. Restrict explicit tags to supported core
+types/merge and reject unsupported directives or YAML-version changes. Unknown tags
+can warn and fall back rather than throw, so merely catching exceptions is unsafe.
+
+The additional synthetic scratch-only `astra-parser-check.cjs` ran **14/14 passing**:
+
+- Explicit merge support exposes inherited privileged/namespace fields; local keys
+  override merged keys, and earlier maps win in a merge sequence.
+- Ordinary duplicate keys produce `DUPLICATE_KEY`, but repeated `<<` keys are accepted
+  even with `uniqueKeys: true`: reject repeated merge keys separately in the AST.
+- Unknown tags and disabled known non-core tags produce warnings.
+- Core schema keeps `yes` and quoted `"true"` as strings, parses `true` as boolean,
+  `012` as decimal 12, and a plain date as a string. Require correct field types;
+  do not treat strings such as `"false"`, `on`, or `${FLAG}` as proven safe booleans.
+- `doc.toJS({ mapAsMap: true, maxAliasCount: 100 })` preserves maps as Maps,
+  including `__proto__`/`constructor` data; the probe did not modify Object.prototype.
+  Avoid copying untrusted entries into normal prototype-bearing objects or deep-merge
+  utilities. Validate string keys rather than silently coercing complex keys.
+- A zero alias budget rejects alias conversion. The documented default budget is
+  100; never disable it with -1. Cyclic aliases can still form cyclic JS graphs:
+  cycle-aware traversal and explicit rejection are required independently of the budget.
+- Multiple documents are rejected by `parseDocument`; syntactically valid
+  `services: { web: 123 }` remains parseable and needs structural validation.
+- Both short strings and long mapping forms of volumes remain inspectable data.
+
+Resource limits must also bound input bytes, AST depth/node count, traversal work,
+and conversion; an alias budget is not a CPU/memory/time guarantee for parsing.
+Concrete budgets and adversarial regression tests remain implementation work.
+Reject malformed/ambiguous/unsupported input, rather than approving unknown semantics.
+
+### B. Safety analysis design (not an implemented detector)
+
+Parse the original submitted string once per analysis attempt, inspect AST plus bounded
+resolved Maps, and retain the exact original UTF-8 string for ZimaOS validation and
+installation. Fingerprint those exact bytes, not parsed JSON or reserialized YAML.
+Do not normalize whitespace, line endings, comments, tags, or merge structure in the
+submitted document. Reject ill-formed Unicode rather than allowing lossy encoding.
+New content, including formatting changes, must invalidate prior approval.
+
+Required detection inventory, based on the Compose specification (support by ZimaOS
+for every newer field is **not** established):
+
+- `privileged`, including privileged lifecycle hooks; `use_api_socket`.
+- Short/long socket mounts (Docker, containerd, CRI-O, Podman), including parent
+  directory mounts such as `/run` or `/var/run`; read-only socket mounts are still risky.
+- Host `pid`, `ipc`, `network_mode`, `uts`, and `cgroup`; namespace sharing with other
+  services/containers must not hide inherited host access.
+- `devices` (including CDI selectors) and `device_cgroup_rules`: whole disks,
+  `/dev/mem`, `/dev/kmsg`, broad wildcards, and unclassified passthrough need disclosure
+  or rejection, not an assumption that every `/dev` device is benign.
+- Sensitive binds such as `/`, `/etc`, `/proc`, `/sys`, `/dev`, runtime state,
+  Docker storage, root/home credentials, and their ancestors; inspect source paths,
+  long-form bind options/propagation, and both read-only and writable exposure.
+- `cap_add` (notably ALL/SYS_ADMIN/SYS_PTRACE), security-option relaxation, host
+  namespace/cgroup settings, and privileged hooks are other host-control signals.
+- Named volumes are not intrinsically safe: inspect `driver_opts` (including bind
+  indirection), custom drivers, externally managed volumes, and `volumes_from`.
+
+**Conservative proposal:** reject unresolved interpolation in safety-relevant values,
+external `include`/`extends`, uninspectable file references, builds requiring external
+context, and unknown host-affecting constructs until their semantics can be inspected.
+Inspect all services, including profile-disabled ones, plus referenced extension/anchor
+content; retain field/service paths in disclosures. Ordinary ports, ordinary networks,
+and plain app-scoped named volumes need not be classified as elevated solely for existing.
+Do not read host files or execute Docker Compose to resolve uncertainty.
+
+Limits: local YAML parsing cannot establish symlink targets, remote host paths, mutable
+external volumes, image behavior, or the exact ZimaOS Compose engine/schema version.
+Safety analysis is a conservative guardrail, not proof that arbitrary Compose is safe.
+The allow/reject boundary and numeric resource budgets need manager review and tests.
+
+### C. Current official MCP v2 facts
+
+Verified 2026-09-27 against the official TypeScript SDK repository at
+`7f7a94c22017e121a960e071bb50ec75e34450bd`, official spec repository at
+`ab3a39c13bd23be691c2760e1c6c5c15a64582e1`, npm registry metadata, and the
+published server 2.1.0 declaration bundle (research download, not installed in product).
+Sources:
+
+- Stable status: https://github.com/modelcontextprotocol/typescript-sdk/blob/main/README.md
+- Releases: https://github.com/modelcontextprotocol/typescript-sdk/releases
+- Package metadata: https://registry.npmjs.org/@modelcontextprotocol/server
+  (also `/@modelcontextprotocol/client`, `/@modelcontextprotocol/node`,
+  `/@modelcontextprotocol/core`, `/@modelcontextprotocol/server-legacy`, and `/@modelcontextprotocol/sdk`).
+- Upgrade: https://ts.sdk.modelcontextprotocol.io/v2/migration/upgrade-to-v2
+- Protocol migration: https://ts.sdk.modelcontextprotocol.io/v2/migration/support-2026-07-28
+- Versions: https://ts.sdk.modelcontextprotocol.io/v2/protocol-versions
+- HTTP: https://ts.sdk.modelcontextprotocol.io/v2/serving/http
+- Legacy: https://ts.sdk.modelcontextprotocol.io/v2/serving/legacy-clients
+- State/session distinction: https://ts.sdk.modelcontextprotocol.io/v2/serving/sessions-state-scaling
+- Input required: https://ts.sdk.modelcontextprotocol.io/v2/servers/input-required
+- Codec source:
+  https://github.com/modelcontextprotocol/typescript-sdk/blob/7f7a94c22017e121a960e071bb50ec75e34450bd/packages/server/src/server/requestStateCodec.ts
+- Spec: https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr
+- HTTP spec: https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http
+- Elicitation spec: https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation
+
+#### Releases, packages, and runtime
+
+The official README explicitly identifies **v2 as the stable release line**, released
+alongside MCP **2026-07-28**. v1 receives fixes/security updates for at least six months
+after v2 release. Registry `latest` is **2.1.0** for `@modelcontextprotocol/server`,
+`@modelcontextprotocol/client`, `@modelcontextprotocol/node`, `@modelcontextprotocol/core`,
+and `@modelcontextprotocol/server-legacy`. The old monolithic `@modelcontextprotocol/sdk`
+remains **1.30.1**: changing only its version range is not a v2 migration.
+
+Use server + node for the existing `node:http` runtime, client for test clients.
+`@modelcontextprotocol/core` holds public Zod wire-schema constants only if needed;
+types/error classes are re-exported by server/client. Do not import `core-internal`.
+Optional Express/Fastify/Hono adapters exist but are unnecessary here.
+v2 requires **Node >=20**, is ESM-first with a CommonJS build, and supports Standard
+Schema (including existing Zod 4). Retain the project's Node >=22/LTS direction;
+use `z.object(...)`, not the existing raw schema shapes. The state codec uses Web Crypto.
+Registry packages declare MIT; repository LICENSE records a transition: new code
+Apache-2.0, un-relicensed existing code MIT, non-spec docs CC-BY-4.0. Retain notices;
+these code licenses are compatible with this Apache-2.0 project. No upstream docs/code
+are being vendored into runtime by this checkpoint.
+
+#### Handler, transport, and protocol behavior
+
+- `McpServer` and `createMcpHandler(factory)` come from `@modelcontextprotocol/server`.
+  The factory creates a fresh server per HTTP request, receiving `era`, `authInfo`,
+  and `requestInfo`. The handler exposes `fetch`, `close`, `notify`, `bus`.
+- `toNodeHandler(handler)` comes from `@modelcontextprotocol/node` and adapts to
+  `IncomingMessage`/`ServerResponse`. It replaces this repo's manual fresh v1
+  `StreamableHTTPServerTransport` + `connect` + response-cleanup wiring.
+- Modern 2026-07-28 has `server/discover`, per-request `_meta` protocol/capability
+  envelopes, no `initialize` handshake or `Mcp-Session-Id`, and no standalone GET
+  notification stream. It uses in-band MRTR instead of server-initiated requests.
+  Stateless transport does not prohibit application-side replay protection.
+- Legacy era spans 2024-10-07 through 2025-11-25. `createMcpHandler` defaults to
+  `legacy: 'stateless'`; `legacy: 'reject'` refuses legacy requests. Legacy GET/DELETE
+  session operations return 405. Sessionful legacy deployment needs separate routing
+  and transport/session storage; not a free feature of the new handler.
+- v2 clients still default to **legacy** negotiation. `versionNegotiation: { mode: 'auto' }`
+  probes modern then falls back; `{ mode: { pin: '2026-07-28' } }` requires modern.
+  Merely upgrading a client package does not activate the new protocol.
+- Old HTTP+SSE is not the modern server transport. Frozen deprecated server SSE exists
+  in `@modelcontextprotocol/server-legacy/sse`; no need to add it to this project.
+- `InMemoryTransport` tests exercise legacy instances. Modern tests should drive
+  `createMcpHandler.fetch` through a `StreamableHTTPClientTransport` custom fetch,
+  plus real Node HTTP tests for auth, body limits, and header behavior.
+
+The handler does **not** authenticate bearer tokens or validate Host/Origin for the
+application. Preserve auth before every `/mcp` request, including discovery/retries;
+pass only verified identity via `authInfo` (`ctx.http.authInfo` in handlers). Preserve
+the bounded body reader, `/health`, shutdown, normalized errors, and secret-free logging.
+Add explicit deployment-appropriate Host/Origin checks: localhost-only helpers are not
+an automatic LAN policy. Modern requests require `MCP-Protocol-Version`, `Mcp-Method`,
+and applicable `Mcp-Name` headers; proxies/CORS must allow them and body/header checks
+must remain SDK-owned. Do not project Compose or credentials into `Mcp-Param-*` headers.
+The existing deployment bearer contract is not a claim of full MCP OAuth discovery
+compliance, and client-supplied `clientInfo` is not authenticated identity.
+
+#### Native input-required and integrity protection
+
+`inputRequired`, `inputRequired.elicit`, `acceptedContent`, `inputResponse`, and
+`createRequestStateCodec` are verified server package APIs (also present in published
+2.1.0 declarations). A handler returns `InputRequiredResult`, not a pending push request:
+`resultType: 'input_required'`, an `inputRequests` map, and optional `requestState`.
+The modern client answers the form and retries with a fresh JSON-RPC id, original
+arguments, latest-round `inputResponses`, and the exact opaque state string.
+Read replies via `ctx.mcpReq.inputResponses`; validate with
+`acceptedContent(responses, key, schema)` (the schema-less overload does not validate).
+Use `inputResponse` to distinguish decline/cancel/missing. Form schemas are restricted
+flat primitive objects; a required boolean with no affirmative default fits.
+
+Form elicitation requires declared `elicitation.form` support (legacy empty
+`elicitation: {}` also denotes form support). Modern capability declarations live in
+`_meta.io.modelcontextprotocol/clientCapabilities` on **each request**; SDK checks
+embedded requests and refuses missing capability (`-32021`, normally HTTP 400).
+Old `ctx.mcpReq.elicitInput` throws on modern connections. The legacy shim can turn
+`input_required` into push `elicitation/create` on a suitable live legacy connection;
+this is not proof that stateless legacy HTTP can complete approval. Its re-entry may
+occur within the originating request, unlike modern independent retries.
+
+`requestState` is attacker-controlled unless protected. Official opt-in API:
+`createRequestStateCodec({ key, ttlSeconds, bind })` returns `{ mint, verify }`.
+Configure `new McpServer(info, { requestState: { verify: codec.verify } })`;
+`ctx.mcpReq.requestState<T>()` then reads the verified decoded payload.
+`mint(payload, ctx)` requires context when `bind` is set. Key length is at least
+32 bytes; default TTL is 600 seconds; `bind(ctx)` is evaluated at mint and verify
+(e.g. authenticated principal plus `ctx.mcpReq.method`). Bad/expired state is rejected
+before handler entry with `-32602`. HMAC-SHA256 provides integrity, **not encryption**.
+No automatic argument/risk binding or one-time consumption is supplied: the application
+must implement them. The MRTR spec explicitly requires server-side enforcement for
+at-most-once state consumption; a signature plus expiry only bounds replay.
+
+### C. Concrete risky-install approval proposal — manager review required
+
+This is the implementation design, **not implemented or client-tested behavior**:
+
+1. Keep Phase 1/read and eligible benign tools available to legacy stateless clients.
+   Require **modern 2026-07-28 plus form elicitation** for risky installs. Reject risky
+   legacy calls without mutation; do not silently use the push shim to weaken the
+   first-request boundary. Disable the legacy input-required shim for provisioning.
+2. Authenticate, check install permission, bound/parse/analyze the exact Compose string,
+   and perform read-only collision checks. No real install on this entry, even if the
+   client supplies unsolicited `confirm`/`inputResponses`. Without a valid issued
+   pending challenge, supplied answers cannot authorize anything.
+3. Return native `inputRequired` with `inputRequired.elicit`: disclose operation,
+   exact-content SHA-256 fingerprint, detected categories/field paths/explanations,
+   and expiry in the message, with a compact structured risk manifest alongside
+   human-readable explanations. The verified `inputRequired` builder accepts only
+   `inputRequests` and `requestState`; do not invent a `structuredContent`/`_meta`
+   builder option. Final client rendering of the disclosure needs acceptance testing.
+   The required approval boolean has no true default. Mint only **awaiting-approval**
+   state, never an already-approved claim.
+4. Signed payload binds schema/policy version, random challenge id, exact original
+   UTF-8 Compose fingerprint, tool `install_app_from_compose`, upstream install intent
+   (target host identity and fixed options), intended app name, normalized risk set and
+   disclosure digest. Codec expiry: proposed **300 seconds**. Bind codec context to
+   authenticated deployment principal and method `tools/call`; compare tool/content/
+   options/disclosure fields explicitly on re-entry. Do not use JSON-RPC id as the
+   continuation key because retries require a new id. Do not place YAML, secrets, or
+   sensitive literal values in the signed-but-readable token or disclosure.
+5. Keep a bounded process-wide pending/consumed challenge ledger, independent of fresh
+   MCP instances. Generate a separate ephemeral signing key at process startup, never
+   from the MCP or ZimaOS credential. Restart loses pending state and rotates the key,
+   invalidating outstanding approvals. This proposes single-process deployment, not
+   database/shared-state infrastructure; multi-replica approval remains unsupported
+   unless atomic shared consumption and key distribution are designed later.
+6. On the later modern request, verify state, pending ledger entry, expiry, exact
+   content/options, authenticated principal, and unchanged risk/disclosure policy.
+   Recheck permission, locally analyze again, and require a schema-valid accepted
+   `confirm === true` response under the issued challenge key. Decline/cancel/invalid/
+   missing/expired/mismatched state fails closed; changed Compose requires fresh
+   disclosure. Never turn validation errors into approval prompts.
+7. Under an install lock, recheck collisions and upstream dry-run/port conflict, then
+   atomically consume the challenge **before** sending at most one real POST with the
+   exact original string. Failed/uncertain POSTs never automatically retry or restore
+   approval. Report async acceptance separately from completed installation; reconcile
+   with read tools and bounded polling, without guessing a returned app id.
+
+**Human-enforcement limit:** the protocol requires clients to provide a user interface,
+but server/SDK mechanics cannot cryptographically prove that a human clicked approval.
+A capable agent/client can answer the elicitation automatically; the SDK's modern client
+even auto-drives rounds using registered handlers by default. Signing proves server-issued
+intent and tamper resistance, not human presence or actual viewing of a disclosure. The
+client must guarantee the human UI stop; document and test the chosen client before
+Phase 2 acceptance. Missing reliable interaction support must fail closed.
+
+### D. ZimaOS provisioning: official/package facts
+
+The existing scratch `app_management.yaml` was inspected for lifecycle paths and
+query definitions, not treated as independently authenticated upstream provenance.
+Its relevant operation shapes were cross-checked against the official published
+`@icewhale/casaos-appmanagement-openapi@0.4.17-alpha1` (registry latest at research
+time, Apache-2.0), whose `dist/api.js` and declarations were downloaded only to scratch:
+
+- https://registry.npmjs.org/@icewhale/casaos-appmanagement-openapi
+- https://www.npmjs.com/package/@icewhale/casaos-appmanagement-openapi/v/0.4.17-alpha1
+- https://registry.npmjs.org/@icewhale/casaos-appmanagement-openapi/-/casaos-appmanagement-openapi-0.4.17-alpha1.tgz
+
+The documented base remains `/v2/app_management` (see Phase 1 sources above).
+Verified package operation shapes:
+
+| Operation             | Method/path            | Request and meaning                                                                                              |
+| --------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `installComposeApp`   | `POST /compose`        | `application/yaml` body, `dry_run`, `check_port_conflict`, `uncontrolled` query options; dry-run validates only  |
+| `uninstallComposeApp` | `DELETE /compose/{id}` | encoded stable id and optional `delete_config_folder`; no request body                                           |
+| `updateComposeApp`    | `PATCH /compose/{id}`  | encoded stable id, optional `force`; no request body; specifically update to latest App Store app version/images |
+
+Do not mistake `PUT /compose/{id}` (apply settings/arbitrary Compose change) for the
+approved update tool; general settings mutation remains excluded. The scratch spec
+declares defaults `dry_run=false`, `check_port_conflict=true`, `force=false`, and
+`delete_config_folder=true`. Never inherit a destructive delete default silently:
+proposed product policy is explicit `delete_config_folder=false` unless separately
+reviewed data-deletion semantics are deliberately exposed. Acceptance of a flag does
+not prove which files/volumes it removes or preserves.
+`uncontrolled` is marked deprecated/unused at the install parameter reference in
+scratch but retains a version-control description elsewhere: exact live semantics
+remain unresolved; do not expose it as a safety bypass.
+
+### D. Live ZimaOS v1.7.1 facts — manager-provided evidence, not new tests
+
+These facts were supplied as independently/manual verified evidence for this recovery
+checkpoint. They supersede ambiguous earlier chat reasoning; no lifecycle probe was
+rerun. Existing `probe*_results.jsonl` files were inspected structurally and by numeric
+HTTP-status aggregates without printing payloads. They are incomplete history (for
+example the first result file does not contain the later manager-confirmed 502 case),
+not a reason to discard the deterministic later observations below.
+
+1. Valid `POST /v2/app_management/compose?dry_run=true`: **200**, validation-only /
+   installation-skipped message; no install.
+2. Malformed YAML: **400**.
+3. Schema-invalid but syntactically valid `services: { web: 123 }`, dry-run: **502**.
+   A valid minimal Compose immediately afterward returned **200** and the app list was
+   unchanged. Do not describe every 502 as server outage or every invalid schema as 4xx;
+   reject this structure locally and preserve the upstream error distinction.
+4. Occupied host port with `check_port_conflict=true`: **400**, `data.ports_in_use`.
+   With `false`, the same dry-run can return **200**. Proposed product behavior keeps
+   port checking explicitly enabled on validation and installation.
+5. Real install: **200**, "app is being installed asynchronously". Acceptance is not
+   completion; a named Compose can use its name as the app id, but this is not guaranteed.
+6. Deterministic duplicate: first `name: p2dup927` installed as `p2dup927`, `running(1)`.
+   Posting the **exact same Compose again** returned **200 async** and created a second
+   app, `compose-a7eb993dfeef8433`. Install POST is **not idempotent**, does not imply
+   reconciliation, and must not be retried blindly.
+7. DELETE: **200 async**; after completion the app is absent from list and detail is
+   **404**. Both `delete_config_folder=true` and `false` were accepted. Exact storage
+   retention/destruction effects were not established by these observations alone.
+8. DELETE/PATCH missing app: **404**.
+9. PATCH non-store app: **200**, "app '<id>' is up to date". This establishes a response
+   on that fixture, **not** App Store update/version-transition semantics or completion.
+10. Both duplicate-test apps were deleted with `delete_config_folder=true`. Final
+    manager-verified baseline: **only `mcp-test-nginx`**, no Phase 2 probe-created app.
+
+### D. Permissions and duplicate-name policy
+
+Final configuration naming decision for future implementation:
+
+| Variable              | Default | Sole mutation scope                                                   |
+| --------------------- | ------- | --------------------------------------------------------------------- |
+| `ALLOW_APP_CONTROL`   | `false` | existing start/stop/restart only                                      |
+| `ALLOW_APP_INSTALL`   | `false` | `install_app_from_compose`, still subject to safety/approval          |
+| `ALLOW_APP_UNINSTALL` | `false` | `uninstall_app` only                                                  |
+| `ALLOW_APP_UPDATE`    | `false` | verified `update_app` only; permission does not establish API support |
+
+Validate explicit booleans at startup. No flag grants another permission; check at
+execution and again on approval continuation. `validate_app_compose` is non-mutating
+and does not require install permission or grant it. No `ALLOW_UNSAFE_COMPOSE` or
+equivalent global/permanent bypass exists in the design.
+
+For named installs, list current apps before issuing a challenge and again immediately
+before POST. Compare candidate name with existing app ids and available Compose/project
+names; ambiguous names/identities or failed enumeration are not a clean preflight.
+Any collision returns an explicit conflict, without POST, even for identical content
+or stopped apps. Never silently convert install to PATCH/PUT, delete/reinstall, or
+generate a replacement name. Serialize/reserve in-flight installs locally so async
+acceptance/list lag cannot permit a second POST; uncertain outcomes require read-only
+reconciliation, not automatic retry (including generic HTTP-client retries).
+
+**Limit/proposal for review:** upstream provides no verified atomic create-if-absent
+or idempotency key. Local locks cannot prevent concurrent external UI/API changes.
+Require an explicit, statically inspectable top-level Compose name for install until
+unnamed/metadata-derived identity can be handled safely; validation may still accept
+unnamed documents. Do not insert or rewrite a name. Exact name aliases/normalization
+and reservation lifetime must be covered by implementation tests, not inferred from
+the one observed name-to-id mapping.
+
+### Unresolved items / implementation gates
+
+- Manager review of the proposed modern-only risky-install client contract, 300-second
+  single-use ledger, single-process scope, explicit-name requirement, and conservative
+  unsupported-Compose boundary. No target client's human UI/modern MRTR support was tested.
+- Precise parser resource budgets, supported Compose schema subset, interpolation,
+  alias/merge edge-case parity with the ZimaOS engine, and collision normalization.
+- Real App Store update transitions, force behavior, version identity, async/failure
+  semantics, and a deterministic safe fixture remain unverified. Keep `update_app`
+  blocked until verified; a non-store "up to date" result is insufficient. Do not
+  expand into App Store search/registration to resolve it automatically.
+- Uninstall data-retention boundaries and deprecated `uncontrolled` semantics remain
+  unverified. Avoid exposing destructive retention options or unsupported install knobs.
+- Install/delete completion polling needs bounded policy and normalized timeout/unknown
+  outcomes. No safe automatic retry can be inferred from 200 async or transport failure.
+- No fresh live verification, SDK integration test, runtime implementation, or Phase 2
+  acceptance claim was made by this research pass. All are later approved work.

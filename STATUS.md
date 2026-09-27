@@ -1,28 +1,66 @@
 # Status
 
-Phase 1 — ZimaOS MCP Server. This file is written so a fresh implementation chat can resume
+ZimaOS MCP Server. This file is written so a fresh implementation chat can resume
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 1 — **complete** (completion-correction pass applied). All Phase 1 acceptance
-  criteria that can be completed safely have been completed and verified. No Phase 2 work has
-  been started.
-- **Current milestone:** Manager review corrections closed: `docs/RESEARCH.md` reconciled against
-  live v1.7.1 behavior, full live MCP integration matrix executed on the production container
-  artifact (read + permissions + control), README client connection example added, immutable
-  GHCR commit tags implemented and documented.
+- **Phase:** Phase 2 — bounded research/recovery complete; implementation has NOT started.
+  Phase 1 remains complete. Historical Phase 1 verification is retained below, not rerun here.
+- **Phase B checkpoint:** `yaml@2.9.1` (ISC) selected for
+  bounded safety inspection; original scratch probe failed (12 pass / 14 fail), focused
+  synthetic parser checks passed (14/14). No detector or runtime changes.
+- **Starting state:** Clean `main`, HEAD and remote main
+  `06fe86c267c27648e48b8616944984b795cb86ae`, verified before editing documentation.
+- **Live boundary:** No new ZimaOS requests/mutations in this Astra pass. Manager-provided
+  final VM baseline is only `mcp-test-nginx`; do not repeat lifecycle probes.
+- **Phase C checkpoint:** Official stable SDK v2 verified at split-package 2.1.0,
+  modern protocol 2026-07-28, `createMcpHandler`/`toNodeHandler`, native `input_required`,
+  and signed `requestState`. Concrete content/risk-bound approval proposal persisted;
+  single-use enforcement is application-owned, and human presence cannot be proven.
+- **Phase D checkpoint:** Separate default-off `ALLOW_APP_INSTALL`, `ALLOW_APP_UNINSTALL`,
+  `ALLOW_APP_UPDATE` names finalized; `ALLOW_APP_CONTROL` remains start/stop/restart only.
+  Named collisions fail closed; duplicate POST is not idempotent. Manager-provided live
+  v1.7.1 findings recovered, including schema-invalid 502 and deterministic duplicate app.
+  Actual App Store update semantics remain blocked/unverified.
+- **Current milestone:** Research documented in sections B/C/D before moving to each next
+  section. Only `docs/RESEARCH.md`, `DECISIONS.md`, and `STATUS.md` changed in the repo.
+- **Next action:** Manager review before implementation. Stop after the single docs push.
 
 ## Git / repository
 
 - **Branch:** `main`
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (**private**, per Phase 1 rule)
-- **HEAD:** this file is the final status-record commit of the correction pass; verify with
-  `git log -1 --oneline`. The implementation corrections it records are in the commits listed
-  under "Correction-pass commits" below (each SHA is stable and pushed).
+- **Research base SHA:** `06fe86c267c27648e48b8616944984b795cb86ae`.
+- **Research checkpoint HEAD:** the commit containing this status, intended as
+  `docs: complete Phase 2 provisioning research`; obtain its exact SHA with `git rev-parse HEAD`
+  (a commit cannot contain its own SHA). Final chat handoff reports the pushed SHA.
+- Repository was independently rechecked **PRIVATE** in this pass; visibility unchanged.
 
-## Correction-pass commits (this session, all on `main`, all pushed)
+## Research checkpoint verification / blockers
+
+- Original scratch parser probe: 12 passed / 14 failed; defects/coverage recorded in research.
+- Focused synthetic parser checks: 14/14 passed; no network or VM interaction.
+- `npm run format:check`: passed (whole repo); only the three allowed Markdown files
+  were targeted for formatting. `git diff --check`: passed. Checkpoint diffs reviewed;
+  scope is docs-only. `.env.integration.local` is still Git-ignored (content not read).
+- No runtime test/build, Docker build, SDK round-trip, or new live integration was run
+  for this docs-only pass. Historical Phase 1 results below are not current reruns.
+- `.env.integration.local` was not opened. No credentials or derived secret material
+  were used or exposed. `AGENTS.md`, `PROJECT.md`, runtime, tests, dependencies, Docker,
+  deployment Compose, and CI remain untouched.
+- Review needed: modern-only risky approval, single-use/300-second/single-process proposal,
+  client human-UI enforcement limit, explicit-name install proposal, parser limits/subset.
+- Blocked semantics: App Store update transitions; uninstall storage effects and
+  `uncontrolled` behavior. No additional live probes authorized in this checkpoint.
+- GHCR/deployment: no Phase 2 image or deployment readiness claimed. Historical private
+  Phase 1 image/Compose status is retained below; this docs push may trigger existing CI
+  and publishing, but their new results will not be claimed without verification.
+
+## Historical Phase 1 record (not rerun by this research pass)
+
+## Correction-pass commits (Phase 1 session, all on `main`, all pushed)
 
 - `docs(research): correct containers/healthcheck findings against live v1.7.1` — reconciles
   `docs/RESEARCH.md` with a secret-safe raw re-probe of the disposable VM (see "Live API shape
@@ -175,7 +213,7 @@ Using the disposable test app `mcp-test-nginx`:
   verification item permitted by PROJECT.md; the Compose file is validated and paste-ready, but
   was not pasted into the VM's UI in this session.
 
-## Manual actions required
+## Historical Phase 1 manual actions
 
 - **None blocking.** No privileged or manual step is needed for Phase 1 completion.
 - Optional: paste `deploy/zimaos/docker-compose.yml` into a ZimaOS Custom App on the disposable VM
@@ -183,7 +221,8 @@ Using the disposable test app `mcp-test-nginx`:
 
 ## Recommended next action for the manager
 
-Phase 1 is complete and pushed; review the handoff. No Phase 2 work has been started, per scope
-discipline. If approved, a later phase may consider: public repository visibility decision, first
-`v*` release tag (which will also exercise the new immutable `sha-<GITHUB_SHA>` + version-tag
-publish path), and additional ZimaOS API coverage — none of which are in Phase 1 scope.
+Review the Phase 2 research decisions/proposals and explicit unresolved gates in
+`docs/RESEARCH.md` before authorizing implementation. Phase 1 remains complete; Phase 2
+runtime implementation has not started. No new live mutation was performed, and the
+manager-provided final VM baseline remains `mcp-test-nginx`. Do not continue implementation
+or expand App Store scope while waiting for review.

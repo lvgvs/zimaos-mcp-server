@@ -1,6 +1,6 @@
 # Decisions
 
-Architectural decisions actually made during Phase 1 implementation. Routine
+Architectural decisions made during implementation and approved-scope research. Routine
 engineering choices are not recorded here; see `STATUS.md` for state and
 `docs/RESEARCH.md` for API findings.
 
@@ -91,3 +91,79 @@ change.
 
 **Rejected alternative:** Keep the directive and configure a BuildKit/daemon IPv4 workaround —
 more moving parts, and no frontend-only feature is used or planned for Phase 1.
+
+## 2026-09-27 — Phase 2 parser and exact-content preservation
+
+**Decision:** Select `yaml@2.9.1` (ISC) for bounded local YAML AST/Map inspection,
+with explicit core-schema/merge support and strict error/warning rejection as described
+in `docs/RESEARCH.md`. Do not add a product dependency during this research checkpoint.
+Inspect parsed data but fingerprint and submit the exact original UTF-8 Compose string;
+never canonicalize/reserialize it for approval or installation.
+
+**Reason:** Official APIs plus 14 passing synthetic checks verify inspectable data,
+merge resolution, duplicate-key detection, and alias limits. ISC is compatible with
+Apache-2.0 original source with its notice retained. Maps avoid prototype-property
+assignment; separate cycle, duplicate-merge, type, and resource checks remain necessary.
+
+**Rejected alternative:** Default parser options or the old scratch probe as a safety
+boundary. That probe fails and does not cover those protections. YAML syntax success
+is not Compose schema validation or proof of safe host behavior.
+
+## 2026-09-27 — Migrate Phase 2 to stable MCP SDK v2 / modern HTTP
+
+**Decision:** Follow manager direction to migrate from `@modelcontextprotocol/sdk`
+1.30.1 to the official split v2 packages, researched at 2.1.0: server + node for
+runtime, client for tests. Use `createMcpHandler` and `toNodeHandler` for modern
+2026-07-28 requests while retaining stateless legacy compatibility for Phase 1 behavior.
+This is a future migration decision; no dependency/source/test changes in this checkpoint.
+
+**Reason:** Current official README, release metadata, specification, and published APIs
+verify stable v2, per-request HTTP, native input-required continuation, and an official
+integrity-protected state codec. Existing Zod 4 and Node >=22 fit v2's requirements.
+
+**Rejected alternative:** Inventing v2 APIs or retaining v1 solely to avoid migration.
+The current per-request v1 architecture already maps naturally to the handler factory.
+
+## 2026-09-27 — Approval security invariants and native continuation
+
+**Decision:** Use native modern `input_required` form elicitation plus signed,
+short-lived `requestState`, bound to exact Compose content, operation, deployment
+principal/target, options, and disclosed risks. Require server-side single-use
+challenge consumption; signing alone is insufficient. First risky request never
+mutates, and unsolicited answers without issued pending state never authorize.
+Unsupported clients fail closed; no permanent unsafe bypass.
+
+**Reason:** Official MRTR spec and `createRequestStateCodec` support integrity/expiry,
+but explicitly leave at-most-once enforcement to the server. Client assertions cannot
+prove human presence; manager review of that enforcement limit is required by PROJECT.md.
+
+**Review boundary:** The concrete 300-second, ephemeral-key, single-process ledger and
+modern-only risky-install proposal is in `docs/RESEARCH.md`; manager review and client
+verification are required before implementation/acceptance. Legacy Phase 1 compatibility
+does not imply legacy risky-install approval support.
+
+## 2026-09-27 — Separate default-off provisioning permissions
+
+**Decision:** Reserve `ALLOW_APP_INSTALL`, `ALLOW_APP_UNINSTALL`, and `ALLOW_APP_UPDATE`
+as independent, startup-validated booleans defaulting to false. `ALLOW_APP_CONTROL`
+continues to authorize only start/stop/restart. Validation grants no mutation authority.
+Install permission never bypasses risk approval; no `ALLOW_UNSAFE_COMPOSE` equivalent.
+
+**Reason:** PROJECT.md requires separate authority for materially different operations;
+the existing permission layer only controls the three reversible Phase 1 actions.
+An update flag does not authorize implementing unverified update semantics.
+
+## 2026-09-27 — Named install conflicts fail closed; POST is not idempotent
+
+**Decision:** Preflight current app ids/names and repeat the check before installation.
+Return an explicit conflict on any existing/ambiguous candidate, regardless of content
+equality. Reserve/serialize local in-flight installs; do not blindly repeat an accepted
+or uncertain POST, silently rename, or reinterpret install as update.
+
+**Reason:** Manager's deterministic v1.7.1 reproduction installed `p2dup927` and then,
+from identical YAML, a second `compose-a7eb993dfeef8433` app. A 200 async response is
+not an idempotency guarantee. No atomic upstream create-if-absent contract is verified.
+
+**Review boundary:** Requiring explicit names until unnamed identity is safely handled,
+and the remaining external-writer race/async reconciliation limits, are documented
+proposals rather than claims of complete duplicate prevention.
