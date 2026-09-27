@@ -550,4 +550,319 @@ A live UI paste/install step that genuinely requires user interaction may remain
 
 Do not weaken security or expand scope to eliminate such a manual boundary.
 
-Do not begin Phase 2.
+Phase 1 is complete and manager-approved. Phase 2 is explicitly authorized under the specification below.
+
+# Phase 2
+
+## Objective
+
+Add safe application provisioning and lifecycle management through supported ZimaOS APIs without
+turning the MCP server into a general host-control or arbitrary-container-execution backdoor.
+
+The primary end-to-end Phase 2 workflow is:
+
+1. an authenticated MCP client supplies a Docker Compose YAML for a benign disposable app;
+2. the server validates the Compose through supported ZimaOS behavior without persisting it;
+3. the server evaluates the Compose for host-impacting/risky constructs;
+4. when no elevated-risk construct is present and installation is permitted, the server installs
+   the app through the supported ZimaOS API;
+5. existing Phase 1 read tools verify that the installed app reaches the expected state;
+6. where a supported removal API is verified, the server can remove the disposable app;
+7. update behavior may be added only after its current supported API semantics are verified.
+
+The MCP server itself remains a bootstrap dependency installed separately by the operator. Phase 2
+does not require the product to install itself.
+
+## Phase 2 MCP capabilities
+
+Research and implement only the capabilities below where current supported ZimaOS APIs are
+verified.
+
+### validate_app_compose
+
+Accept Docker Compose YAML and validate it without making a persistent application change.
+
+Requirements:
+
+- use the supported ZimaOS dry-run/validation mechanism where available;
+- perform local structural/safety analysis before any mutating operation;
+- return compact normalized validation findings;
+- distinguish ordinary validation errors from elevated-risk findings;
+- never silently modify or strip fields from the supplied Compose.
+
+This operation is non-mutating and does not itself authorize installation.
+
+### install_app_from_compose
+
+Install an application from supplied Docker Compose YAML through a supported ZimaOS API.
+
+Requirements:
+
+- gated by a dedicated explicit install permission;
+- default disabled;
+- validate input and apply the Compose safety / informed-approval flow below before mutation;
+- never treat an initial generic request to "install this" as informed approval of risks that were
+  not yet disclosed;
+- return normalized state/result information, not raw upstream payloads.
+
+### uninstall_app
+
+Implement only if a current supported ZimaOS removal API and its semantics are verified.
+
+Requirements:
+
+- use a stable app identifier;
+- gated independently from install and basic start/stop/restart control;
+- default disabled;
+- verify post-removal state where practical.
+
+### update_app
+
+Implement only if a current supported ZimaOS update mechanism and its exact semantics are verified.
+
+Requirements:
+
+- gated independently;
+- default disabled;
+- do not invent update behavior from the presence of an update_available field alone;
+- verify post-update state/version where practical.
+
+A read-only update/status discovery tool may be added if current supported APIs expose useful
+information that materially improves the update workflow.
+
+## Permission model
+
+Do not reuse ALLOW_APP_CONTROL as the sole gate for provisioning.
+
+Keep the existing Phase 1 behavior unchanged and add separate default-off permissions for
+materially different mutating operations. The expected configuration direction is conceptually:
+
+- install permission;
+- uninstall/removal permission;
+- update permission.
+
+Exact environment-variable names may be chosen during implementation, but they must be explicit,
+documented, independently controllable, validated at startup, and default to false.
+
+ALLOW_APP_CONTROL continues to govern only start_app, stop_app, and restart_app.
+
+Do not introduce a permanent ALLOW_UNSAFE_COMPOSE (or equivalent) global bypass.
+
+## Compose safety boundary
+
+A Compose install can request capabilities that materially cross the product's normal security
+boundary. Phase 2 must therefore inspect the supplied Compose before installation.
+
+The safety analysis must conservatively detect host-impacting constructs where applicable,
+including at minimum categories such as:
+
+- privileged containers;
+- Docker/container-runtime socket mounts;
+- host PID or IPC namespace use;
+- host networking;
+- unrestricted or security-sensitive device passthrough;
+- host filesystem bind mounts that expose sensitive host paths;
+- other Compose options that materially grant host control or bypass the product's no-shell,
+  no-Docker-socket, and no-direct-host-control design.
+
+Do not assume this list is exhaustive. Research the Compose schema and implementation-visible
+forms before finalizing the detector.
+
+Risk analysis is a guardrail, not a claim that arbitrary Compose can be proven safe. Document that
+limitation.
+
+Normal application ports, named volumes, ordinary networks, and other non-host-privileged
+constructs should remain usable where practical.
+
+Never silently strip, rewrite, or downgrade a risky field. Either proceed unchanged after the
+required informed approval or do not install.
+
+## Risk disclosure and informed human approval
+
+When an install request contains one or more elevated-risk Compose constructs:
+
+1. Do not mutate ZimaOS on that first request.
+2. Return a structured confirmation-required result containing:
+   - the detected risk categories;
+   - concise human-readable explanations;
+   - the affected service/field/path where useful;
+   - a confirmation/challenge identifier tied to the exact Compose content or an equivalent
+     content fingerprint.
+3. The MCP client/agent must present those newly discovered risks to the user and stop.
+4. The user's original pre-disclosure request to install the app is not sufficient approval.
+5. Installation may proceed only after the user explicitly approves after the risks have been
+   disclosed.
+6. Any approval must be bound to the exact Compose content that was reviewed. Changing the Compose
+   invalidates the approval and requires fresh disclosure/approval.
+7. Confirmation state should be single-purpose and short-lived where practical so an approval for
+   one risky document cannot authorize another.
+
+Prefer a current official MCP human-interaction / elicitation mechanism if the SDK and target
+clients support one reliably. Research this before choosing the final confirmation mechanism.
+
+If portable MCP transport cannot technically prove that a follow-up confirmation originated from a
+human rather than an autonomous client, do not pretend otherwise. Implement the strongest
+practical two-step confirmation contract, document its enforcement limits, and require manager
+review of that design before Phase 2 acceptance.
+
+If a client cannot complete the required post-disclosure confirmation flow, fail closed for the
+risky install rather than treating the first request as consent.
+
+There is no global unsafe mode that makes future risky Compose files install automatically.
+
+## Research requirements
+
+Research before implementing mutating Phase 2 behavior.
+
+Follow the source priority in AGENTS.md and record verified findings in docs/RESEARCH.md.
+
+At minimum verify:
+
+- Compose dry-run/validation endpoint, request body, content type, and query parameters;
+- port-conflict validation behavior;
+- real install response and resulting application identifier/state;
+- duplicate application/id behavior;
+- invalid YAML/schema behavior;
+- supported uninstall/removal endpoint, request shape, response, and side effects;
+- supported update endpoint/mechanism, request shape, response, and version semantics;
+- whether install/remove/update operations are synchronous or asynchronous;
+- observable state transitions and appropriate polling behavior;
+- missing-app and failed-operation error behavior;
+- current MCP SDK/spec support for elicitation or another user-confirmation mechanism;
+- any new YAML/Compose parsing dependency and its license.
+
+Use the authorized disposable ZimaOS VM for secret-safe live probes when authoritative
+documentation/specifications are incomplete or ambiguous.
+
+Never print, log, commit, or copy ZimaOS credentials, bearer tokens, MCP tokens, or derived secret
+material while probing.
+
+Do not infer an endpoint merely because a similarly named endpoint exists in an older/community
+implementation.
+
+## Phase 2 testing
+
+All Phase 1 behavior and tests must continue to pass.
+
+Add mocked/automated tests covering at minimum:
+
+- new configuration permissions and default-off behavior;
+- Compose parsing and malformed input;
+- benign Compose safety classification;
+- each supported elevated-risk classification;
+- no mutation on the first risky install request;
+- content-bound confirmation invalidation when Compose content changes;
+- install permission denied;
+- install API success/error normalization;
+- duplicate/port-conflict/invalid-Compose failures where supported;
+- uninstall permission and behavior if implemented;
+- update permission and behavior if implemented;
+- regression coverage for existing Phase 1 tools and permissions.
+
+Live Phase 2 acceptance must use a new benign disposable test application Compose, not the MCP
+server's own deployment Compose.
+
+Where supported, live integration should verify:
+
+1. benign Compose validates through MCP without installation;
+2. at least representative risky Compose fixtures are detected before mutation;
+3. a risky first install request produces confirmation-required behavior and does not install;
+4. the post-disclosure approval path is exercised safely if the chosen client/confirmation
+   mechanism supports it;
+5. install is denied when the install permission is false;
+6. benign app installation succeeds when install permission is true;
+7. the installed app appears through existing list_apps / get_app /
+   list_app_containers / get_app_health tools and reaches a healthy/running state where
+   applicable;
+8. if uninstall is supported, removal is denied when its permission is false, then succeeds when
+   enabled, and the app is verified absent;
+9. if update is supported and a deterministic safe fixture exists, update permission and the
+   resulting state/version are verified;
+10. the disposable VM is left in a clean, known state.
+
+Live integration must continue to use .env.integration.local and must not put VM credentials into
+CI.
+
+## Explicit Phase 2 exclusions
+
+Unless separately authorized by a later manager decision, Phase 2 does not add:
+
+- App Store search;
+- App Store account/registration management;
+- arbitrary editing of an already-installed app's Compose;
+- arbitrary environment-variable mutation of existing apps;
+- general-purpose Compose mutation tools;
+- filesystem MCP tools;
+- host filesystem browsing or deletion;
+- SSH execution;
+- arbitrary shell execution;
+- Docker socket access as a product capability;
+- privileged mode for the MCP server itself;
+- host-wide command execution;
+- disk formatting;
+- RAID/storage mutation;
+- ZVM management;
+- ZimaOS OTA installation;
+- user management.
+
+If research shows App Store functionality is a separate product area, record it as a candidate for
+a later Phase 2B or later phase rather than expanding Phase 2 automatically.
+
+The fact that an explicitly approved third-party Compose may itself request elevated container
+capabilities does not grant the MCP server a general shell/Docker/host-control tool.
+
+## Phase 2 documentation and delivery
+
+Update documentation to cover the implemented Phase 2 behavior, including:
+
+- new tools;
+- new permission flags and their default-off behavior;
+- Compose safety analysis;
+- informed approval semantics and limitations;
+- install/uninstall/update behavior actually supported;
+- any newly verified ZimaOS API behavior;
+- examples that contain no real credentials or secret values.
+
+Maintain the existing private repository and private GHCR package during Phase 2 unless the manager
+explicitly approves a visibility change.
+
+CI must continue to enforce all Phase 1 quality gates and all new automated tests.
+
+## Phase 2 acceptance criteria
+
+Phase 2 is complete only when all applicable items below are satisfied:
+
+- Phase 1 functionality remains intact;
+- validate_app_compose is implemented and tested;
+- install_app_from_compose is implemented through a verified supported ZimaOS API;
+- install permission is explicit and defaults to disabled;
+- Compose safety analysis is implemented and tested;
+- the first risky install attempt is non-mutating and returns structured risk disclosure;
+- risky-install approval is bound to the reviewed Compose content and requires a post-disclosure
+  confirmation step;
+- the confirmation design and its human-enforcement limitations have been reviewed and documented;
+- no global persistent unsafe-Compose bypass exists;
+- uninstall is implemented and tested if a supported current API is verified, otherwise the
+  unsupported/blocked reason is documented;
+- update is implemented and tested if a supported current API is verified, otherwise the
+  unsupported/blocked reason is documented;
+- automated tests pass;
+- formatting/linting passes;
+- production and test TypeScript checks pass;
+- production build passes;
+- Docker image build passes;
+- Compose deployment validation passes;
+- CI passes;
+- GHCR publishing remains functional;
+- live validation/install behavior is exercised on the authorized disposable VM;
+- a benign disposable app is verified through existing Phase 1 read/health tools after install;
+- live risky-Compose detection demonstrates no first-request mutation;
+- uninstall/update live tests are completed where supported and safely reproducible;
+- the disposable VM is left in a clean/known state;
+- README.md, docs/RESEARCH.md, DECISIONS.md, and STATUS.md accurately reflect the final implemented
+  and verified behavior;
+- STATUS.md provides a clean Phase 2 manager handoff.
+
+Do not weaken the security model merely to make a Phase 2 acceptance item easier to satisfy.
+
+Do not begin a later phase automatically.
