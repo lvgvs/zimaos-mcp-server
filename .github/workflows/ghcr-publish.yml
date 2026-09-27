@@ -26,8 +26,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # Build once, then push the required refs.
-      #   - push to main  -> :latest
-      #   - push a v* tag -> :<tag> and :latest
+      #   - push to main  -> :latest and :sha-<GITHUB_SHA> (immutable)
+      #   - push a v* tag -> :<tag>, :latest, and :sha-<GITHUB_SHA> (immutable)
       - name: Build image
         run: |
           IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
@@ -48,6 +48,10 @@ jobs:
             docker tag "${IMAGE}:ci" "${IMAGE}:latest"
             TAGS+=("latest")
           fi
+          # Every published build also gets an immutable commit-based reference,
+          # so a deployed image can always be traced back to its exact source.
+          docker tag "${IMAGE}:ci" "${IMAGE}:sha-${GITHUB_SHA}"
+          TAGS+=("sha-${GITHUB_SHA}")
           if [ "${#TAGS[@]}" -eq 0 ]; then
             echo "Nothing to push."
             exit 0
