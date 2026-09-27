@@ -76,8 +76,7 @@ authoritative.
 
 ## CI status (GitHub Actions)
 
-- **Workflow:** `.github/workflows/ci.yml` on push to `main`. Steps: install → lint → typecheck →
-  test → production build → Docker image build → Compose validation (`docker compose config`).
+- **Workflow:** `.github/workflows/ci.yml` on push to `main`. Steps: install → format check (Prettier) → lint → typecheck → test typecheck (`tsconfig.test.json`) → tests → production build → Docker image build → Compose validation (`docker compose config`). CI now explicitly enforces both Prettier formatting and strict test TypeScript checking, matching the full local Phase 1 gate.
 - **Result for the correction-pass push — success.** Run `36282720203`, head SHA
   `2573f9e02f016a3106ffd0b9c842b9594597bf0e` (the correction-pass HEAD), conclusion **success**.
   CI does not depend on the disposable VM and contains no VM credentials.
