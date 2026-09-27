@@ -85,7 +85,13 @@ field carries the payload described below.
 
 ### Containers — `GET /compose/{id}/containers`
 
-- **Response 200** → `ComposeAppContainersOK`: envelope with `data` = array of containers.
+- **Response 200** → `ComposeAppContainersOK`: envelope; live v1.7.1 returns only `{ data }`
+  (no `success`/`message`). `data` is an object with keys `main` and `containers`;
+  `containers` is a map keyed by service name, each value being the container record
+  (`ID`, `Name`, `Image`, `Service`, `State`, `Status`, `Health`, `Publishers`, ...).
+  It is **not** a flat array.
+- **Implementation implication:** normalize from the service-keyed map; envelope handling must
+  tolerate responses that omit `success`/`message`.
 
 ### Logs — `GET /compose/{id}/logs?lines=N`
 
@@ -96,7 +102,12 @@ field carries the payload described below.
 
 ### Health check — `GET /compose/{id}/healthcheck`
 
-- **Response 200** → `ComposeAppHealthCheckOK`: envelope with health status data.
+- **Live v1.7.1 behavior:** HTTP status is the usable health signal, not an envelope containing
+  health-status data. A healthy app returns HTTP 200 whose body may be empty or a minimal
+  `{ message }` object (59 bytes in the live probe) with no structured health fields.
+- **Implementation implication:** treat a resolved 2xx as "healthy" (optionally surfacing the
+  `message` string); map 404 → unknown and 5xx → unhealthy; never require an envelope with
+  health-status data.
 
 ## ZimaOS core (`/v2/zimaos`)
 
@@ -117,13 +128,15 @@ unwrap a `data` key for `/v2/zimaos/*`.
 
 ## Response-envelope rules (confirmed live)
 
-| Endpoint                                     | Envelope                                                                    |
-| -------------------------------------------- | --------------------------------------------------------------------------- |
-| `POST /v1/users/login`                       | wrapped `{success,message,data}`; `data.token={access_token,refresh_token}` |
-| `GET /v2/app_management/compose`             | wrapped; `data` = object map of app-id → `ComposeAppWithStoreInfo`          |
-| `PUT /v2/app_management/compose/{id}/status` | wrapped (`BaseResponse`)                                                    |
-| `GET /v2/app_management/compose/{id}/logs`   | wrapped; `data` = string                                                    |
-| `GET /v2/zimaos/device/info`                 | **bare** payload (no wrapper)                                               |
+| Endpoint                                          | Envelope                                                                                                               |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `POST /v1/users/login`                            | wrapped `{success,message,data}`; `data.token={access_token,refresh_token}`                                            |
+| `GET /v2/app_management/compose`                  | wrapped; `data` = object map of app-id → `ComposeAppWithStoreInfo`                                                     |
+| `PUT /v2/app_management/compose/{id}/status`      | wrapped (`BaseResponse`)                                                                                               |
+| `GET /v2/app_management/compose/{id}/logs`        | wrapped; `data` = string                                                                                               |
+| `GET /v2/app_management/compose/{id}/containers`  | live v1.7.1: `{ data }` only (no `success`/`message`); `data={main, containers}` with `containers` a service-keyed map |
+| `GET /v2/app_management/compose/{id}/healthcheck` | HTTP status is the signal; 200 body may be empty or minimal `{ message }` (no health-status data)                      |
+| `GET /v2/zimaos/device/info`                      | **bare** payload (no wrapper)                                                                                          |
 
 ## Container-to-host networking (Custom App deployment)
 
