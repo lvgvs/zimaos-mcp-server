@@ -22,10 +22,14 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+      - name: Format check (prettier)
+        run: npm run format:check
       - name: Lint (eslint)
         run: npm run lint
       - name: Typecheck (tsc, strict)
         run: npm run typecheck
+      - name: Test typecheck (tsc, tsconfig.test.json, strict)
+        run: npx tsc -p tsconfig.test.json --noEmit
       - name: Unit/integration tests (vitest, mocked)
         run: npm test
       - name: Production build (tsc -> dist/)
