@@ -6,8 +6,8 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 2 — bounded research/recovery complete; implementation has NOT started.
-  Phase 1 remains complete. Historical Phase 1 verification is retained below, not rerun here.
+- **Phase:** Phase 2 implementation; Phase 2A MCP SDK v2 migration complete locally.
+  Phase 1 tool behavior remains covered by automated tests. Historical live Phase 1 verification is retained below.
 - **Phase B checkpoint:** `yaml@2.9.1` (ISC) selected for
   bounded safety inspection; original scratch probe failed (12 pass / 14 fail), focused
   synthetic parser checks passed (14/14). No detector or runtime changes.
@@ -24,9 +24,10 @@ authoritative.
   Named collisions fail closed; duplicate POST is not idempotent. Manager-provided live
   v1.7.1 findings recovered, including schema-invalid 502 and deterministic duplicate app.
   Actual App Store update semantics remain blocked/unverified.
-- **Current milestone:** Research documented in sections B/C/D before moving to each next
-  section. Only `docs/RESEARCH.md`, `DECISIONS.md`, and `STATUS.md` changed in the repo.
-- **Next action:** Manager review before implementation. Stop after the single docs push.
+- **Current milestone:** Phase 2A replaces the monolithic SDK with split server/node/client
+  2.1.0 packages, one HTTP handler per server lifecycle, fresh MCP instances per request,
+  and modern plus stateless legacy HTTP coverage. No live VM calls in this milestone.
+- **Next action:** Phase 2B bounded YAML analysis, risk detector, and non-mutating validation.
 
 ## Git / repository
 
@@ -37,6 +38,19 @@ authoritative.
   `docs: complete Phase 2 provisioning research`; obtain its exact SHA with `git rev-parse HEAD`
   (a commit cannot contain its own SHA). Final chat handoff reports the pushed SHA.
 - Repository was independently rechecked **PRIVATE** in this pass; visibility unchanged.
+
+## Phase 2A implementation verification (local, mocked)
+
+- Started at `baf1adc4830fb470a1e924c191fcc3f2b1b702b8` with pre-existing
+  uncommitted split-package manifest/lock changes; reconciled and retained them.
+- `npm test`: 5 files / 55 tests passed (including modern and legacy HTTP paths,
+  bearer boundary and 1 MiB rejection); `npm run lint`, `npm run typecheck`,
+  `npx tsc -p tsconfig.test.json --noEmit`, `npm run format:check`, and
+  `npm run build`: passed.
+- `docker build -t zimaos-mcp-server:phase2a .` and
+  `docker compose -f deploy/zimaos/docker-compose.yml config --quiet`: passed.
+- Live ZimaOS integration was not rerun for Phase 2A. GHCR/CI for this milestone
+  remain unverified until the push completes. No Phase 2 provisioning tools yet.
 
 ## Research checkpoint verification / blockers
 
@@ -221,8 +235,6 @@ Using the disposable test app `mcp-test-nginx`:
 
 ## Recommended next action for the manager
 
-Review the Phase 2 research decisions/proposals and explicit unresolved gates in
-`docs/RESEARCH.md` before authorizing implementation. Phase 1 remains complete; Phase 2
-runtime implementation has not started. No new live mutation was performed, and the
-manager-provided final VM baseline remains `mcp-test-nginx`. Do not continue implementation
-or expand App Store scope while waiting for review.
+Continue Phase 2B within the approved scope. Do not implement App Store update
+without verified supported semantics. The research-only historical sections above
+describe an earlier checkpoint, not the current implementation state.

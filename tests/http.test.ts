@@ -7,8 +7,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type http from "node:http";
 import type { AddressInfo } from "node:net";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import type { AppConfig } from "../src/config.js";
 import { createHttpServer } from "../src/http/server.js";
 import { PermissionLayer } from "../src/permissions.js";
@@ -150,5 +149,71 @@ describe("HTTP transport (mocked services)", () => {
     } finally {
       await transport.close();
     }
+  });
+
+  it("negotiates the modern 2026-07-28 protocol when pinned", async () => {
+    const transport = new StreamableHTTPClientTransport(
+      new URL("/mcp", running.baseUrl),
+      {
+        requestInit: { headers: { authorization: `Bearer ${MCP_TOKEN}` } },
+      },
+    );
+    const client = new Client(
+      { name: "modern-pinned-client", version: "0.0.1" },
+      {
+        versionNegotiation: { mode: { pin: "2026-07-28" } },
+      },
+    );
+    await client.connect(transport);
+
+    try {
+      expect(client.getProtocolEra()).toBe("modern");
+      expect(client.getNegotiatedProtocolVersion()).toBe("2026-07-28");
+
+      const { tools } = await client.listTools();
+      expect(tools.map((t) => t.name).sort()).toContain("list_apps");
+    } finally {
+      await transport.close();
+    }
+  });
+
+  it("serves legacy stateless clients (default negotiation)", async () => {
+    const transport = new StreamableHTTPClientTransport(
+      new URL("/mcp", running.baseUrl),
+      {
+        requestInit: { headers: { authorization: `Bearer ${MCP_TOKEN}` } },
+      },
+    );
+    // Default client (no versionNegotiation) speaks the plain 2025 sequence;
+    // the server answers it via its stateless legacy leg.
+    const client = new Client({ name: "legacy-client", version: "0.0.1" });
+    await client.connect(transport);
+
+    try {
+      expect(client.getProtocolEra()).toBe("legacy");
+
+      const result = await client.callTool({ name: "get_system_info", arguments: {} });
+      expect(result.isError).toBeFalsy();
+    } finally {
+      await transport.close();
+    }
+  });
+
+  it("rejects MCP request bodies over 1 MiB with 413", async () => {
+    const pad = "x".repeat(1_200_000); // pushes the JSON body past 1 MiB
+    const res = await fetch(`${running.baseUrl}/mcp`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${MCP_TOKEN}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: { name: "get_system_info", arguments: { pad } },
+      }),
+    });
+    expect(res.status).toBe(413);
   });
 });

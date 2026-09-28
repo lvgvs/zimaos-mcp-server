@@ -6,9 +6,11 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import {
+  Client,
+  InMemoryTransport,
+  type CallToolResult,
+} from "@modelcontextprotocol/client";
 import { AppError } from "../src/errors.js";
 import { PermissionLayer } from "../src/permissions.js";
 import { createMcpServer, type ToolDeps } from "../src/mcp/tools.js";

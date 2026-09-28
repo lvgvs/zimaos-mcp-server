@@ -7,8 +7,7 @@
  * transport requires one connected server+transport pair per request.
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { McpServer, type CallToolResult } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import { AppError } from "../errors.js";
 import type { PermissionLayer } from "../permissions.js";
@@ -68,7 +67,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
       title: "List installed applications",
       description:
         "Returns a concise normalized list of applications installed on the ZimaOS host.",
-      inputSchema: {},
+      inputSchema: z.object({}),
     },
     guard(async () => {
       const apps = await deps.apps.listApps();
@@ -82,7 +81,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
       title: "Get one application",
       description:
         "Returns normalized information for a single installed application by its stable id.",
-      inputSchema: { app_id: appIdSchema },
+      inputSchema: z.object({ app_id: appIdSchema }),
     },
     guard(async (args) => {
       const app = await deps.apps.getApp(String(args["app_id"]));
@@ -96,7 +95,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
       title: "Get application health",
       description:
         "Returns available health/state information for an application and its containers. Health is only reported when ZimaOS exposes it; otherwise the state is 'unknown'.",
-      inputSchema: { app_id: appIdSchema },
+      inputSchema: z.object({ app_id: appIdSchema }),
     },
     guard(async (args) => {
       const health = await deps.apps.getAppHealth(String(args["app_id"]));
@@ -109,7 +108,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     {
       title: "Get recent application logs",
       description: `Returns a bounded tail of an application's container logs (default ${DEFAULT_LOG_LINES} lines, max ${MAX_LOG_LINES}). Application-generated log content may itself contain sensitive data outside this server's control.`,
-      inputSchema: {
+      inputSchema: z.object({
         app_id: appIdSchema,
         lines: z
           .number()
@@ -120,7 +119,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
           .describe(
             `Maximum number of log lines to return (default ${DEFAULT_LOG_LINES}, max ${MAX_LOG_LINES}).`,
           ),
-      },
+      }),
     },
     guard(async (args) => {
       const requested = args["lines"];
@@ -139,7 +138,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
       title: "List application containers",
       description:
         "Returns normalized container/service information for an installed application.",
-      inputSchema: { app_id: appIdSchema },
+      inputSchema: z.object({ app_id: appIdSchema }),
     },
     guard(async (args) => {
       const containers = await deps.apps.listContainers(String(args["app_id"]));
@@ -153,7 +152,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
       title: "Get system info",
       description:
         "Returns a small normalized summary of the ZimaOS system (device, OS version, CPU/memory basics).",
-      inputSchema: {},
+      inputSchema: z.object({}),
     },
     guard(async () => {
       const info = await deps.system.getSystemInfo();
@@ -174,7 +173,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
       {
         title: titles[action],
         description: `Reversibly ${action}s an installed application. Requires ALLOW_APP_CONTROL=true; otherwise returns a clear permission error.`,
-        inputSchema: { app_id: appIdSchema },
+        inputSchema: z.object({ app_id: appIdSchema }),
       },
       guard(async (args) => {
         const id = String(args["app_id"]);

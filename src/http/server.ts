@@ -1,18 +1,22 @@
 /**
- * MCP transport layer: authenticated Streamable HTTP over node:http.
+ * MCP transport layer: authenticated Streamable HTTP over node:http, built on
+ * the SDK v2 split packages.
  *
- * - POST/GET/DELETE /mcp  -> MCP Streamable HTTP (bearer-authenticated).
+ * - POST/GET/DELETE /mcp  -> MCP (bearer-authenticated).
  * - GET /health          -> lightweight readiness probe (no secrets, no auth).
  *
- * Stateless mode is required for a remote multi-client server: the SDK forbids
- * reusing one stateless transport across requests, so every MCP request gets
- * its own fresh McpServer + StreamableHTTPServerTransport pair. The shared
- * services are injected once and closed over by each per-request server.
+ * One `createMcpHandler(factory)` plus one `toNodeHandler` are created once per
+ * HTTP server lifecycle. The factory hands the handler a fresh McpServer for
+ * every MCP request, so each exchange is isolated; the shared services are
+ * injected once and closed over by that per-request server. The handler serves
+ * the modern (2026-07-28) protocol and falls back to old-school stateless
+ * serving for 2025-era traffic (`legacy: 'stateless'`).
  */
 
 import http from "node:http";
 import crypto from "node:crypto";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { createMcpHandler } from "@modelcontextprotocol/server";
+import { toNodeHandler } from "@modelcontextprotocol/node";
 import type { AppConfig } from "../config.js";
 import { logger } from "../logging.js";
 import { createMcpServer, type ToolDeps } from "../mcp/tools.js";
@@ -57,8 +61,30 @@ function bearerMatches(
 export function createHttpServer(options: HttpServerOptions): http.Server {
   const { config, deps } = options;
 
+  // One handler per HTTP server lifecycle. The factory returns a fresh McpServer
+  // for every MCP request (modern and stateless legacy alike), so exchanges are
+  // isolated while the shared services stay injected once.
+  const mcpHandler = createMcpHandler(() => createMcpServer(deps), {
+    legacy: "stateless",
+    maxRequestBodySize: MAX_REQUEST_BODY_SIZE,
+    onerror: (err) => logger.error("mcp_request_failed", { error: err.message }),
+  });
+
+  // Wrap the web-standard handler once for node:http. The adapter buffers the
+  // body under the same bound and answers 413 before anything is parsed.
+  const mcpNodeHandler = toNodeHandler(mcpHandler, {
+    maxRequestBodySize: MAX_REQUEST_BODY_SIZE,
+    onerror: (err) => logger.error("mcp_request_failed", { error: err.message }),
+  });
+
   const server = http.createServer((req, res) => {
     void handleRequest(req, res);
+  });
+
+  // Graceful shutdown: tear down in-flight modern exchanges when the HTTP server
+  // closes (the stateless legacy leg holds nothing between requests).
+  server.on("close", () => {
+    void mcpHandler.close().catch(() => undefined);
   });
 
   async function handleRequest(
@@ -85,6 +111,7 @@ export function createHttpServer(options: HttpServerOptions): http.Server {
       return;
     }
 
+    // Auth before MCP: unauthenticated requests never reach the handler.
     if (!bearerMatches(req.headers["authorization"], config.mcpAuthToken)) {
       logger.warn("rejected_unauthenticated_mcp_request", { method: req.method });
       res.setHeader("www-authenticate", 'Bearer realm="zimaos-mcp-server"');
@@ -92,22 +119,8 @@ export function createHttpServer(options: HttpServerOptions): http.Server {
       return;
     }
 
-    // Stateless Streamable HTTP: one fresh server+transport pair per request.
-    const transport = new StreamableHTTPServerTransport({
-      maxRequestBodySize: MAX_REQUEST_BODY_SIZE,
-    });
-    const mcpServer = createMcpServer(deps);
-    await mcpServer.connect(transport);
-
-    const cleanup = () => {
-      // Idempotent; safe to run on both finish and close.
-      void mcpServer.close().catch(() => undefined);
-    };
-    res.once("finish", cleanup);
-    res.once("close", cleanup);
-
     try {
-      await transport.handleRequest(req, res);
+      await mcpNodeHandler(req, res);
     } catch (err) {
       logger.error("mcp_request_failed", {
         error: err instanceof Error ? err.message : String(err),
