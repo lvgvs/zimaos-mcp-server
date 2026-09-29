@@ -41,6 +41,30 @@ export interface HealthProbeResult {
 }
 
 /**
+ * Normalized result of a non-mutating Compose dry-run validation.
+ *
+ * This is data, not an error: a rejected document or an ambiguous upstream
+ * failure are valid outcomes that callers must interpret, not exceptions.
+ */
+export interface ComposeValidationResult {
+  /**
+   * - "accepted": ZimaOS accepted the document in dry-run (HTTP 2xx). Nothing was
+   *   installed; acceptance is not completion of any install.
+   * - "rejected": ZimaOS definitively rejected it — an HTTP 4xx, or an HTTP 2xx envelope that
+   *   reports success:false (e.g. malformed YAML, a schema-invalid Compose, or a host port conflict).
+   * - "upstream_error": an ambiguous server-side failure (e.g. HTTP 502). This does
+   *   NOT mean the document is invalid and does NOT mean the service is unavailable;
+   *   it only means validation could not be confirmed.
+   */
+  status: "accepted" | "rejected" | "upstream_error";
+  /** True only when ZimaOS accepted the document (HTTP 2xx). Never implies installation. */
+  accepted: boolean;
+
+  /** Host ports reported as already in use, when ZimaOS reports them (port conflict). */
+  portsInUse?: number[];
+}
+
+/**
  * Minimal typed client for the ZimaOS APIs used by this project.
  * Deliberately small: only operations required by Phase 1.
  */
@@ -212,6 +236,105 @@ export class ZimaOsClient {
     return { state: "healthy", detail };
   }
 
+  /**
+   * Validate a Docker Compose document without installing it.
+   *
+   * Sends the exact original UTF-8 string as an `application/yaml` body to
+   * POST /v2/app_management/compose?dry_run=true&check_port_conflict=true and
+   * normalizes the outcome into {@link ComposeValidationResult}. The request is a
+   * dry run: ZimaOS validates only and performs no installation.
+   *
+   * This method never throws for validation outcomes (accepted / rejected /
+   * ambiguous upstream failure); those are returned as data. It still throws
+   * AppError for genuine transport/auth failures, like every other client call.
+   */
+  async validateCompose(source: string): Promise<ComposeValidationResult> {
+    let outcome: DryRunOutcome;
+    try {
+      // The dry-run endpoint is a BaseResponse: the HTTP status is the signal.
+      // 4xx (malformed YAML, schema-invalid Compose, port conflict) and 5xx are
+      // data here, not failures — so read the raw response instead of letting
+      // rawRequest throw on non-2xx.
+      outcome = await this.composeDryRunOnce(source);
+    } catch (err) {
+      if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
+        // Stale/expired token: retry once with a fresh login, mirroring authedRequest.
+        this.invalidateSession();
+        await this.login();
+        outcome = await this.composeDryRunOnce(source);
+      } else {
+        throw err;
+      }
+    }
+
+    return normalizeComposeValidation(outcome.status, outcome.body);
+  }
+
+  /**
+   * Perform one dry-run POST and report the HTTP status plus parsed body.
+   * Non-2xx statuses are returned as data (never thrown) because they carry the
+   * validation outcome; only transport/auth failures throw AppError.
+   */
+  private async composeDryRunOnce(source: string): Promise<DryRunOutcome> {
+    if (this.accessToken === null) {
+      await this.login();
+    }
+    const token = this.accessToken as string;
+
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      // The Compose document is YAML, not JSON.
+      "Content-Type": "application/yaml",
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    let response: Response;
+    try {
+      response = await this.fetchImpl(
+        `${this.baseUrl}/v2/app_management/compose?dry_run=true&check_port_conflict=true`,
+        // The exact original UTF-8 string is sent unchanged as the body.
+        { method: "POST", headers, body: source, signal: controller.signal },
+      );
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new AppError(
+          "ZIMAOS_UNREACHABLE",
+          `Timed out after ${this.timeoutMs} ms while contacting ZimaOS.`,
+        );
+      }
+      throw new AppError(
+        "ZIMAOS_UNREACHABLE",
+        "Could not reach the ZimaOS host (network error).",
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+
+    // 401/403 are auth/authorization failures, not validation outcomes: throw so the caller can
+    // re-authenticate (401) or surface a permission error (403). They must never be normalized to
+    // "rejected", and they never echo upstream text.
+    if (response.status === 401) {
+      throw new AppError("ZIMAOS_AUTH_FAILED", "ZimaOS rejected the session token.");
+    }
+    if (response.status === 403) {
+      throw fromHttpStatus(403); // PERMISSION_DENIED, safe fixed message.
+    }
+
+    const text = await response.text();
+    let body: unknown = null;
+    if (text.length > 0) {
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // A non-JSON body is still an outcome, not a crash: keep no structured data.
+        body = null;
+      }
+    }
+    return { status: response.status, body };
+  }
+
   // ------------------------------------------------------------- zimaos --
 
   /** Device info: GET /v2/zimaos/device/info -> bare payload (no envelope). */
@@ -357,4 +480,78 @@ function extractDetail(text: string): string | undefined {
     // not JSON — ignore
   }
   return undefined;
+}
+
+/** One dry-run attempt: the HTTP status plus the parsed body (null when empty/non-JSON). */
+interface DryRunOutcome {
+  status: number;
+  body: unknown;
+}
+
+// Bounding constants so a hostile/verbose upstream payload cannot grow an MCP reply.
+const MAX_PORTS_IN_USE = 64;
+
+/**
+ * Normalize a dry-run outcome into {@link ComposeValidationResult}.
+ *
+ * The HTTP status is the primary signal (see docs/RESEARCH.md Phase 2 D), with one envelope override:
+ *   - 2xx -> "accepted" (validation-only; nothing installed); but a 2xx envelope reporting success:false
+ *     is a definitive negative -> "rejected".
+ *   - 4xx -> "rejected" (ZimaOS definitively rejected: malformed YAML, schema-invalid, port conflict)
+ *   - otherwise (5xx incl. 502, or any unexpected status) -> "upstream_error"
+ *     (ambiguous: does NOT mean the document is invalid and does NOT mean the service is unavailable).
+ *
+ * Upstream free-form messages may echo any fragment of submitted YAML. Never relay them.
+ * Only bounded numeric host ports are extracted from the response.
+ */
+function normalizeComposeValidation(
+  status: number,
+  body: unknown,
+): ComposeValidationResult {
+  const isRecordBody = isRecord(body);
+  // A 2xx envelope can still report success:false (ZimaOS processed the request and answered
+  // "no"). That is a definitive negative, not acceptance.
+  const successFalse = isRecordBody && body["success"] === false;
+
+  let resultStatus: ComposeValidationResult["status"];
+  if (status >= 200 && status < 300) {
+    resultStatus = successFalse ? "rejected" : "accepted";
+  } else if (status >= 400 && status < 500) {
+    resultStatus = "rejected";
+  } else {
+    // 5xx (incl. the observed empty 502) and any other unexpected status: ambiguous, not a verdict.
+    resultStatus = "upstream_error";
+  }
+
+  const accepted = resultStatus === "accepted";
+  let portsInUse: number[] | undefined;
+
+  if (isRecordBody) {
+    portsInUse = extractPortsInUse(body["data"]);
+  }
+
+  return { status: resultStatus, accepted, portsInUse };
+}
+
+/** Defensively read `data.ports_in_use` as a bounded list of valid host port numbers. */
+function extractPortsInUse(data: unknown): number[] | undefined {
+  if (!isRecord(data)) return undefined;
+  const raw = data["ports_in_use"];
+  if (!Array.isArray(raw)) return undefined;
+
+  const ports: number[] = [];
+  for (const entry of raw) {
+    let n: number | null = null;
+    if (typeof entry === "number" && Number.isInteger(entry)) {
+      n = entry;
+    } else if (typeof entry === "string" && /^\d+$/.test(entry.trim())) {
+      // Ports may be reported as numeric strings; accept pure digits only.
+      n = Number.parseInt(entry, 10);
+    }
+    if (n !== null && n > 0 && n <= 65535) {
+      ports.push(n);
+    }
+    if (ports.length >= MAX_PORTS_IN_USE) break; // bound the list size.
+  }
+  return ports.length > 0 ? ports : undefined;
 }

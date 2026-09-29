@@ -8,12 +8,41 @@
 
 import { AppError } from "../errors.js";
 import type { HealthProbeResult, ZimaOsClient } from "./client.js";
+import type { ComposeValidationResult } from "./client.js";
+import { analyzeCompose, type RiskFinding } from "../compose/analyze.js";
+import { parseCompose } from "../compose/parse.js";
 import {
   normalizeAppList,
   normalizeContainers,
   type AppInfo,
   type ContainerInfo,
 } from "../domain/models.js";
+
+/**
+ * Bounded structured result of a non-mutating Compose validation.
+ * Extends the client's dry-run outcome with local risk findings; every field
+ * is fixed-shape and never carries raw upstream or source text.
+ */
+export interface ValidateComposeResult extends ComposeValidationResult {
+  /** Local analyzer findings (empty for benign documents). */
+  readonly findings: RiskFinding[];
+}
+
+/** Limit validation disclosure and later approval challenge size. */
+const MAX_RISK_FINDINGS = 256;
+
+/**
+ * Normalize a local parser/analyzer failure into an AppError without echoing
+ * input content: only the modules' own sanitized reason phrases are passed
+ * through; anything else becomes a fixed generic message.
+ */
+function toLocalValidationError(err: unknown, stage: "parse" | "analyze"): AppError {
+  const prefix = `compose ${stage} failed:`;
+  if (err instanceof Error && err.message.startsWith(prefix)) {
+    return new AppError("INPUT_INVALID", err.message);
+  }
+  return new AppError("INPUT_INVALID", `${prefix} invalid document`);
+}
 
 export class AppService {
   constructor(private readonly client: ZimaOsClient) {}
@@ -92,5 +121,42 @@ export class AppService {
   /** Restart an application (control operation). */
   async restartApp(id: string): Promise<void> {
     await this.client.setComposeAppStatus(id, "restart");
+  }
+
+  /**
+   * Validate a Docker Compose document without installing or mutating anything.
+   *
+   * Pipeline: `parseCompose` -> `analyzeCompose` (local risk findings) -> one
+   * non-mutating dry-run via the client with the exact original source string,
+   * unchanged. Local parser/analyzer rejections short-circuit as AppError
+   * INPUT_INVALID before any upstream call; validation outcomes (accepted /
+   * rejected / ambiguous upstream failure) are returned as data. Client
+   * transport/auth failures propagate as their AppErrors. No name is required.
+   */
+  async validateCompose(source: string): Promise<ValidateComposeResult> {
+    let parsed;
+    try {
+      parsed = parseCompose(source);
+    } catch (err) {
+      throw toLocalValidationError(err, "parse");
+    }
+
+    let findings: RiskFinding[];
+    try {
+      findings = analyzeCompose(parsed);
+    } catch (err) {
+      throw toLocalValidationError(err, "analyze");
+    }
+
+    if (findings.length > MAX_RISK_FINDINGS) {
+      throw new AppError(
+        "INPUT_INVALID",
+        "compose analyze failed: too many risk findings",
+      );
+    }
+
+    // The exact original source reaches the dry run unchanged.
+    const validation = await this.client.validateCompose(source);
+    return { ...validation, findings };
   }
 }

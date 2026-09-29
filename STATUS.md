@@ -6,7 +6,7 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 2 implementation; Phase 2A MCP SDK v2 migration complete locally.
+- **Phase:** Phase 2 implementation, Phase 2B validation milestone locally complete; Phase 2A MCP SDK v2 migration committed and pushed.
   Phase 1 tool behavior remains covered by automated tests. Historical live Phase 1 verification is retained below.
 - **Phase B checkpoint:** `yaml@2.9.1` (ISC) selected for
   bounded safety inspection; original scratch probe failed (12 pass / 14 fail), focused
@@ -24,10 +24,12 @@ authoritative.
   Named collisions fail closed; duplicate POST is not idempotent. Manager-provided live
   v1.7.1 findings recovered, including schema-invalid 502 and deterministic duplicate app.
   Actual App Store update semantics remain blocked/unverified.
-- **Current milestone:** Phase 2A replaces the monolithic SDK with split server/node/client
-  2.1.0 packages, one HTTP handler per server lifecycle, fresh MCP instances per request,
-  and modern plus stateless legacy HTTP coverage. No live VM calls in this milestone.
-- **Next action:** Phase 2B bounded YAML analysis, risk detector, and non-mutating validation.
+- **Current milestone:** Phase 2B bounded YAML parsing, risk analysis, non-mutating upstream
+  dry run, domain orchestration and `validate_app_compose` MCP tool are implemented and
+  locally verified. Milestone commit/push pending.
+- **Next action:** Commit and push reviewed Phase 2B, verify remote state, then begin the
+  separately permissioned Phase 2C safe install path. Phase 2D risky approval and Phase 2E
+  uninstall remain. App Store update semantics remain unverified; no update tool.
 
 ## Git / repository
 
@@ -38,6 +40,74 @@ authoritative.
   `docs: complete Phase 2 provisioning research`; obtain its exact SHA with `git rev-parse HEAD`
   (a commit cannot contain its own SHA). Final chat handoff reports the pushed SHA.
 - Repository was independently rechecked **PRIVATE** in this pass; visibility unchanged.
+
+## Pause checkpoint — Phase 2B (2026-09-28)
+
+This section is a historical pause snapshot, superseded by the current milestone above and
+the resumed implementation record below.
+
+- **HEAD / branch / remote:** `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`,
+  `main`, remote `main` matched. Phase 2A (`0968107`) was committed and pushed
+  before the pause; no commit or push was made during the pause procedure.
+- **Completed bounded work since Phase 2A:** Added exact `yaml@2.9.1` production
+  dependency and a bounded parser (`src/compose/parse.ts`), preserving the original
+  string and rejecting malformed/warning/ambiguous or over-budget YAML. Added a
+  structured Compose risk analyzer (`src/compose/analyze.ts`) for privileged mode,
+  host namespaces, runtime socket/host binds, devices, added capabilities,
+  security options, named-volume indirection, and unsupported external includes/
+  builds/extends. Parser and analyzer have focused tests. Neither is wired to an
+  MCP tool yet; this is not a complete safety proof for arbitrary Compose.
+- **Last Qwen task:** Add non-mutating `ZimaOsClient.validateCompose` using the
+  supported dry-run/port-check query, exact YAML body, and normalized 200/400/502
+  outcomes, with mocked tests. The child was steered for pause and specifically
+  stopped at an edit boundary; its final result was **interrupted**. It changed
+  `src/zimaos/client.ts` and `tests/client.test.ts`. Seven dry-run tests exist,
+  but security review remains unfinished: a 401/403 response is currently
+  classified as a validation rejection instead of an authentication/authorization
+  failure, an upstream `message` is surfaced without proving it cannot echo
+  submitted Compose content, and a 2xx envelope with `success:false` is not
+  distinguished from acceptance. Do not expose the method through MCP before fixing.
+- **Intentionally dirty worktree:** modified `package.json`, `package-lock.json`,
+  `src/zimaos/client.ts`, `tests/client.test.ts`; untracked
+  `src/compose/parse.ts`, `src/compose/analyze.ts`,
+  `tests/composeParse.test.ts`, `tests/composeAnalyze.test.ts`, plus this status
+  update. No tracked files were reset or recreated; the local secret env remains ignored.
+- **Verification at pause:** focused client/parser/analyzer tests **133/133 passed**;
+  production and test TypeScript checks passed; `git diff --check` passed.
+  Earlier, before the interrupted dry-run edits, the parent independently ran
+  the full mocked suite at **122/122**; the analyzer child separately reported
+  **160/160** after its extension. Formatting currently **fails**
+  on `src/zimaos/client.ts` and `tests/client.test.ts`. The full suite, lint,
+  build, Docker build, and Compose validation were **not rerun** on the current
+  dirty tree. No Phase 2 live VM acceptance was performed.
+- **Remaining after resume:** finish Phase 2B safe validation tool/API tests and
+  full gates; Phase 2C install permission, duplicate protection and single POST;
+  Phase 2D modern single-use risky approval; Phase 2E uninstall; live benign
+  acceptance, cleanup, docs and gates. `update_app` remains intentionally
+  unimplemented pending verified App Store update semantics. No child remains active.
+
+## Phase 2B resumed implementation (local, mocked)
+
+- `yaml@2.9.1` parser applies UTF-8 byte, depth, node, alias and traversal budgets,
+  rejects warnings, duplicate merge keys and cycles, and preserves the exact source.
+  Risk analyzer reports fixed-category host-control findings; validation fails closed if
+  more than 256 findings would be returned. Local analysis is not Docker Compose validation.
+- `ZimaOsClient.validateCompose` posts the exact source as YAML with explicit dry-run and
+  port-conflict checks. HTTP 401 reauthenticates once, 403 remains a permission failure;
+  upstream free-form messages are never relayed. HTTP 2xx `success:false` is not accepted;
+  empty 502 remains ambiguous, not proof of invalidity or outage. No real install POST.
+- `AppService.validateCompose` and `validate_app_compose` MCP tool perform local analysis
+  then upstream dry-run without requiring top-level `name:` or app-control permission.
+  Invalid local documents stop before contacting ZimaOS. Phase 1 tools remain registered.
+- Independently executed on this worktree: `npm test` **191/191** across 8 files,
+  `npm run lint`, `npm run format:check`, production and test TypeScript checks,
+  `npm run build`, `docker build -t zimaos-mcp-server:phase2b .`,
+  `docker compose -f deploy/zimaos/docker-compose.yml config --quiet`, and
+  `git diff --check` — all passed. These are mocked/local gates, not live VM acceptance.
+  `.env.integration.local` remains Git-ignored. No Phase 2 live VM action yet.
+- Branch `main`; base commit before Phase 2B is `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`;
+  repository https://github.com/lvgvs/zimaos-mcp-server (private). GHCR Phase 2 image not
+  verified; ZimaOS Compose deployment not yet exercised for Phase 2.
 
 ## Phase 2A implementation verification (local, mocked)
 
@@ -50,7 +120,7 @@ authoritative.
 - `docker build -t zimaos-mcp-server:phase2a .` and
   `docker compose -f deploy/zimaos/docker-compose.yml config --quiet`: passed.
 - Live ZimaOS integration was not rerun for Phase 2A. GHCR/CI for this milestone
-  remain unverified until the push completes. No Phase 2 provisioning tools yet.
+  were not checked after the push. No Phase 2 provisioning tools yet.
 
 ## Research checkpoint verification / blockers
 
@@ -235,6 +305,6 @@ Using the disposable test app `mcp-test-nginx`:
 
 ## Recommended next action for the manager
 
-Continue Phase 2B within the approved scope. Do not implement App Store update
-without verified supported semantics. The research-only historical sections above
-describe an earlier checkpoint, not the current implementation state.
+Continue Phase 2C after the reviewed Phase 2B commit/push. Preserve the existing
+safety model, do not infer App Store update semantics, and perform live benign
+acceptance/cleanup only after the remaining provisioning milestones pass gates.

@@ -160,6 +160,34 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     }),
   );
 
+  // Non-mutating Compose validation. Read-only by design, so it is available
+  // without any app-control permission flag; nothing is installed or changed.
+  server.registerTool(
+    "validate_app_compose",
+    {
+      title: "Validate an application Compose document",
+      description:
+        "Validates a Docker Compose document against the ZimaOS dry-run endpoint and local risk analysis without installing or mutating anything. Returns structured JSON with the normalized validation status plus fixed-shape risk findings (findings are data, not errors). Read-only; no app-control permission is required.",
+      inputSchema: z.object({
+        source: z.string().min(1).describe("Docker Compose YAML to validate."),
+      }),
+    },
+    guard(async (args) => {
+      const source = String(args["source"]);
+      try {
+        const validation = await deps.apps.validateCompose(source);
+        return textResult(JSON.stringify(validation));
+      } catch (err) {
+        // Normalized AppErrors pass through to the guard below. Unexpected
+        // failures must not echo raw input or internal details to the client.
+        if (!(err instanceof AppError)) {
+          throw new AppError("INTERNAL", "compose validation failed unexpectedly.");
+        }
+        throw err;
+      }
+    }),
+  );
+
   // ------------------------------------------------- reversible controls --
 
   const controlTool = (name: string, action: "start" | "stop" | "restart") => {
