@@ -696,6 +696,28 @@ describe("ZimaOsClient.installComposeOnce (mocked HTTP, single real install POST
     });
   });
 
+  it("recognizes only the observed message-only HTTP 200 install acceptance", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", {
+      status: 200,
+      json: { message: "app is being installed asynchronously" },
+    });
+    const client = await withSession(fake);
+    expect(await client.installComposeOnce("services: {}\n")).toEqual({
+      status: "accepted",
+      accepted: true,
+    });
+    fake.on("POST", "/v2/app_management/compose", {
+      status: 200,
+      json: { message: "unknown result" },
+    });
+    expect(await client.installComposeOnce("services: {}\n")).toEqual({
+      status: "upstream_error",
+      accepted: false,
+    });
+  });
+
   it("never reflects upstream messages or secrets in the acceptance result", async () => {
     const fake = new FakeZimaOs();
     loginOk(fake);
@@ -963,6 +985,28 @@ describe("ZimaOsClient.uninstallComposeOnce (mocked HTTP, single real uninstall 
 
     expect(await client.uninstallComposeOnce("myapp")).toEqual({
       status: "rejected",
+      accepted: false,
+    });
+  });
+
+  it("recognizes only the observed message-only HTTP 200 uninstall acceptance", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/myapp", {
+      status: 200,
+      json: { message: "app is being uninstalled asynchronously" },
+    });
+    const client = await withSession(fake);
+    expect(await client.uninstallComposeOnce("myapp")).toEqual({
+      status: "accepted",
+      accepted: true,
+    });
+    fake.on("DELETE", "/v2/app_management/compose/myapp", {
+      status: 200,
+      json: { message: "unknown result" },
+    });
+    expect(await client.uninstallComposeOnce("myapp")).toEqual({
+      status: "upstream_error",
       accepted: false,
     });
   });

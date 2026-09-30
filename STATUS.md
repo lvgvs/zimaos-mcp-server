@@ -6,43 +6,56 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 2 implementation, Phase 2E uninstall locally gated. Phases 2A–2D are committed and pushed; final live acceptance remains.
-  Phase 1 tool behavior remains covered by automated tests. Historical live Phase 1 verification is retained below.
-- **Phase B checkpoint:** `yaml@2.9.1` (ISC) selected for
-  bounded safety inspection; original scratch probe failed (12 pass / 14 fail), focused
-  synthetic parser checks passed (14/14). No detector or runtime changes.
-- **Starting state:** Clean `main`, HEAD and remote main
-  `06fe86c267c27648e48b8616944984b795cb86ae`, verified before editing documentation.
-- **Live boundary:** No new ZimaOS requests/mutations in this Astra pass. Manager-provided
-  final VM baseline is only `mcp-test-nginx`; do not repeat lifecycle probes.
-- **Phase C checkpoint:** Official stable SDK v2 verified at split-package 2.1.0,
-  modern protocol 2026-07-28, `createMcpHandler`/`toNodeHandler`, native `input_required`,
-  and signed `requestState`. Concrete content/risk-bound approval proposal persisted;
-  single-use enforcement is application-owned, and human presence cannot be proven.
-- **Phase D checkpoint:** Separate default-off `ALLOW_APP_INSTALL`, `ALLOW_APP_UNINSTALL`,
-  `ALLOW_APP_UPDATE` names finalized; `ALLOW_APP_CONTROL` remains start/stop/restart only.
-  Named collisions fail closed; duplicate POST is not idempotent. Manager-provided live
-  v1.7.1 findings recovered, including schema-invalid 502 and deterministic duplicate app.
-  Actual App Store update semantics remain blocked/unverified.
-- **Current milestone:** Phase 2E `uninstall_app` and default-off independent permission
-  are implemented and mocked. Phase 2D was pushed at
-  `e5f5a6ef400a5278c671a5c44562c52c49969664`; Phase 2E commit/push pending final gates.
-- **Next action:** Gate/review/commit Phase 2E, then bounded live MCP acceptance on
-  the disposable VM and cleanup to the pre-existing `mcp-test-nginx` baseline.
-  App Store update semantics remain unverified; no update tool.
+- **Phase:** Phase 2 closing pass complete, pending verification of this closing
+  commit's remote CI/GHCR runs after push. Do not begin Phase 3 automatically.
+- **Milestones:** Phase 2A–2E committed/pushed in order (SHAs below). The final
+  post-live-acceptance correction recognizes only the verified message-only
+  asynchronous HTTP 200 install/uninstall responses in addition to explicit
+  `success:true` envelopes. It does not alter authorization, preflight,
+  duplicate protection, retries, or mutation payloads. Upstream messages are
+  compared internally, never returned to MCP clients.
+- **Final local gates:** `npm test` **390/390 across 19 files**; lint, Prettier,
+  production and test TypeScript checks, production build, Docker build
+  (`zimaos-mcp-server:phase2-final`), deployment Compose validation and
+  `git diff --check` passed on the reviewed closing worktree. CI and private
+  GHCR publishing both passed for Phase 2E HEAD before the closing commit;
+  the final commit's remote runs require post-push verification.
+- **Live acceptance / cleanup:** Authenticated MCP, unauthenticated 401,
+  non-mutating validation, default-off install/uninstall permissions, risky
+  modern first-round disclosure with no mutation, benign install, duplicate
+  blocking and uninstall were exercised. Corrected install and uninstall each
+  returned `accepted` in a later bounded live run; read-only app lists observed
+  appearance then disappearance. The disposable VM's last read-only MCP list
+  contained only pre-existing `mcp-test-nginx`. The temporary local acceptance
+  container was stopped and is absent; no Phase 2 child or local acceptance
+  process remains. No additional VM mutation was needed for this closing pass.
+- **Phase 1:** Original tools remain registered; their mocked regressions pass
+  within the 390 tests. Historical live Phase 1 verification is recorded below.
+- **Limitations:** `update_app` is intentionally absent: supported App Store
+  update semantics are unverified. A human's actual viewing/approval is a
+  client-side requirement, not cryptographically provable by MCP; the risky
+  approved second-round path was mocked, not live-mutated. ZimaOS Custom App UI
+  paste/install remains an optional manual deployment check. No blocking
+  manager decision is required for the implemented Phase 2 scope.
+- **Next action for manager:** Review the Phase 2 handoff and approve any
+  future phase separately. Do not infer update semantics or expand scope.
 
 ## Git / repository
 
 - **Branch:** `main`
+- **Phase 2A HEAD:** `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`, pushed to `origin/main`.
 - **Phase 2B HEAD:** `e8774f23ce9ecf55050eaac7b0767a3595c72109`, pushed to `origin/main`.
 - **Phase 2C HEAD:** `d579a259049250f43b41ff7110a43106d6817e63`, pushed to `origin/main`.
 - **Phase 2D HEAD:** `e5f5a6ef400a5278c671a5c44562c52c49969664`, pushed to `origin/main`.
+- **Phase 2E HEAD:** `b2fb4c05ead8fd8c0f155ba7f0a906dc85de9f1a`, pushed to `origin/main`.
+- **Closing HEAD:** the commit containing this status and response-shape fix;
+  obtain its exact SHA with `git rev-parse HEAD` after commit/push (a Git commit
+  cannot contain its own SHA). The final chat handoff states the verified SHA.
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (**private**, per Phase 1 rule)
-- **Research base SHA:** `06fe86c267c27648e48b8616944984b795cb86ae`.
-- **Research checkpoint HEAD:** the commit containing this status, intended as
-  `docs: complete Phase 2 provisioning research`; obtain its exact SHA with `git rev-parse HEAD`
-  (a commit cannot contain its own SHA). Final chat handoff reports the pushed SHA.
-- Repository was independently rechecked **PRIVATE** in this pass; visibility unchanged.
+- **GHCR:** `ghcr.io/lvgvs/zimaos-mcp-server` private; immutable
+  `sha-<commit SHA>` and `latest` are published by CI. Phase 2E workflows
+  passed; verify the closing commit's CI and publish runs after push. Private
+  image pull requires a registry credential with `read:packages`.
 
 ## Pause checkpoint — Phase 2B (2026-09-28)
 
@@ -248,6 +261,45 @@ This is a historical pause snapshot, superseded by the resumed Phase 2C mileston
   Compose config validation, and `git diff --check` — all passed. No Phase 2E live
   VM acceptance yet; GHCR publication of this image has not been verified.
 
+## Pause checkpoint — post-Phase 2E live acceptance (2026-09-30)
+
+Historical pause snapshot; the completed closing state at the top of this file
+supersedes its dirty-worktree/next-action instructions.
+
+- **Git / delegation:** `main` and `origin/main` both at
+  `b2fb4c05ead8fd8c0f155ba7f0a906dc85de9f1a`. Dirty tracked files:
+  `src/zimaos/client.ts`, `tests/client.test.ts`, `docs/RESEARCH.md`, `STATUS.md`.
+  No active child; no commit/push for the response-shape correction. Local integration
+  credentials remain ignored and unstaged. Preserve this dirty work on resume.
+- **Local gates on the corrected worktree:** mocked `npm test` **390/390 across 19
+  files**, lint, format check, both TypeScript checks, production build, Docker
+  build (`zimaos-mcp-server:phase2e-final`), Compose configuration validation,
+  and `git diff --check` all passed. The first live test used the older
+  `phase2e` image; the corrected image was rebuilt and retested.
+- **Live disposable VM through authenticated MCP:** unauthenticated request 401;
+  12 registered tools; benign Compose validation accepted without changing the
+  one-app baseline. Modern risky first round returned native `input_required`
+  without mutation. A separate default-off run denied both install and uninstall
+  before mutation. With permissions enabled, a benign uniquely named disposable
+  Compose app appeared after one MCP install call, duplicate install was blocked,
+  and one MCP uninstall call removed it. Initial accepted responses were wrongly
+  normalized as `upstream_error` despite the mutation; no automatic retry was
+  attempted. A secret-safe live response-shape probe identified message-only
+  HTTP 200 acceptance. With the narrow fix, another disposable benign app was
+  installed and uninstalled through MCP; both calls returned `accepted`, and
+  read-only observations confirmed appearance/disappearance. No risky workload
+  was installed and no approved-risky second-round live mutation was attempted.
+- **VM final state:** read-only MCP list returned only pre-existing
+  `mcp-test-nginx`; the temporary acceptance container was stopped. A ZimaOS
+  Custom App UI deployment was not exercised. GHCR status for the corrected
+  uncommitted image is not verified. `update_app` remains unimplemented because
+  actual App Store update semantics remain unverified.
+- **Pause action:** no new child, scope expansion, further VM mutation, commit,
+  or push after the pause request. On explicit resume, review the dirty diff,
+  commit/push the corrected milestone, verify remote CI and GHCR, and report
+  any remaining UI/client human-presentation limitation without claiming MCP
+  cryptographically proves human presence.
+
 ## Phase 2A implementation verification (local, mocked)
 
 - Started at `baf1adc4830fb470a1e924c191fcc3f2b1b702b8` with pre-existing
@@ -442,8 +494,7 @@ Using the disposable test app `mcp-test-nginx`:
 - Optional: paste `deploy/zimaos/docker-compose.yml` into a ZimaOS Custom App on the disposable VM
   as an end-to-end UI verification (the container artifact itself is already verified).
 
-## Recommended next action for the manager
+## Historical Phase 1 handoff note
 
-Continue Phase 2C after the reviewed Phase 2B commit/push. Preserve the existing
-safety model, do not infer App Store update semantics, and perform live benign
-acceptance/cleanup only after the remaining provisioning milestones pass gates.
+The Phase 1 manager handoff above predates Phase 2. Current Phase 2 completion
+state and manager action are recorded at the top of this file.

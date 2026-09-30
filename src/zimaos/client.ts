@@ -72,11 +72,10 @@ export interface ComposeValidationResult {
  */
 export interface ComposeInstallResult {
   /**
-   * - "accepted": ZimaOS accepted the install request (HTTP 2xx with a JSON
-   *   application envelope reporting success:true). The install is asynchronous:
+   * - "accepted": ZimaOS accepted the install request (2xx success:true or
+   *   the verified message-only HTTP 200). The install is asynchronous:
    *   acceptance is NOT completion, and no app ID can be inferred from this
-   *   response. A 2xx that does not explicitly report success:true (empty body,
-   *   non-JSON body, or an empty/other JSON object) is ambiguous -> "upstream_error".
+   *   response. Other 2xx bodies remain ambiguous -> "upstream_error".
    * - "rejected": ZimaOS definitively rejected it — an HTTP 4xx, or an HTTP 2xx
    *   envelope that reports success:false.
    * - "upstream_error": an ambiguous failure (HTTP 5xx/other status, empty body,
@@ -84,7 +83,7 @@ export interface ComposeInstallResult {
    *   succeeded; the outcome is unknown.
    */
   status: "accepted" | "rejected" | "upstream_error";
-  /** True only when ZimaOS accepted the request (HTTP 2xx with a JSON envelope reporting success:true). Never implies completion. */
+  /** True only on an explicit accepted envelope or verified async message. Never implies completion. */
   accepted: boolean;
 }
 
@@ -96,12 +95,11 @@ export interface ComposeInstallResult {
  */
 export interface ComposeUninstallResult {
   /**
-   * - "accepted": ZimaOS accepted the uninstall request (HTTP 2xx with a JSON
-   *   application envelope reporting success:true). The removal is asynchronous:
+   * - "accepted": ZimaOS accepted the uninstall request (2xx success:true or
+   *   the verified message-only HTTP 200). The removal is asynchronous:
    *   acceptance is NOT completion — the app may still be present for a while,
-   *   and no further state can be inferred from this response. A 2xx that does
-   *   not explicitly report success:true (empty body, non-JSON body, or an
-   *   envelope without that flag) is ambiguous -> "upstream_error".
+   *   and no further state can be inferred from this response. Other 2xx
+   *   bodies remain ambiguous -> "upstream_error".
    * - "rejected": ZimaOS definitively rejected it — an HTTP 4xx (including the
    *   documented 404 for a missing app), or an HTTP 2xx envelope reporting success:false.
    * - "upstream_error": an ambiguous failure (HTTP 5xx/other status, empty body,
@@ -109,7 +107,7 @@ export interface ComposeUninstallResult {
    *   succeeded; the outcome is unknown.
    */
   status: "accepted" | "rejected" | "upstream_error";
-  /** True only when ZimaOS accepted the request (HTTP 2xx with a JSON envelope reporting success:true). Never implies completion. */
+  /** True only on an explicit accepted envelope or verified async message. Never implies completion. */
   accepted: boolean;
 }
 
@@ -845,16 +843,27 @@ function extractPortsInUse(data: unknown): number[] | undefined {
   return ports.length > 0 ? ports : undefined;
 }
 
+/** Live v1.7.1 returns a message-only 200 for these asynchronous operations. */
+function hasAsyncAcceptanceMessage(
+  body: Record<string, unknown>,
+  operation: "installed" | "uninstalled",
+): boolean {
+  return (
+    Object.keys(body).length === 1 &&
+    typeof body["message"] === "string" &&
+    body["message"].toLowerCase() === `app is being ${operation} asynchronously`
+  );
+}
+
 /**
  * Normalize a real-install outcome into {@link ComposeInstallResult}.
  *
  * The install is asynchronous: an accepted response only means ZimaOS took the
  * request — it is NOT completion, and no app ID can be inferred from it.
  *
- *   - 2xx with a JSON application envelope reporting success:true -> "accepted"
- *     (async acceptance). A 2xx envelope reporting success:false is a definitive
- *     negative -> "rejected". Any other 2xx body (empty, non-JSON, or an envelope
- *     without an explicit success flag) gives no confirmation of acceptance ->
+ *   - 2xx with success:true or the verified message-only HTTP 200 -> "accepted".
+ *     A 2xx success:false is a definitive rejection. Other 2xx bodies give no
+ *     confirmation of acceptance ->
  *     "upstream_error" (ambiguous; does NOT mean the install failed and does NOT
  *     mean it succeeded).
  *   - 4xx -> "rejected" (ZimaOS definitively rejected the install).
@@ -866,28 +875,16 @@ function extractPortsInUse(data: unknown): number[] | undefined {
  * are never relayed: only this fixed-shape result is returned.
  */
 function normalizeComposeInstall(status: number, body: unknown): ComposeInstallResult {
-  let statusOut: ComposeInstallResult["status"];
-  if (status >= 200 && status < 300) {
-    // Only an explicit JSON application envelope reporting success:true confirms
-    // acceptance. A 2xx envelope reporting success:false is a definitive negative.
-    // Empty/non-JSON bodies and envelopes without that flag give no confirmation of
-    // acceptance — treat them as ambiguous, never accepted.
-    if (!isRecord(body)) {
-      statusOut = "upstream_error";
-    } else if (body["success"] === true) {
+  let statusOut: ComposeInstallResult["status"] = "upstream_error";
+  if (status >= 200 && status < 300 && isRecord(body)) {
+    if (body["success"] === true) statusOut = "accepted";
+    else if (body["success"] === false) statusOut = "rejected";
+    else if (status === 200 && hasAsyncAcceptanceMessage(body, "installed")) {
       statusOut = "accepted";
-    } else if (body["success"] === false) {
-      statusOut = "rejected";
-    } else {
-      statusOut = "upstream_error";
     }
   } else if (status >= 400 && status < 500) {
     statusOut = "rejected";
-  } else {
-    // 5xx (incl. the observed empty 502) and any other unexpected status: ambiguous.
-    statusOut = "upstream_error";
   }
-
   return { status: statusOut, accepted: statusOut === "accepted" };
 }
 
@@ -897,10 +894,9 @@ function normalizeComposeInstall(status: number, body: unknown): ComposeInstallR
  * The uninstall is asynchronous: an accepted response only means ZimaOS took the
  * request — it is NOT completion; the app may still be present for a while.
  *
- *   - 2xx with a JSON application envelope reporting success:true -> "accepted"
- *     (async acceptance). A 2xx envelope reporting success:false is a definitive
- *     negative -> "rejected". Any other 2xx body (empty, non-JSON, or an envelope
- *     without an explicit success flag) gives no confirmation of acceptance ->
+ *   - 2xx with success:true or the verified message-only HTTP 200 -> "accepted".
+ *     A 2xx success:false is a definitive rejection. Other 2xx bodies give no
+ *     confirmation of acceptance ->
  *     "upstream_error" (ambiguous; does NOT mean the uninstall failed and does
  *     NOT mean it succeeded).
  *   - 4xx -> "rejected" (ZimaOS definitively rejected: e.g. the documented 404
@@ -915,27 +911,15 @@ function normalizeComposeUninstall(
   status: number,
   body: unknown,
 ): ComposeUninstallResult {
-  let statusOut: ComposeUninstallResult["status"];
-  if (status >= 200 && status < 300) {
-    // Only an explicit JSON application envelope reporting success:true confirms
-    // acceptance. A 2xx envelope reporting success:false is a definitive negative.
-    // Empty/non-JSON bodies and envelopes without that flag give no confirmation of
-    // acceptance — treat them as ambiguous, never accepted.
-    if (!isRecord(body)) {
-      statusOut = "upstream_error";
-    } else if (body["success"] === true) {
+  let statusOut: ComposeUninstallResult["status"] = "upstream_error";
+  if (status >= 200 && status < 300 && isRecord(body)) {
+    if (body["success"] === true) statusOut = "accepted";
+    else if (body["success"] === false) statusOut = "rejected";
+    else if (status === 200 && hasAsyncAcceptanceMessage(body, "uninstalled")) {
       statusOut = "accepted";
-    } else if (body["success"] === false) {
-      statusOut = "rejected";
-    } else {
-      statusOut = "upstream_error";
     }
   } else if (status >= 400 && status < 500) {
     statusOut = "rejected";
-  } else {
-    // 5xx and any other unexpected status: ambiguous.
-    statusOut = "upstream_error";
   }
-
   return { status: statusOut, accepted: statusOut === "accepted" };
 }

@@ -507,6 +507,25 @@ allows only one bounded read-only list observation after acceptance; a stale
 listing reports pending rather than triggering a second DELETE. These are
 mocked local results pending live MCP acceptance, not a new live API probe.
 
+### Live Phase 2 response-shape correction (2026-09-30)
+
+On the authorized disposable ZimaOS v1.7.1 VM, a fresh benign disposable
+Compose app was installed once and removed once with explicit
+`delete_config_folder=false`; read-only app-list observations confirmed its
+appearance and disappearance, returning to the existing baseline. Both real
+operations returned **HTTP 200 with only a `message` string** (no `success`
+or `data` key). The install and uninstall messages were respectively 37 and
+39 characters, consistent with the previously documented fixed asynchronous
+acceptance phrases. No raw messages or credentials were logged. A strict
+`success:true`-only normalizer therefore wrongly returned `upstream_error`
+even though both operations took effect. The runtime now recognizes only the
+verified fixed async phrase for the matching operation on message-only HTTP
+200, retaining ambiguous treatment for other text, empty/non-JSON responses,
+and 5xx. A second benign disposable app exercised the corrected production
+image through MCP: both install and uninstall returned `accepted` and read-only
+listing confirmed appearance then removal. An accepted response remains
+asynchronous, not proof of completion.
+
 ### D. Live ZimaOS v1.7.1 facts — manager-provided evidence, not new tests
 
 These facts were supplied as independently/manual verified evidence for this recovery
