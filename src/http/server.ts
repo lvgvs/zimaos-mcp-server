@@ -17,6 +17,9 @@ import http from "node:http";
 import crypto from "node:crypto";
 import { createMcpHandler } from "@modelcontextprotocol/server";
 import { toNodeHandler } from "@modelcontextprotocol/node";
+import { defaultChallengeLedger } from "../approval/challengeLedger.js";
+import { sha256Hex } from "../approval/intent.js";
+import { createPendingInstallRequestStateCodec } from "../approval/requestState.js";
 import type { AppConfig } from "../config.js";
 import { logger } from "../logging.js";
 import { createMcpServer, type ToolDeps } from "../mcp/tools.js";
@@ -60,11 +63,20 @@ function bearerMatches(
 
 export function createHttpServer(options: HttpServerOptions): http.Server {
   const { config, deps } = options;
+  // One ephemeral signing key per HTTP server, one process-wide single-use ledger.
+  // The bearer-authenticated deployment is the single principal in this release.
+  const principal = sha256Hex(config.mcpAuthToken);
+  const approval: NonNullable<ToolDeps["approval"]> = {
+    ledger: defaultChallengeLedger,
+    codec: createPendingInstallRequestStateCodec({ principal }),
+    principal,
+    target: config.zimaosUrl,
+  };
 
   // One handler per HTTP server lifecycle. The factory returns a fresh McpServer
   // for every MCP request (modern and stateless legacy alike), so exchanges are
   // isolated while the shared services stay injected once.
-  const mcpHandler = createMcpHandler(() => createMcpServer(deps), {
+  const mcpHandler = createMcpHandler(() => createMcpServer({ ...deps, approval }), {
     legacy: "stateless",
     maxRequestBodySize: MAX_REQUEST_BODY_SIZE,
     onerror: (err) => logger.error("mcp_request_failed", { error: err.message }),

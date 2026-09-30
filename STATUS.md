@@ -6,7 +6,7 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 2 implementation, Phase 2C safe-install milestone ready for commit. Phase 2A and 2B are committed and pushed.
+- **Phase:** Phase 2 implementation, Phase 2D risky-install approval locally gated. Phases 2A–2C are committed and pushed; Phase 2E and final live acceptance remain.
   Phase 1 tool behavior remains covered by automated tests. Historical live Phase 1 verification is retained below.
 - **Phase B checkpoint:** `yaml@2.9.1` (ISC) selected for
   bounded safety inspection; original scratch probe failed (12 pass / 14 fail), focused
@@ -24,18 +24,19 @@ authoritative.
   Named collisions fail closed; duplicate POST is not idempotent. Manager-provided live
   v1.7.1 findings recovered, including schema-invalid 502 and deterministic duplicate app.
   Actual App Store update semantics remain blocked/unverified.
-- **Current milestone:** Phase 2C default-off safe Compose installation is implemented and
-  locally gated; commit/push pending. Phase 2B validation was pushed at
-  `e8774f23ce9ecf55050eaac7b0767a3595c72109`.
-- **Next action:** Commit/push Phase 2C after final diff review, then implement the
-  already approved Phase 2D native risky approval design, Phase 2E uninstall,
-  and live acceptance; no fresh manager approval of Phase 2D architecture is needed.
+- **Current milestone:** Phase 2D native modern risky-install approval is implemented
+  and locally gated; commit/push pending after final diff review. Phase 2C was
+  pushed at `d579a259049250f43b41ff7110a43106d6817e63`.
+- **Next action:** Complete Phase 2D gates/diff review and commit/push; then implement
+  Phase 2E uninstall and perform bounded live acceptance and cleanup. The approved
+  Phase 2D architecture does not need fresh manager approval.
   App Store update semantics remain unverified; no update tool.
 
 ## Git / repository
 
 - **Branch:** `main`
 - **Phase 2B HEAD:** `e8774f23ce9ecf55050eaac7b0767a3595c72109`, pushed to `origin/main`.
+- **Phase 2C HEAD:** `d579a259049250f43b41ff7110a43106d6817e63`, pushed to `origin/main`.
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (**private**, per Phase 1 rule)
 - **Research base SHA:** `06fe86c267c27648e48b8616944984b795cb86ae`.
 - **Research checkpoint HEAD:** the commit containing this status, intended as
@@ -203,6 +204,33 @@ This is a historical pause snapshot, superseded by the resumed Phase 2C mileston
 - Branch `main`, base HEAD `e8774f23ce9ecf55050eaac7b0767a3595c72109` before
   Phase 2C commit. Repo https://github.com/lvgvs/zimaos-mcp-server (private).
   Phase 2D risky approval, Phase 2E uninstall and final live acceptance remain.
+
+## Phase 2D implementation (local, mocked; uncommitted)
+
+- Modern MCP 2026-07-28 risky installs return native `input_required` form elicitation
+  after a non-mutating preflight. The message discloses fixed risk categories/fields,
+  exact source SHA-256 and expiry. Legacy risky installs fail closed; benign legacy
+  installs remain available under the default-off install permission.
+- Exact UTF-8 source, intended name, target digest, fixed install options and risk
+  policy/disclosure digest are bound into HMAC-signed, 300-second request state. An
+  independently bounded process-wide pending/consumed challenge ledger enforces
+  single use. The signing key is ephemeral; restart invalidates pending approval.
+  The deployment's authenticated bearer principal is bound without exposing its token.
+- A second modern request requires signed state and accepted `confirm: true` form
+  content. Under the same install lock it rechecks permission, host identity,
+  parsed risks, upstream dry run and port conflicts, then consumes approval before
+  one exact-source POST. It preserves the name reservation on accepted/uncertain
+  outcomes and does not retry mutation. An accepted result receives one bounded
+  read-only list observation (`observed`/`pending`); neither proves completion.
+- Independently ran mocked `npm test` **360/360 across 17 files**, lint, format,
+  production/test TypeScript checks, build, Docker build (`zimaos-mcp-server:phase2d`),
+  deployment Compose validation, and `git diff --check` — all passed.
+  No live Phase 2 VM action has occurred. Client-side human presentation is a
+  requirement of the chosen client, not a cryptographic property of MCP;
+  automated tests verify wire behavior, not actual human presence.
+- Phase 2D commit/push and final build/Docker/Compose gates pending as of this
+  checkpoint. Next: Phase 2E uninstall, then final live benign acceptance and VM
+  cleanup. App Store update semantics remain unverified; `update_app` is absent.
 
 ## Phase 2A implementation verification (local, mocked)
 

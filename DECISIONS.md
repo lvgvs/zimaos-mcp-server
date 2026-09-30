@@ -167,3 +167,22 @@ not an idempotency guarantee. No atomic upstream create-if-absent contract is ve
 **Review boundary:** Requiring explicit names until unnamed identity is safely handled,
 and the remaining external-writer race/async reconciliation limits, are documented
 proposals rather than claims of complete duplicate prevention.
+
+## 2026-09-30 — Modern risky approval is process-local and single-use
+
+**Decision:** Implement the already-approved native `input_required` flow with
+300-second HMAC-signed exact-content request state, an independent bounded
+process-wide challenge ledger, and a process-wide install lock. Recheck the
+approved intent and upstream dry run before consuming the challenge and sending
+at most one real POST. Reject risky legacy clients rather than using the SDK's
+push-style legacy elicitation shim.
+
+**Reason:** The HTTP handler creates an MCP server per request, so signed state
+alone cannot prevent replay across rounds. A process-local ledger provides atomic
+single-use consumption under the existing install lock without adding shared
+storage. Its ephemeral key and pending state intentionally die on restart;
+multi-replica approval would need a separate atomic shared-state design.
+
+**Limit:** Native elicitation and server-side signing cannot attest that the
+client displayed the disclosure to a human. Client-side human-UI behavior
+requires separate acceptance verification; no global approval bypass is added.

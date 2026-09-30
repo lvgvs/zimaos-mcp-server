@@ -15,8 +15,8 @@ socket access, or privileged operations.
 ## Status
 
 Phase 1 read and reversible control tools remain available. Phase 2C adds
-non-mutating Compose validation and default-off safe Compose installation;
-risky installation still stops before mutation pending the approval flow. See
+non-mutating Compose validation and default-off safe Compose installation.
+Phase 2D adds a modern-only, single-use risky-install approval flow. See
 `STATUS.md` for the current milestone and `PROJECT.md` for scope.
 
 ## Security model
@@ -30,7 +30,15 @@ risky installation still stops before mutation pending the approval flow. See
   `restart_app`) are disabled unless `ALLOW_APP_CONTROL=true`.
 - **Install authority is separate.** `install_app_from_compose` requires
   `ALLOW_APP_INSTALL=true` (default `false`). Risky Compose returns findings
-  without installing on the safe path; validation grants no install authority.
+  without installing on the first request; validation grants no install authority.
+- **Risky approval is modern-only.** A client must negotiate MCP 2026-07-28,
+  declare form elicitation support, show the disclosed findings to a human, and
+  return an accepted `confirm: true` response with the exact signed request state
+  within 300 seconds. The server rechecks permission, source, risk, duplicate
+  identity and upstream dry run before consuming a single-use challenge and
+  attempting one POST. Legacy clients fail closed on risky installs. A protocol
+  response does not cryptographically prove human presence: the client must
+  enforce the human stop. Process restart invalidates pending approvals.
 - **No shell, no Docker socket, no privileged mode.** The product talks only to
   supported ZimaOS APIs over HTTP.
 
@@ -71,9 +79,11 @@ Installation (only when `ALLOW_APP_INSTALL=true`, independent of app control):
   checks duplicates and host dry run/port conflicts, then sends at most one
   exact-source install POST for a benign document. An `accepted` response means
   asynchronous acceptance, **not** completed installation. Elevated-risk
-  findings return `confirmation_required` without mutation; the approval path
-  is not yet implemented. Do not retry an uncertain install without checking
-  host state.
+  findings produce a native modern `input_required` form on the first round,
+  with no mutation. Only a signed and single-use post-disclosure continuation
+  may attempt installation. A bounded read-only observation reports `pending`
+  or `observed` after acceptance; neither establishes completion. Do not retry
+  an uncertain install without checking host state.
 
 ## Running locally (Docker)
 

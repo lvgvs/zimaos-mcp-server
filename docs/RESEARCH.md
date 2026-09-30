@@ -440,6 +440,27 @@ intent and tamper resistance, not human presence or actual viewing of a disclosu
 client must guarantee the human UI stop; document and test the chosen client before
 Phase 2 acceptance. Missing reliable interaction support must fail closed.
 
+### C. Phase 2D implementation verification (2026-09-30)
+
+Official SDK source/declarations and protocol references above remain the source of
+the MCP mechanics. Installed `@modelcontextprotocol/server` v2 exposes
+`inputRequired.elicit`, `acceptedContent`, `createRequestStateCodec`,
+`ServerOptions.requestState.verify` and `inputRequired.legacyShim: false`.
+The SDK requires `elicitation.form` in the modern request's client capabilities;
+without it a native input-required response fails with a capability error. The
+modern client configured with pinned `2026-07-28` and manual input fulfillment
+was exercised through authenticated local HTTP, including signed first-round
+state, accepted continuation, replay rejection, and negative continuations.
+These are **mocked ZimaOS** round trips, not VM or human-UI verification.
+
+Implementation consequence: a single process-wide ledger prevents replay
+across per-request MCP server instances; the ephemeral HMAC key is shared
+across those instances for one HTTP server lifecycle. A signed-but-readable
+state carries only digests and the intended app name, never source YAML or
+credentials. The transport authenticates before invoking the SDK. Legacy risky
+requests fail closed; no legacy elicitation shim authorizes them. The client
+still controls whether it actually pauses for a human: MCP cannot prove that.
+
 ### D. ZimaOS provisioning: official/package facts
 
 The existing scratch `app_management.yaml` was inspected for lifecycle paths and

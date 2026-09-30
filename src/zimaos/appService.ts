@@ -13,6 +13,15 @@ import type { PermissionLayer } from "../permissions.js";
 import { analyzeCompose, type RiskFinding } from "../compose/analyze.js";
 import { parseCompose } from "../compose/parse.js";
 import { preflightInstall } from "./installPreflight.js";
+import type { ChallengeLedger } from "../approval/challengeLedger.js";
+import {
+  assertPendingInstallIntentsMatch,
+  sourceFingerprint,
+} from "../approval/intent.js";
+import {
+  parsePendingInstallPayload,
+  type PendingInstallPayload,
+} from "../approval/requestState.js";
 import {
   normalizeAppList,
   normalizeContainers,
@@ -121,6 +130,12 @@ function releaseInstallName(name: string): void {
 /** True when the exact normalized name is currently reserved (lower-cased). */
 function isInstallNameReserved(name: string): boolean {
   return reservedInstallNames.has(normalizeReservedName(name));
+}
+
+function assertInstallNameAvailable(name: string): void {
+  if (isInstallNameReserved(name)) {
+    throw new AppError("ZIMAOS_BAD_REQUEST", RESERVED_NAME_MESSAGE);
+  }
 }
 
 /**
@@ -318,11 +333,12 @@ export class AppService {
     permissions: PermissionLayer,
   ): Promise<InstallSafeResult> {
     return runInstallExclusive(async () => {
-      const preflight = await preflightInstall(source, this, permissions, (name) => {
-        if (isInstallNameReserved(name)) {
-          throw new AppError("ZIMAOS_BAD_REQUEST", RESERVED_NAME_MESSAGE);
-        }
-      });
+      const preflight = await preflightInstall(
+        source,
+        this,
+        permissions,
+        assertInstallNameAvailable,
+      );
       if (preflight.status === "confirmation_required") {
         return {
           status: "confirmation_required" as const,
@@ -332,23 +348,80 @@ export class AppService {
       }
 
       // Ready: reserve after all read-only checks and before the real POST.
-      const name = preflight.name;
-      reserveInstallName(name);
-
-      const install = await this.client.installComposeOnce(source);
-      if (install.status === "rejected") {
-        // Definitive host rejection: no attempt landed, so release the name.
-        releaseInstallName(name);
-        return { status: "rejected" as const, accepted: false };
-      }
-      if (install.status === "accepted") {
-        // Accepted asynchronous install: keep the reservation — the app list may
-        // lag and a second same-name POST must never be sent.
-        return { status: "accepted" as const, accepted: true };
-      }
-      // Ambiguous upstream failure after the single attempt: report it as data,
-      // keep the reservation (the attempt may have landed), never retry.
-      return { status: "upstream_error" as const, accepted: false };
+      return this.attemptInstallOnce(source, preflight.name);
     });
+  }
+
+  /**
+   * Continuation for a risky install. Only a caller that has independently
+   * verified the SDK-signed request state and an accepted, schema-valid native
+   * elicitation response may call this method. It does not accept a boolean
+   * bypass. All safety rechecks and single-use consumption run under the same
+   * process-wide lock as benign installation.
+   */
+  async installApprovedCompose(
+    source: string,
+    permissions: PermissionLayer,
+    verifiedState: PendingInstallPayload,
+    target: string,
+    principal: string,
+    ledger: ChallengeLedger,
+  ): Promise<Exclude<InstallSafeResult, { status: "confirmation_required" }>> {
+    return runInstallExclusive(async () => {
+      permissions.assertCanInstall("install");
+      const state = parsePendingInstallPayload(verifiedState);
+      if (state.contentSha256 !== sourceFingerprint(source)) {
+        throw new AppError(
+          "INPUT_INVALID",
+          "The compose document does not match the approved install.",
+        );
+      }
+
+      // Fresh host list, local parse/risk analysis and upstream dry-run/ports.
+      const preflight = await preflightInstall(
+        source,
+        this,
+        permissions,
+        assertInstallNameAvailable,
+      );
+      if (
+        preflight.status !== "confirmation_required" ||
+        preflight.findings.length === 0
+      ) {
+        throw new AppError(
+          "INPUT_INVALID",
+          "The approved risk disclosure is no longer applicable.",
+        );
+      }
+      assertPendingInstallIntentsMatch(state, {
+        source,
+        name: preflight.name,
+        findings: preflight.findings,
+        target,
+      });
+
+      // No await between consumption and the mutation boundary. Failure to
+      // reserve at capacity burns this approval without attempting a POST.
+      ledger.consume(state.challengeId, {
+        tool: state.tool,
+        contentFingerprint: state.contentSha256,
+        principal,
+      });
+      return this.attemptInstallOnce(source, preflight.name);
+    });
+  }
+
+  /** Called only inside the install lock, after all applicable checks. */
+  private async attemptInstallOnce(
+    source: string,
+    name: string,
+  ): Promise<Exclude<InstallSafeResult, { status: "confirmation_required" }>> {
+    reserveInstallName(name);
+    const install = await this.client.installComposeOnce(source);
+    if (install.status === "rejected") {
+      // Definitive rejection only: an accepted or ambiguous attempt may land.
+      releaseInstallName(name);
+    }
+    return { status: install.status, accepted: install.accepted };
   }
 }

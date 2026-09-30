@@ -7,8 +7,20 @@
  * transport requires one connected server+transport pair per request.
  */
 
-import { McpServer, type CallToolResult } from "@modelcontextprotocol/server";
+import {
+  McpServer,
+  acceptedContent,
+  inputRequired,
+  type CallToolResult,
+} from "@modelcontextprotocol/server";
 import { z } from "zod";
+import type { ChallengeLedger } from "../approval/challengeLedger.js";
+import { buildPendingInstallIntents } from "../approval/intent.js";
+import {
+  type createPendingInstallRequestStateCodec,
+  parsePendingInstallPayload,
+  type PendingInstallPayload,
+} from "../approval/requestState.js";
 import { AppError } from "../errors.js";
 import type { PermissionLayer } from "../permissions.js";
 import type { AppService } from "../zimaos/appService.js";
@@ -18,6 +30,12 @@ export interface ToolDeps {
   apps: AppService;
   system: SystemService;
   permissions: PermissionLayer;
+  approval?: {
+    ledger: ChallengeLedger;
+    codec: ReturnType<typeof createPendingInstallRequestStateCodec>;
+    principal: string;
+    target: string;
+  };
 }
 
 /** Default log tail when the caller does not specify one. */
@@ -53,8 +71,7 @@ function errorResult(err: unknown): CallToolResult {
     return textResult(`[${err.code}] ${err.message}`);
   }
   // Never leak internal details for unexpected errors.
-  const message = err instanceof Error ? err.message : String(err);
-  return textResult(`[INTERNAL] Unexpected error: ${message}`);
+  return textResult("[INTERNAL] Unexpected error.");
 }
 
 /** Wrap a tool handler so AppErrors become normalized MCP error results. */
@@ -73,7 +90,13 @@ function guard(
 }
 
 export function createMcpServer(deps: ToolDeps): McpServer {
-  const server = new McpServer({ name: "zimaos-mcp-server", version: "0.1.0" });
+  const server = new McpServer(
+    { name: "zimaos-mcp-server", version: "0.1.0" },
+    {
+      inputRequired: { legacyShim: false },
+      ...(deps.approval && { requestState: { verify: deps.approval.codec.verify } }),
+    },
+  );
 
   // ------------------------------------------------------------- read-only --
 
@@ -234,15 +257,14 @@ export function createMcpServer(deps: ToolDeps): McpServer {
   controlTool("stop_app", "stop");
   controlTool("restart_app", "restart");
 
-  // -------------------------------------------------------- install (2C) --
+  // ------------------------------------------------------- install (2C/2D) --
 
   // Safe compose installation. Mutating: requires the separate, default-off
   // ALLOW_APP_INSTALL permission; the service layer re-asserts it itself, so a
   // disabled policy fails closed with zero upstream traffic. Outcomes are
   // fixed-shape data (accepted / rejected / upstream_error); a risky document
-  // returns confirmation_required WITHOUT any mutation and is never installed
-  // by this tool (approval is out of scope for Phase 2C). The source is sent
-  // to the host but never echoed back in results or errors.
+  // returns confirmation_required WITHOUT mutation on legacy requests. Modern
+  // approval requires server-minted signed state and an accepted elicitation.
   server.registerTool(
     "install_app_from_compose",
     {
@@ -253,20 +275,103 @@ export function createMcpServer(deps: ToolDeps): McpServer {
         source: composeSourceSchema,
       }),
     },
-    guard(async (args) => {
+    async (args, ctx) => {
       const source = String(args["source"]);
       try {
+        const approval = deps.approval;
+        const modern = server.server.getNegotiatedProtocolVersion() === "2026-07-28";
+        const state = ctx.mcpReq.requestState();
+        if (state !== undefined || ctx.mcpReq.inputResponses !== undefined) {
+          if (!approval || !modern || state === undefined) {
+            throw new AppError("INPUT_INVALID", "Invalid approval continuation.");
+          }
+          const payload = parsePendingInstallPayload(state);
+          const content = acceptedContent(ctx.mcpReq.inputResponses, "approve_install");
+          if (!z.object({ confirm: z.literal(true) }).safeParse(content).success) {
+            throw new AppError("INPUT_INVALID", "Approval was not accepted.");
+          }
+          const outcome = await deps.apps.installApprovedCompose(
+            source,
+            deps.permissions,
+            payload,
+            approval.target,
+            approval.principal,
+            approval.ledger,
+          );
+          if (outcome.status !== "accepted") return textResult(JSON.stringify(outcome));
+          // One bounded read-only observation. An async acceptance is never
+          // described as completion; an unavailable/stale list stays pending.
+          let observation: "observed" | "pending" = "pending";
+          try {
+            const apps = await deps.apps.listApps();
+            if (apps.some((app) => app.id === payload.intendedAppName)) {
+              observation = "observed";
+            }
+          } catch {
+            // Do not turn a successful one-shot POST into a retryable error.
+          }
+          return textResult(JSON.stringify({ ...outcome, reconciliation: observation }));
+        }
         const result = await deps.apps.installSafeCompose(source, deps.permissions);
+        if (result.status === "confirmation_required" && approval) {
+          if (!modern) {
+            throw new AppError(
+              "INPUT_INVALID",
+              "Risky installation requires modern MCP elicitation.",
+            );
+          }
+          const intents = buildPendingInstallIntents({
+            source,
+            name: result.name,
+            findings: result.findings,
+            target: approval.target,
+          });
+          const challenge = approval.ledger.issue({
+            tool: "install_app_from_compose",
+            contentFingerprint: intents.contentSha256,
+            principal: approval.principal,
+          });
+          const pending: PendingInstallPayload = {
+            version: 1,
+            challengeId: challenge.id,
+            tool: "install_app_from_compose",
+            ...intents,
+            expiresAtMs: challenge.expiresAtMs,
+          };
+          const requestState = await approval.codec.mint(pending, ctx);
+          const disclosure = result.findings.map(({ category, field, description }) => ({
+            category,
+            field,
+            description,
+          }));
+          return inputRequired({
+            requestState,
+            inputRequests: {
+              approve_install: inputRequired.elicit({
+                message: `Risky Compose installation requires explicit confirmation. Operation: install_app_from_compose. Name: ${result.name}. Exact UTF-8 SHA-256: ${intents.contentSha256}. Findings: ${JSON.stringify(disclosure)}. Approval expires within 300 seconds. Decline to cancel.`,
+                requestedSchema: {
+                  type: "object",
+                  properties: {
+                    confirm: {
+                      type: "boolean",
+                      title: "Approve this exact installation",
+                    },
+                  },
+                  required: ["confirm"],
+                },
+              }),
+            },
+          });
+        }
         return textResult(JSON.stringify(result));
       } catch (err) {
-        // Normalized AppErrors pass through to the guard below. Unexpected
-        // failures must not echo raw input or internal details to the client.
-        if (!(err instanceof AppError)) {
-          throw new AppError("INTERNAL", "compose install failed unexpectedly.");
-        }
-        throw err;
+        const normalized =
+          err instanceof AppError
+            ? err
+            : new AppError("INTERNAL", "compose install failed unexpectedly.");
+        return { ...errorResult(normalized), isError: true };
       }
-    }),
+    },
   );
 
   return server;
