@@ -466,3 +466,249 @@ describe("ZimaOsClient.validateCompose (mocked HTTP, non-mutating dry run)", () 
     }
   });
 });
+
+describe("ZimaOsClient.installComposeOnce (mocked HTTP, single real install POST)", () => {
+  const INSTALL_PATH =
+    "/v2/app_management/compose?dry_run=false&check_port_conflict=true";
+
+  /** Client whose fetch also records the full request URL (query string included). */
+  function makeRecordingClient(fake: FakeZimaOs) {
+    const urls: string[] = [];
+    const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+      urls.push(String(input));
+      return fake.fetchImpl(input, init);
+    }) as typeof fetch;
+    const client = new ZimaOsClient({
+      baseUrl: BASE,
+      username: "admin",
+      password: "pw",
+      fetchImpl,
+      timeoutMs: 5_000,
+    });
+    return { client, urls };
+  }
+
+  /** Establish the existing bearer session without any install traffic. */
+  async function withSession(fake: FakeZimaOs): Promise<ZimaOsClient> {
+    loginOk(fake);
+    const client = makeClient(fake);
+    await client.login();
+    return client;
+  }
+
+  it("uses the existing bearer session (no re-login) and sends exactly one POST on HTTP 200", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", {
+      status: 200,
+      json: { success: true, message: "app is being installed asynchronously" },
+    });
+    const { client, urls } = makeRecordingClient(fake);
+    // Establish the existing bearer session before any install traffic.
+    await client.login();
+
+    // Deliberately awkward source: unicode, comments, quotes, trailing newline.
+    const source = 'services:\n  web: # café\n    image: "nginx:1.27"\n';
+    const result = await client.installComposeOnce(source);
+
+    expect(result).toEqual({ status: "accepted", accepted: true });
+    // Exactly one install POST, to the explicit real-install query (no dry_run=true).
+    expect(urls.filter((u) => u.includes("/v2/app_management/compose"))).toHaveLength(1);
+    expect(urls[0]).toBe(`${BASE}/v1/users/login`);
+    expect(urls[1]).toBe(BASE + INSTALL_PATH);
+
+    const req = fake.calls.find((c) => c.path === "/v2/app_management/compose");
+    expect(req?.method).toBe("POST");
+    // Exact original string, byte-for-byte (no re-serialization/normalization).
+    expect(req?.body).toBe(source);
+    expect(req?.headers["content-type"]).toBe("application/yaml");
+    expect(req?.headers["authorization"]).toBe("Bearer tok-abc");
+    // The pre-existing session was reused: no second login happened.
+    expect(fake.calls.filter((c) => c.path === "/v1/users/login")).toHaveLength(1);
+  });
+
+  it("logs in once when no session is held, then still sends exactly one install POST", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", { status: 200, json: {} });
+    const client = makeClient(fake);
+
+    await expect(client.installComposeOnce("services: {}\n")).resolves.toMatchObject({
+      accepted: false, // empty body is not a confirmation of acceptance.
+    });
+    expect(fake.calls.filter((c) => c.path === "/v1/users/login")).toHaveLength(1);
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose"),
+    ).toHaveLength(1);
+  });
+
+  it("timeout after the single attempt -> ZIMAOS_UNREACHABLE, exactly one POST, no retry", async () => {
+    const urls: string[] = [];
+    // Answers login normally; hangs on the install POST until the client aborts.
+    const hangingFetch = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      urls.push(url);
+      if (url.endsWith("/v1/users/login")) {
+        return new Response(
+          JSON.stringify({ success: true, data: { token: { access_token: "tok-abc" } } }),
+          { status: 200 },
+        );
+      }
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          const err = new Error("aborted");
+          err.name = "AbortError";
+          reject(err);
+        });
+      });
+    }) as typeof fetch;
+    const client = new ZimaOsClient({
+      baseUrl: BASE,
+      username: "admin",
+      password: "pw",
+      fetchImpl: hangingFetch,
+      timeoutMs: 50,
+    });
+
+    await expect(client.installComposeOnce("services: {}\n")).rejects.toMatchObject({
+      code: "ZIMAOS_UNREACHABLE",
+    });
+    // The attempt was made exactly once — a retry after an ambiguous timeout could
+    // create a duplicate app (the install POST is not idempotent).
+    expect(urls.filter((u) => u.includes("/v2/app_management/compose"))).toHaveLength(1);
+  });
+
+  it("HTTP 401 -> ZIMAOS_AUTH_FAILED, exactly one POST, no re-login and no retry", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", { status: 401, json: {} });
+    const client = await withSession(fake);
+
+    await expect(client.installComposeOnce("services: {}\n")).rejects.toMatchObject({
+      code: "ZIMAOS_AUTH_FAILED",
+    });
+    // The single POST was attempted exactly once; the stale session is dropped, but no
+    // re-login and no duplicate install POST happen (a retry would create a second app).
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose"),
+    ).toHaveLength(1);
+    expect(fake.calls.filter((c) => c.path === "/v1/users/login")).toHaveLength(1); // initial only
+  });
+
+  it("HTTP 502 -> upstream_error (ambiguous), exactly one POST, no retry", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", { status: 502 });
+    const client = await withSession(fake);
+
+    const result = await client.installComposeOnce("services:\n  web: 123\n");
+
+    expect(result).toEqual({ status: "upstream_error", accepted: false });
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose"),
+    ).toHaveLength(1);
+  });
+
+  it("HTTP 400 -> rejected (definitive), exactly one POST, no retry", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", {
+      status: 400,
+      json: { success: false, message: "port conflict detected" },
+    });
+    const client = await withSession(fake);
+
+    const result = await client.installComposeOnce(
+      'services:\n  web:\n    ports:\n      - "8080:80"\n',
+    );
+
+    expect(result).toEqual({ status: "rejected", accepted: false });
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose"),
+    ).toHaveLength(1);
+  });
+
+  it("HTTP 403 -> PERMISSION_DENIED, exactly one POST, no retry", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", { status: 403, json: {} });
+    const client = await withSession(fake);
+
+    await expect(client.installComposeOnce("services: {}\n")).rejects.toMatchObject({
+      code: "PERMISSION_DENIED",
+    });
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose"),
+    ).toHaveLength(1);
+  });
+
+  it("HTTP 429 is rate limiting, not a verdict that Compose was rejected", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", { status: 429, json: {} });
+    const client = await withSession(fake);
+    await expect(client.installComposeOnce("services: {}\n")).rejects.toMatchObject({
+      code: "ZIMAOS_RATE_LIMITED",
+    });
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose"),
+    ).toHaveLength(1);
+  });
+
+  it("empty/ambiguous responses are never accepted (empty 200, non-JSON 200)", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    // Empty body: no confirmation of acceptance.
+    fake.on("POST", "/v2/app_management/compose", { status: 200 });
+    const client = await withSession(fake);
+
+    expect(await client.installComposeOnce("services: {}\n")).toEqual({
+      status: "upstream_error",
+      accepted: false,
+    });
+    // Non-JSON body: still no confirmation of acceptance.
+    fake.on("POST", "/v2/app_management/compose", {
+      status: 200,
+      text: "<html>nope</html>",
+    });
+    expect(await client.installComposeOnce("services: {}\n")).toEqual({
+      status: "upstream_error",
+      accepted: false,
+    });
+    // Two attempts total — one POST each, no automatic retry of either.
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose"),
+    ).toHaveLength(2);
+  });
+
+  it("does not accept a 2xx application envelope with success:false", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("POST", "/v2/app_management/compose", {
+      status: 200,
+      json: { success: false, message: "install failed" },
+    });
+    const client = await withSession(fake);
+
+    expect(await client.installComposeOnce("services: {}\n")).toEqual({
+      status: "rejected",
+      accepted: false,
+    });
+  });
+
+  it("never reflects upstream messages or secrets in the acceptance result", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    const source =
+      "services:\n  web:\n    environment:\n      API_KEY: secret-sentinel\n";
+    fake.on("POST", "/v2/app_management/compose", {
+      status: 502,
+      text: "boom: secret-sentinel echoed by upstream",
+    });
+    const client = await withSession(fake);
+
+    const result = await client.installComposeOnce(source);
+    expect(JSON.stringify(result)).not.toContain("secret-sentinel");
+    expect(result).toEqual({ status: "upstream_error", accepted: false });
+  });
+});

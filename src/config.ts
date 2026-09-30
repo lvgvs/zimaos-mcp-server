@@ -16,6 +16,13 @@ export interface AppConfig {
   mcpAuthToken: string;
   /** When false (default) all application control tools are denied. */
   allowAppControl: boolean;
+  /**
+   * When false (default) all application install operations are denied.
+   * Independent of ALLOW_APP_CONTROL. loadConfig always sets it explicitly;
+   * the optionality only lets test fixtures omit it, in which case the safe
+   * default-off value applies.
+   */
+  allowAppInstall?: boolean;
   /** TCP port the HTTP server listens on. */
   port: number;
   /** debug | info | warn | error */
@@ -122,6 +129,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     zimaosPassword: password,
     mcpAuthToken,
     allowAppControl: parseBool(env["ALLOW_APP_CONTROL"], "ALLOW_APP_CONTROL"),
+    allowAppInstall: parseBool(env["ALLOW_APP_INSTALL"], "ALLOW_APP_INSTALL"),
     port: parsePort(env["PORT"]),
     logLevel: parseLogLevel(env["LOG_LEVEL"]),
   };

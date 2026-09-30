@@ -62,6 +62,10 @@ services:
       # Keep false unless you specifically want control operations.
       - ALLOW_APP_CONTROL=false
 
+      # Enable safe Compose installation separately; disabled by default.
+      # Risky Compose is never installed by the Phase 2C safe path.
+      - ALLOW_APP_INSTALL=false
+
       # Log verbosity: debug | info | warn | error.
       - LOG_LEVEL=info
 

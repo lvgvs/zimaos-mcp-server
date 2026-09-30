@@ -65,6 +65,30 @@ export interface ComposeValidationResult {
 }
 
 /**
+ * Normalized result of a single real Compose install attempt.
+ *
+ * This is data, not an error: an ambiguous upstream failure or a definitive
+ * rejection are valid outcomes that callers must interpret, not exceptions.
+ */
+export interface ComposeInstallResult {
+  /**
+   * - "accepted": ZimaOS accepted the install request (HTTP 2xx with a JSON
+   *   application envelope reporting success:true). The install is asynchronous:
+   *   acceptance is NOT completion, and no app ID can be inferred from this
+   *   response. A 2xx that does not explicitly report success:true (empty body,
+   *   non-JSON body, or an empty/other JSON object) is ambiguous -> "upstream_error".
+   * - "rejected": ZimaOS definitively rejected it — an HTTP 4xx, or an HTTP 2xx
+   *   envelope that reports success:false.
+   * - "upstream_error": an ambiguous failure (HTTP 5xx/other status, empty body,
+   *   non-JSON body). This does NOT mean the install failed and does NOT mean it
+   *   succeeded; the outcome is unknown.
+   */
+  status: "accepted" | "rejected" | "upstream_error";
+  /** True only when ZimaOS accepted the request (HTTP 2xx with a JSON envelope reporting success:true). Never implies completion. */
+  accepted: boolean;
+}
+
+/**
  * Minimal typed client for the ZimaOS APIs used by this project.
  * Deliberately small: only operations required by Phase 1.
  */
@@ -268,6 +292,116 @@ export class ZimaOsClient {
     }
 
     return normalizeComposeValidation(outcome.status, outcome.body);
+  }
+
+  /**
+   * Perform one real Compose install attempt and report its acceptance outcome.
+   *
+   * Sends exactly ONE POST with the exact original UTF-8 string as an
+   * `application/yaml` body to
+   * POST /v2/app_management/compose?dry_run=false&check_port_conflict=true, using
+   * the existing bearer session (logging in once first only when no session is
+   * held). The install POST is NON-IDEMPOTENT upstream: a duplicate creates a
+   * second app. Therefore this method NEVER retries after the attempt has been
+   * made — not on 401, timeout, network failure, or any other outcome — and it
+   * never re-logs in to retry (a fresh login would only enable a duplicate POST).
+   *
+   * The response is an asynchronous acceptance signal, NOT completion: no app ID
+   * can be inferred from it. Outcomes are normalized into
+   * {@link ComposeInstallResult} and returned as data; upstream free-form text
+   * (which may echo submitted YAML or secrets) is never relayed. Only genuine
+   * transport/auth failures throw AppError, after the single attempt has been
+   * made at most once.
+   */
+  async installComposeOnce(source: string): Promise<ComposeInstallResult> {
+    if (this.accessToken === null) {
+      // No session yet: establish one first. This happens BEFORE any install
+      // traffic, so a failed login never leaves an ambiguous attempt behind.
+      await this.login();
+    }
+
+    let outcome: InstallOutcome;
+    try {
+      outcome = await this.installOnce(source);
+    } catch (err) {
+      if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
+        // The attempt was made and the session is stale. Drop it so later calls
+        // re-authenticate, but do NOT retry: a second POST could create a
+        // duplicate app. Surface the authentication failure instead.
+        this.invalidateSession();
+      }
+      // Never retry after the mutation attempt (timeout/network/401/any other):
+      // the install POST is non-idempotent upstream, so re-sending it — even with
+      // a fresh login — could create a second app. Propagate as-is.
+      throw err;
+    }
+
+    return normalizeComposeInstall(outcome.status, outcome.body);
+  }
+
+  /**
+   * Perform the single real-install POST and report the HTTP status plus parsed
+   * body. Non-2xx statuses are returned as data (never thrown) because they
+   * carry the install outcome; only transport/auth failures throw AppError.
+   */
+  private async installOnce(source: string): Promise<InstallOutcome> {
+    const token = this.accessToken as string;
+
+    const BEARER = "Bearer";
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      Authorization: `${BEARER} ${token}`,
+      // The Compose document is YAML, not JSON.
+      "Content-Type": "application/yaml",
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    let response: Response;
+    try {
+      response = await this.fetchImpl(
+        `${this.baseUrl}/v2/app_management/compose?dry_run=false&check_port_conflict=true`,
+        // The exact original UTF-8 string is sent unchanged as the body.
+        { method: "POST", headers, body: source, signal: controller.signal },
+      );
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new AppError(
+          "ZIMAOS_UNREACHABLE",
+          `Timed out after ${this.timeoutMs} ms while contacting ZimaOS.`,
+        );
+      }
+      throw new AppError(
+        "ZIMAOS_UNREACHABLE",
+        "Could not reach the ZimaOS host (network error).",
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+
+    // 401/403/429 are auth/authorization/rate-limit failures, not install outcomes.
+    // Never retry the POST or relay upstream text on these responses.
+    if (response.status === 429) {
+      throw fromHttpStatus(429);
+    }
+    if (response.status === 401) {
+      throw new AppError("ZIMAOS_AUTH_FAILED", "ZimaOS rejected the session token.");
+    }
+    if (response.status === 403) {
+      throw fromHttpStatus(403); // PERMISSION_DENIED, safe fixed message.
+    }
+
+    const text = await response.text();
+    let body: unknown = null;
+    if (text.length > 0) {
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // A non-JSON body is still an outcome, not a crash: keep no structured data.
+        body = null;
+      }
+    }
+    return { status: response.status, body };
   }
 
   /**
@@ -488,6 +622,12 @@ interface DryRunOutcome {
   body: unknown;
 }
 
+/** One real-install attempt: the HTTP status plus the parsed body (null when empty/non-JSON). */
+interface InstallOutcome {
+  status: number;
+  body: unknown;
+}
+
 // Bounding constants so a hostile/verbose upstream payload cannot grow an MCP reply.
 const MAX_PORTS_IN_USE = 64;
 
@@ -554,4 +694,50 @@ function extractPortsInUse(data: unknown): number[] | undefined {
     if (ports.length >= MAX_PORTS_IN_USE) break; // bound the list size.
   }
   return ports.length > 0 ? ports : undefined;
+}
+
+/**
+ * Normalize a real-install outcome into {@link ComposeInstallResult}.
+ *
+ * The install is asynchronous: an accepted response only means ZimaOS took the
+ * request — it is NOT completion, and no app ID can be inferred from it.
+ *
+ *   - 2xx with a JSON application envelope reporting success:true -> "accepted"
+ *     (async acceptance). A 2xx envelope reporting success:false is a definitive
+ *     negative -> "rejected". Any other 2xx body (empty, non-JSON, or an envelope
+ *     without an explicit success flag) gives no confirmation of acceptance ->
+ *     "upstream_error" (ambiguous; does NOT mean the install failed and does NOT
+ *     mean it succeeded).
+ *   - 4xx -> "rejected" (ZimaOS definitively rejected the install).
+ *   - otherwise (5xx incl. an empty 502, any other status, or a missing/empty/
+ *     non-JSON body) -> "upstream_error": ambiguous; does NOT mean the install
+ *     failed and does NOT mean it succeeded.
+ *
+ * Upstream free-form messages may echo submitted YAML (including secrets). They
+ * are never relayed: only this fixed-shape result is returned.
+ */
+function normalizeComposeInstall(status: number, body: unknown): ComposeInstallResult {
+  let statusOut: ComposeInstallResult["status"];
+  if (status >= 200 && status < 300) {
+    // Only an explicit JSON application envelope reporting success:true confirms
+    // acceptance. A 2xx envelope reporting success:false is a definitive negative.
+    // Empty/non-JSON bodies and envelopes without that flag give no confirmation of
+    // acceptance — treat them as ambiguous, never accepted.
+    if (!isRecord(body)) {
+      statusOut = "upstream_error";
+    } else if (body["success"] === true) {
+      statusOut = "accepted";
+    } else if (body["success"] === false) {
+      statusOut = "rejected";
+    } else {
+      statusOut = "upstream_error";
+    }
+  } else if (status >= 400 && status < 500) {
+    statusOut = "rejected";
+  } else {
+    // 5xx (incl. the observed empty 502) and any other unexpected status: ambiguous.
+    statusOut = "upstream_error";
+  }
+
+  return { status: statusOut, accepted: statusOut === "accepted" };
 }

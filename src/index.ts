@@ -40,7 +40,10 @@ async function main(): Promise<void> {
   const deps: ToolDeps = {
     apps: new AppService(client),
     system: new SystemService(client),
-    permissions: new PermissionLayer({ allowAppControl: config.allowAppControl }),
+    permissions: new PermissionLayer({
+      allowAppControl: config.allowAppControl,
+      allowAppInstall: config.allowAppInstall,
+    }),
   };
 
   const server = createHttpServer({

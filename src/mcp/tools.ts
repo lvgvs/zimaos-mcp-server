@@ -24,8 +24,24 @@ export interface ToolDeps {
 const DEFAULT_LOG_LINES = 100;
 /** Hard cap on requested log lines (bounded output requirement). */
 const MAX_LOG_LINES = 500;
+/**
+ * Bounded nonempty source limit for compose tools: mirrors the parseCompose
+ * UTF-8 input limit so oversized sources are rejected by the schema instead
+ * of reaching the parser.
+ */
+const MAX_SOURCE_BYTES = 512 * 1024;
 
 const appIdSchema = z.string().min(1).describe("Stable application identifier.");
+
+/** Bounded nonempty compose source, consistent with the parseCompose limit. */
+const composeSourceSchema = z
+  .string()
+  .min(1)
+  .max(MAX_SOURCE_BYTES)
+  .refine((source) => Buffer.byteLength(source, "utf8") <= MAX_SOURCE_BYTES, {
+    message: "Compose source exceeds the UTF-8 byte limit.",
+  })
+  .describe(`Docker Compose YAML (nonempty, at most ${MAX_SOURCE_BYTES} bytes).`);
 
 function textResult(text: string): CallToolResult {
   return { content: [{ type: "text", text }] };
@@ -169,7 +185,7 @@ export function createMcpServer(deps: ToolDeps): McpServer {
       description:
         "Validates a Docker Compose document against the ZimaOS dry-run endpoint and local risk analysis without installing or mutating anything. Returns structured JSON with the normalized validation status plus fixed-shape risk findings (findings are data, not errors). Read-only; no app-control permission is required.",
       inputSchema: z.object({
-        source: z.string().min(1).describe("Docker Compose YAML to validate."),
+        source: composeSourceSchema,
       }),
     },
     guard(async (args) => {
@@ -217,6 +233,41 @@ export function createMcpServer(deps: ToolDeps): McpServer {
   controlTool("start_app", "start");
   controlTool("stop_app", "stop");
   controlTool("restart_app", "restart");
+
+  // -------------------------------------------------------- install (2C) --
+
+  // Safe compose installation. Mutating: requires the separate, default-off
+  // ALLOW_APP_INSTALL permission; the service layer re-asserts it itself, so a
+  // disabled policy fails closed with zero upstream traffic. Outcomes are
+  // fixed-shape data (accepted / rejected / upstream_error); a risky document
+  // returns confirmation_required WITHOUT any mutation and is never installed
+  // by this tool (approval is out of scope for Phase 2C). The source is sent
+  // to the host but never echoed back in results or errors.
+  server.registerTool(
+    "install_app_from_compose",
+    {
+      title: "Install an application from a Compose document",
+      description:
+        "Installs a Docker Compose application on the ZimaOS host after safe preflight (permission check, duplicate-identity check, dry-run validation). Requires ALLOW_APP_INSTALL=true; otherwise returns a clear permission error. Returns fixed-shape JSON data: {status:'confirmation_required',name,findings} when local risk analysis requires explicit user confirmation (nothing is installed on that path), or {status:'accepted'|'rejected'|'upstream_error',accepted:boolean} after exactly one install attempt. 'accepted' means the asynchronous request was accepted by ZimaOS — it is NOT completion and no app ID can be inferred from it.",
+      inputSchema: z.object({
+        source: composeSourceSchema,
+      }),
+    },
+    guard(async (args) => {
+      const source = String(args["source"]);
+      try {
+        const result = await deps.apps.installSafeCompose(source, deps.permissions);
+        return textResult(JSON.stringify(result));
+      } catch (err) {
+        // Normalized AppErrors pass through to the guard below. Unexpected
+        // failures must not echo raw input or internal details to the client.
+        if (!(err instanceof AppError)) {
+          throw new AppError("INTERNAL", "compose install failed unexpectedly.");
+        }
+        throw err;
+      }
+    }),
+  );
 
   return server;
 }

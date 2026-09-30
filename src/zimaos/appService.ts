@@ -9,8 +9,10 @@
 import { AppError } from "../errors.js";
 import type { HealthProbeResult, ZimaOsClient } from "./client.js";
 import type { ComposeValidationResult } from "./client.js";
+import type { PermissionLayer } from "../permissions.js";
 import { analyzeCompose, type RiskFinding } from "../compose/analyze.js";
 import { parseCompose } from "../compose/parse.js";
+import { preflightInstall } from "./installPreflight.js";
 import {
   normalizeAppList,
   normalizeContainers,
@@ -30,6 +32,121 @@ export interface ValidateComposeResult extends ComposeValidationResult {
 
 /** Limit validation disclosure and later approval challenge size. */
 const MAX_RISK_FINDINGS = 256;
+
+/**
+ * In-process safe-install serialization lock (Phase 2C).
+ *
+ * The whole `installSafeCompose` body — permission check, duplicate-identity
+ * recheck against a fresh app list, dry run, and the single real install POST
+ * — runs under this process-wide queue so concurrent requests in one server
+ * process can never race each other's duplicate detection (docs/RESEARCH.md:
+ * "under an install lock, recheck collisions ... then at most one real
+ * POST"). The chain always settles to `undefined` after every task, so the
+ * lock is released on success, on a rejected/upstream_error outcome, and on
+ * any thrown error — including a timed-out attempt. There is no retry anywhere
+ * in this path and no bypass: every install goes through the same queue.
+ */
+let installChain: Promise<void> = Promise.resolve();
+
+function runInstallExclusive<T>(task: () => Promise<T>): Promise<T> {
+  const started = installChain.then(task);
+  // Keep the chain itself always-resolving so one failed, rejected, or
+  // timed-out install never blocks every later install.
+  installChain = started.then(
+    () => undefined,
+    () => undefined,
+  );
+  return started;
+}
+
+/**
+ * Process-wide install-name reservations (Phase 2C).
+ *
+ * The host app list may lag behind an accepted asynchronous install, so a
+ * fresh list read alone cannot stop a second same-name POST. Each ready
+ * preflight therefore reserves its exact normalized name here before the
+ * single real install POST; while reserved, any further same-name request
+ * fails closed locally (fixed AppError ZIMAOS_BAD_REQUEST) with zero
+ * additional real POSTs — even when its own fresh list read is stale.
+ *
+ * Reservation lifetime: kept for accepted, upstream_error, and thrown/timeout
+ * outcomes (the attempt may have landed); released only on a definitive
+ * rejected outcome. A known pre-POST failure never reserves anything because
+ * the reservation happens after the ready preflight result.
+ *
+ * The set is bounded fail-closed: once `MAX_RESERVED_INSTALL_NAMES` distinct
+ * names are reserved, further reservations throw instead of growing without
+ * bound (a definitive rejection frees its slot again). This is local
+ * process-wide state only; it does not claim atomicity against actors outside
+ * this server process.
+ */
+const MAX_RESERVED_INSTALL_NAMES = 4096;
+
+/** Lower-cased normalized names with an in-flight or accepted install. */
+const reservedInstallNames = new Set<string>();
+
+/** Fixed sanitized message: the name is already reserved by another request. */
+const RESERVED_NAME_MESSAGE =
+  "An install for this application name is already in flight on this server.";
+
+/** Fixed sanitized message: the bounded reservation table is full. */
+const RESERVATION_CAPACITY_MESSAGE =
+  "Install name reservations are exhausted; no further installs can be started.";
+
+function normalizeReservedName(name: string): string {
+  return name.toLowerCase();
+}
+
+/**
+ * Reserve an exact normalized install name before its real POST. Fail closed
+ * if already reserved, even if a caller skips the earlier availability check.
+ * Fails closed when the bounded table is full and the name is not yet in it.
+ */
+function reserveInstallName(name: string): void {
+  const key = normalizeReservedName(name);
+  if (reservedInstallNames.has(key)) {
+    throw new AppError("ZIMAOS_BAD_REQUEST", RESERVED_NAME_MESSAGE);
+  }
+  if (reservedInstallNames.size >= MAX_RESERVED_INSTALL_NAMES) {
+    throw new AppError("INTERNAL", RESERVATION_CAPACITY_MESSAGE);
+  }
+  reservedInstallNames.add(key);
+}
+
+/** Release a name after a definitive rejected outcome. */
+function releaseInstallName(name: string): void {
+  reservedInstallNames.delete(normalizeReservedName(name));
+}
+
+/** True when the exact normalized name is currently reserved (lower-cased). */
+function isInstallNameReserved(name: string): boolean {
+  return reservedInstallNames.has(normalizeReservedName(name));
+}
+
+/**
+ * Fixed-shape outcome of `AppService.installSafeCompose`.
+ *
+ * - "confirmation_required": preflight found local risk findings; the caller
+ *   must present them and obtain explicit user confirmation before any install.
+ *   No mutation happened on this path (approval is a later slice).
+ * - "accepted" / "rejected" / "upstream_error": exactly one real install
+ *   attempt was made and its acceptance outcome is reported as data.
+ *   "accepted" means ZimaOS accepted the asynchronous request — it is NOT
+ *   completion, and no app ID can be inferred from this result.
+ */
+export type InstallSafeResult =
+  | {
+      readonly status: "confirmation_required";
+      /** The exact top-level compose name from the document (verbatim). */
+      readonly name: string;
+      /** Local analyzer findings requiring explicit user confirmation. */
+      readonly findings: RiskFinding[];
+    }
+  | {
+      readonly status: "accepted" | "rejected" | "upstream_error";
+      /** True only for an accepted (asynchronous) install request; never implies completion. */
+      readonly accepted: boolean;
+    };
 
 /**
  * Normalize a local parser/analyzer failure into an AppError without echoing
@@ -158,5 +275,80 @@ export class AppService {
     // The exact original source reaches the dry run unchanged.
     const validation = await this.client.validateCompose(source);
     return { ...validation, findings };
+  }
+
+  /**
+   * Safe installation service (Phase 2C) — no approval logic in this slice.
+   *
+   * Runs `preflightInstall` first: with the default-off install permission it
+   * throws before any upstream traffic; a duplicate identity, an unparseable
+   * document, a rejected dry run, an ambiguous upstream failure, or a host port
+   * conflict all fail closed as normalized AppErrors. A preflight result of
+   * `confirmation_required` (local risk findings) is returned unchanged and
+   * NEVER mutates: no install POST is sent on that path. Only a `ready` result
+   * proceeds to exactly one real install attempt via
+   * `client.installComposeOnce(source)` — the exact original source, never
+   * retried after the POST (the client itself guarantees at most one attempt).
+   *
+   * The returned outcome is a fixed-shape asynchronous acceptance signal, not
+   * claimed completion: no app ID or installed state can be inferred from it.
+   *
+   * Concurrency (Phase 2C): the entire body — permission check, duplicate
+   * recheck against a fresh list read, dry run, and the single real POST —
+   * runs under an in-process serialization lock shared by every AppService
+   * instance in this server process. The host app list may lag behind an
+   * accepted asynchronous install, so the fresh list read alone cannot stop a
+   * second same-name POST: after a ready preflight and before the real POST
+   * the exact normalized name is reserved process-wide (see
+   * `reserveInstallName`), and any further same-name request fails closed with
+   * a fixed AppError ZIMAOS_BAD_REQUEST — zero additional dry runs, zero
+   * additional real POSTs — even when its own fresh list read is stale. The
+   * reservation is kept for accepted, upstream_error, and thrown/timeout
+   * outcomes (the attempt may have landed) and released only on a definitive
+   * rejected outcome; a known pre-POST failure reserves nothing, so it never
+   * poisons the name. Different names reserve independently and proceed under
+   * the same serialization: each performs its own fresh list read, dry run,
+   * reservation, and single real POST after the previous request fully
+   * completes. There is no retry anywhere in this path and no bypass — every
+   * install goes through the same queue. This is local process-wide state only;
+   * it does not claim atomicity against actors outside this server process.
+   */
+  async installSafeCompose(
+    source: string,
+    permissions: PermissionLayer,
+  ): Promise<InstallSafeResult> {
+    return runInstallExclusive(async () => {
+      const preflight = await preflightInstall(source, this, permissions, (name) => {
+        if (isInstallNameReserved(name)) {
+          throw new AppError("ZIMAOS_BAD_REQUEST", RESERVED_NAME_MESSAGE);
+        }
+      });
+      if (preflight.status === "confirmation_required") {
+        return {
+          status: "confirmation_required" as const,
+          name: preflight.name,
+          findings: preflight.findings,
+        };
+      }
+
+      // Ready: reserve after all read-only checks and before the real POST.
+      const name = preflight.name;
+      reserveInstallName(name);
+
+      const install = await this.client.installComposeOnce(source);
+      if (install.status === "rejected") {
+        // Definitive host rejection: no attempt landed, so release the name.
+        releaseInstallName(name);
+        return { status: "rejected" as const, accepted: false };
+      }
+      if (install.status === "accepted") {
+        // Accepted asynchronous install: keep the reservation — the app list may
+        // lag and a second same-name POST must never be sent.
+        return { status: "accepted" as const, accepted: true };
+      }
+      // Ambiguous upstream failure after the single attempt: report it as data,
+      // keep the reservation (the attempt may have landed), never retry.
+      return { status: "upstream_error" as const, accepted: false };
+    });
   }
 }

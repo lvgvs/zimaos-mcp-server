@@ -14,8 +14,9 @@ socket access, or privileged operations.
 
 ## Status
 
-Phase 1 implementation: read-only system info + compose app listing/inspection,
-plus reversible start/stop/restart controls (disabled by default). See
+Phase 1 read and reversible control tools remain available. Phase 2C adds
+non-mutating Compose validation and default-off safe Compose installation;
+risky installation still stops before mutation pending the approval flow. See
 `STATUS.md` for the current milestone and `PROJECT.md` for scope.
 
 ## Security model
@@ -27,6 +28,9 @@ plus reversible start/stop/restart controls (disabled by default). See
 - **ZimaOS credentials are never returned** to MCP clients in any response.
 - **Read vs control separation.** Control operations (`start_app`, `stop_app`,
   `restart_app`) are disabled unless `ALLOW_APP_CONTROL=true`.
+- **Install authority is separate.** `install_app_from_compose` requires
+  `ALLOW_APP_INSTALL=true` (default `false`). Risky Compose returns findings
+  without installing on the safe path; validation grants no install authority.
 - **No shell, no Docker socket, no privileged mode.** The product talks only to
   supported ZimaOS APIs over HTTP.
 
@@ -39,6 +43,7 @@ plus reversible start/stop/restart controls (disabled by default). See
 | `ZIMAOS_PASSWORD`   | yes      | Password for that account.                                           |
 | `MCP_AUTH_TOKEN`    | yes      | Bearer token MCP clients must present; **min 32 chars, no default**. |
 | `ALLOW_APP_CONTROL` | no       | `true`/`false`; enable reversible app controls (default `false`).    |
+| `ALLOW_APP_INSTALL` | no       | `true`/`false`; enable safe Compose install (default `false`).       |
 | `PORT`              | no       | HTTP listen port (default `3000`).                                   |
 | `LOG_LEVEL`         | no       | `debug` \| `info` \| `warn` \| `error` (default `info`).             |
 
@@ -54,10 +59,21 @@ Read-only (always available):
 - `get_app_logs` — bounded recent logs for one application (default 100 lines, max 500).
 - `list_app_containers` — normalized container/service info for one application.
 - `get_system_info` — ZimaOS version, hostname, and basic system facts.
+- `validate_app_compose` — local risk analysis and ZimaOS dry run, without installation.
 
 Control operations (only when `ALLOW_APP_CONTROL=true`; otherwise a clear permission error):
 
 - `start_app`, `stop_app`, `restart_app`.
+
+Installation (only when `ALLOW_APP_INSTALL=true`, independent of app control):
+
+- `install_app_from_compose` — requires a safe explicit top-level `name:`,
+  checks duplicates and host dry run/port conflicts, then sends at most one
+  exact-source install POST for a benign document. An `accepted` response means
+  asynchronous acceptance, **not** completed installation. Elevated-risk
+  findings return `confirmation_required` without mutation; the approval path
+  is not yet implemented. Do not retry an uncertain install without checking
+  host state.
 
 ## Running locally (Docker)
 

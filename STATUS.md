@@ -6,7 +6,7 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 2 implementation, Phase 2B validation milestone locally complete; Phase 2A MCP SDK v2 migration committed and pushed.
+- **Phase:** Phase 2 implementation, Phase 2C safe-install milestone ready for commit. Phase 2A and 2B are committed and pushed.
   Phase 1 tool behavior remains covered by automated tests. Historical live Phase 1 verification is retained below.
 - **Phase B checkpoint:** `yaml@2.9.1` (ISC) selected for
   bounded safety inspection; original scratch probe failed (12 pass / 14 fail), focused
@@ -24,16 +24,18 @@ authoritative.
   Named collisions fail closed; duplicate POST is not idempotent. Manager-provided live
   v1.7.1 findings recovered, including schema-invalid 502 and deterministic duplicate app.
   Actual App Store update semantics remain blocked/unverified.
-- **Current milestone:** Phase 2B bounded YAML parsing, risk analysis, non-mutating upstream
-  dry run, domain orchestration and `validate_app_compose` MCP tool are implemented and
-  locally verified. Milestone commit/push pending.
-- **Next action:** Commit and push reviewed Phase 2B, verify remote state, then begin the
-  separately permissioned Phase 2C safe install path. Phase 2D risky approval and Phase 2E
-  uninstall remain. App Store update semantics remain unverified; no update tool.
+- **Current milestone:** Phase 2C default-off safe Compose installation is implemented and
+  locally gated; commit/push pending. Phase 2B validation was pushed at
+  `e8774f23ce9ecf55050eaac7b0767a3595c72109`.
+- **Next action:** Commit/push Phase 2C after final diff review, then implement the
+  already approved Phase 2D native risky approval design, Phase 2E uninstall,
+  and live acceptance; no fresh manager approval of Phase 2D architecture is needed.
+  App Store update semantics remain unverified; no update tool.
 
 ## Git / repository
 
 - **Branch:** `main`
+- **Phase 2B HEAD:** `e8774f23ce9ecf55050eaac7b0767a3595c72109`, pushed to `origin/main`.
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (**private**, per Phase 1 rule)
 - **Research base SHA:** `06fe86c267c27648e48b8616944984b795cb86ae`.
 - **Research checkpoint HEAD:** the commit containing this status, intended as
@@ -108,6 +110,99 @@ the resumed implementation record below.
 - Branch `main`; base commit before Phase 2B is `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`;
   repository https://github.com/lvgvs/zimaos-mcp-server (private). GHCR Phase 2 image not
   verified; ZimaOS Compose deployment not yet exercised for Phase 2.
+
+## Phase 2C implementation checkpoint (uncommitted, mocked)
+
+- Dedicated `ALLOW_APP_INSTALL` permission defaults off independently of Phase 1 control.
+  `ZimaOsClient.installComposeOnce` sends one exact-source YAML POST with explicit
+  `dry_run=false` and port checking, never retries after a mutation attempt, and reports
+  asynchronous acceptance separately from completion. HTTP 429 remains rate limiting.
+- Local install identity requires explicit safe top-level name and rejects collisions
+  against app id/display name. Preflight lists installed apps and performs one upstream
+  dry run, failing closed on invalid/ambiguous response and port conflicts. Risky input
+  returns confirmation-required without mutation. Safe-install service serializes
+  preflight and one real POST with an in-process queue. This does not eliminate races
+  against actors outside this server or guarantee immediate app-list visibility after
+  asynchronous acceptance.
+- Independently ran `npm test`: **250/250** across 12 files; production and test
+  TypeScript checks, lint, format check and `git diff --check` passed after correcting
+  a test type error and unused import. These are mocked/local results; no Phase 2C
+  Docker build or live VM test yet. The previous concurrency child timed out after
+  leaving valid partial code/tests; the parent retained, fixed and verified them.
+- **Not implemented/exposed:** `install_app_from_compose` MCP tool, risk challenge /
+  post-disclosure approval, uninstall, update. No Phase 2C commit/push yet. The
+  higher-level manager approved the existing modern MCP input-required design,
+  content-bound signed state, expiring bounded single-use ledger, rechecks and
+  consume-before-one-POST rule, modern-only risky path, and explicit human-presence
+  limitation. A new scope/safety issue, not this existing design, would be a blocker.
+
+## Pause checkpoint — Phase 2C (2026-09-29)
+
+This is a historical pause snapshot, superseded by the resumed Phase 2C milestone below.
+
+- `main` HEAD `e8774f23ce9ecf55050eaac7b0767a3595c72109` (pushed Phase 2B);
+  Phase 2A was committed/pushed at `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`.
+  Worktree intentionally dirty: modified `STATUS.md`, `src/config.ts`, `src/errors.ts`,
+  `src/index.ts`, `src/permissions.ts`, `src/zimaos/appService.ts`, `src/zimaos/client.ts`,
+  `tests/client.test.ts`, `tests/config.test.ts`, `tests/permissions.test.ts`; untracked
+  `src/zimaos/installIdentity.ts`, `src/zimaos/installPreflight.ts`,
+  `tests/installIdentity.test.ts`, `tests/installPreflight.test.ts`,
+  `tests/installSafe.test.ts`, and `tests/installConcurrency.test.ts`.
+- Last Qwen task `sa-0-32740bb6`: process-wide install-name reservation to prevent
+  a second same-name POST while the asynchronous ZimaOS app list is stale. It was
+  steered to stop at the atomic test-file write and completed in response to pause;
+  **only** `tests/installConcurrency.test.ts` changed in this task. No reservation
+  implementation was written. Tests encode accepted/timeout stale-list behavior;
+  they remain TDD-red, not a passing feature. No child remains active.
+- Parent reviewed the full test file and service. `installSafeCompose` currently has
+  a process-wide serialization queue but **no name reservation**; its comment claiming
+  a second request will see the new app in the list is not guaranteed. The queue
+  permits a duplicate POST if a subsequent list read is stale. Do not expose the
+  install tool or claim duplicate protection complete until corrected. No global
+  unsafe bypass or mutation retry was introduced in the last child edit.
+- Focused `npx vitest run tests/installConcurrency.test.ts` on the present worktree:
+  **2 passed, 2 failed**, exactly the accepted-stale-list and timeout-stale-list
+  reservation expectations. `npx tsc -p tsconfig.test.json --noEmit` passed;
+  `npx prettier --check tests/installConcurrency.test.ts` failed (formatting).
+  `git diff --check` passed. Before the last test edit, parent independently ran
+  full mocked `npm test` **250/250**, lint, format, production/test typechecks;
+  those full gates were **not rerun on the present worktree**. Phase 2C build,
+  Docker build, Compose config and live VM acceptance have not been run.
+- **First bounded resume action:** implement a fail-closed, process-wide reservation
+  for the exact normalized install name after ready preflight and before the one
+  real POST; keep accepted/uncertain attempts reserved through list lag, release
+  only on definitive rejection or known pre-POST failure. Run the new focused tests,
+  both TypeScript checks and format the test; independently review diff/semantics.
+  Do not silently infer an arbitrary reservation expiry or retry uncertain installs.
+- Remaining Phase 2C: finish reservation, wire/install-test the MCP tool without
+  bypassing the risky post-disclosure flow, update deployment/docs/config, run full
+  gates, and commit/push only a coherent milestone. Then Phase 2D approved single-use
+  risky approval, Phase 2E independently gated uninstall, Phase 2 live acceptance
+  and disposable-VM cleanup. `update_app` remains unimplemented pending verified
+  App Store semantics. No new child, commit, push, or live operation occurred for
+  this pause. Preserve all dirty work; wait for explicit resume.
+
+## Phase 2C resumed milestone (local, mocked)
+
+- `ALLOW_APP_INSTALL` defaults off independently of reversible app control. Safe install
+  requires an explicit conservative top-level name, checks host id/display-name collisions,
+  performs a fresh list read and upstream dry run with port-conflict checking, and preserves
+  the exact original YAML for at most one real POST. Risky findings return
+  `confirmation_required` without mutation; no Phase 2D approval is present yet.
+- A serialized process-wide queue and bounded fail-closed name reservations prevent a
+  second same-name POST even if the upstream list lags after asynchronous acceptance or an
+  ambiguous timeout. A definitive rejection releases its reservation. Reservations are
+  process-local and retained for uncertain outcomes; this does not prevent external writers,
+  nor does it establish completion. No automatic mutation retry or global unsafe bypass.
+- `install_app_from_compose` is registered over authenticated MCP; `.env.example`, README,
+  and ZimaOS deployment Compose document the default-off permission and safe path.
+- Independently executed: mocked `npm test` **258/258 across 12 files**; lint, format check,
+  production/test TypeScript checks, production build, Docker build
+  (`zimaos-mcp-server:phase2c`), deployment Compose config validation and `git diff --check`
+  all passed. No Phase 2C live VM test or GHCR publication verified yet.
+- Branch `main`, base HEAD `e8774f23ce9ecf55050eaac7b0767a3595c72109` before
+  Phase 2C commit. Repo https://github.com/lvgvs/zimaos-mcp-server (private).
+  Phase 2D risky approval, Phase 2E uninstall and final live acceptance remain.
 
 ## Phase 2A implementation verification (local, mocked)
 

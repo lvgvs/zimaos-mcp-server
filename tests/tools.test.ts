@@ -91,6 +91,7 @@ describe("MCP tools (mocked services)", () => {
           "get_app_health",
           "get_app_logs",
           "get_system_info",
+          "install_app_from_compose",
           "list_app_containers",
           "list_apps",
           "restart_app",
@@ -405,6 +406,299 @@ describe("validate_app_compose (in-memory MCP)", () => {
       });
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).not.toContain("APP_CONTROL_DISABLED");
+    } finally {
+      await h.serverTransport.close();
+    }
+  });
+});
+
+/**
+ * Focused tests for the mutating `install_app_from_compose` MCP tool, driven
+ * over an in-memory transport with a real AppService backed by a fake ZimaOS
+ * HTTP endpoint (no network). Verifies: default-off ALLOW_APP_INSTALL denies
+ * with zero upstream traffic; a benign document performs exactly one dry run
+ * and one real install POST carrying the exact original source; a risky
+ * document returns confirmation_required data WITHOUT any mutation; accepted /
+ * rejected / upstream_error outcomes are fixed-shape data (not errors);
+ * duplicate identities fail closed without an install POST; invalid input is
+ * normalized locally with no source echo.
+ */
+
+const COMPOSE_PATH = "/v2/app_management/compose";
+/** Full real-install URL suffix the client must call exactly once. */
+const INSTALL_URL_SUFFIX = "dry_run=false&check_port_conflict=true";
+/** Dry-run URL suffix (preflight only; never an install). */
+const DRY_RUN_URL_SUFFIX = "dry_run=true&check_port_conflict=true";
+
+interface InstallHarness {
+  client: Client;
+  serverTransport: InMemoryTransport;
+  fake: FakeZimaOs;
+  /** Every full request URL sent by the client, in order. */
+  urls: string[];
+}
+
+/** Connect an MCP client to a server whose AppService talks to a fake ZimaOS. */
+async function connectInstall(
+  overrides: { allowAppControl?: boolean; allowAppInstall?: boolean } = {},
+): Promise<InstallHarness> {
+  const fake = new FakeZimaOs();
+  const urls: string[] = [];
+  const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+    urls.push(String(input));
+    return fake.fetchImpl(input, init);
+  }) as typeof fetch;
+  const zimaClient = new ZimaOsClient({
+    baseUrl: BASE,
+    username: "admin",
+    password: "pw",
+    fetchImpl,
+    timeoutMs: 5_000,
+  });
+  const deps: ToolDeps = {
+    apps: new AppService(zimaClient),
+    system: {
+      getSystemInfo: async () => ({ hostname: "zima", osVersion: "v1.7.1" }),
+    } as unknown as ToolDeps["system"],
+    permissions: new PermissionLayer({
+      allowAppControl: overrides.allowAppControl ?? false,
+      allowAppInstall: overrides.allowAppInstall ?? false,
+    }),
+  };
+  const harness = await connect(deps);
+  return { ...harness, fake, urls };
+}
+
+function listOk(fake: FakeZimaOs, apps: Array<{ id: string; name?: string }>): void {
+  const data: Record<string, unknown> = {};
+  for (const app of apps) {
+    data[app.id] = { name: app.name ?? app.id };
+  }
+  fake.ok("GET", COMPOSE_PATH, data);
+}
+
+/**
+ * Register the two POST responses consumed in order on the compose pathname:
+ * first the dry run (preflight), then the real install attempt. The fake
+ * consumes one spec per call for a key, so order matches request order.
+ */
+function dryRunThenInstall(
+  fake: FakeZimaOs,
+  installSpec: { status?: number; json?: unknown; text?: string },
+): void {
+  fake.on("POST", COMPOSE_PATH, { json: { success: true } }); // preflight dry run
+  fake.on("POST", COMPOSE_PATH, installSpec); // real install attempt
+}
+
+function composePosts(fake: FakeZimaOs) {
+  return fake.calls.filter((c) => c.method === "POST" && c.path === COMPOSE_PATH);
+}
+
+describe("install_app_from_compose (in-memory MCP)", () => {
+  it("is denied by default with zero upstream traffic", async () => {
+    // Both permission flags default off; no routes registered at all, so any
+    // upstream call would throw.
+    const h = await connectInstall();
+    try {
+      const result = await h.client.callTool({
+        name: "install_app_from_compose",
+        arguments: {
+          source: "name: mcp-denied-01\nservices:\n  web:\n    image: nginx\n",
+        },
+      });
+      expect(result.isError).toBe(true);
+      const text = textOf(result);
+      expect(text).toContain("APP_INSTALL_DISABLED");
+      // Zero upstream traffic: no login, no list read, no dry run, no install.
+      expect(h.fake.calls).toHaveLength(0);
+    } finally {
+      await h.serverTransport.close();
+    }
+  });
+
+  it("installs a benign document with exactly one dry run and one real POST", async () => {
+    const source = [
+      "name: mcp-benign-01",
+      "services:",
+      "  web:",
+      '    image: "nginx:alpine"',
+      "",
+    ].join("\n");
+    const h = await connectInstall({ allowAppInstall: true });
+    try {
+      loginOk(h.fake);
+      listOk(h.fake, []);
+      dryRunThenInstall(h.fake, { status: 200, json: { success: true } });
+
+      const result = await h.client.callTool({
+        name: "install_app_from_compose",
+        arguments: { source },
+      });
+      expect(result.isError).toBeFalsy();
+      // Fixed-shape asynchronous acceptance data — not claimed completion.
+      expect(JSON.parse(textOf(result))).toEqual({ status: "accepted", accepted: true });
+
+      // Exactly one dry run and exactly one real install POST...
+      expect(h.urls.filter((u) => u.includes(DRY_RUN_URL_SUFFIX))).toHaveLength(1);
+      const installs = h.urls.filter((u) => u.includes(INSTALL_URL_SUFFIX));
+      expect(installs).toHaveLength(1);
+      // ...carrying the exact original source unchanged as YAML.
+      expect(composePosts(h.fake)).toHaveLength(2);
+      const installCall = h.fake.calls.find(
+        (c) => c.method === "POST" && c.path === COMPOSE_PATH && c.body === source,
+      );
+      expect(installCall?.body).toBe(source);
+      // One login for the whole flow; no re-login or retry.
+      expect(h.fake.calls.filter((c) => c.path === "/v1/users/login")).toHaveLength(1);
+    } finally {
+      await h.serverTransport.close();
+    }
+  });
+
+  it("returns confirmation_required data for a risky document without any install", async () => {
+    const source = [
+      "name: mcp-risky-01",
+      "services:",
+      "  web:",
+      "    image: nginx",
+      "    privileged: true",
+      "",
+    ].join("\n");
+    const h = await connectInstall({ allowAppInstall: true });
+    try {
+      loginOk(h.fake);
+      listOk(h.fake, []);
+      // Only the dry-run route is registered; an install attempt would throw.
+      h.fake.on("POST", COMPOSE_PATH, { json: { success: true } });
+
+      const result = await h.client.callTool({
+        name: "install_app_from_compose",
+        arguments: { source },
+      });
+      // Findings are data (disclosure), not an error.
+      expect(result.isError).toBeFalsy();
+      const parsed = JSON.parse(textOf(result)) as {
+        status: string;
+        name?: string;
+        findings?: Array<Record<string, unknown>>;
+      };
+      expect(parsed.status).toBe("confirmation_required");
+      expect(parsed.name).toBe("mcp-risky-01");
+      expect((parsed.findings ?? []).map((f) => f["category"])).toEqual(["privileged"]);
+
+      // No mutation on the confirmation path: one dry run, zero install POSTs.
+      expect(h.urls.filter((u) => u.includes(DRY_RUN_URL_SUFFIX))).toHaveLength(1);
+      expect(h.urls.filter((u) => u.includes(INSTALL_URL_SUFFIX))).toHaveLength(0);
+    } finally {
+      await h.serverTransport.close();
+    }
+  });
+
+  it("returns rejected and upstream_error outcomes as fixed-shape data", async () => {
+    // Definitive host rejection after exactly one POST.
+    const rejectedSource = "name: mcp-rejected-01\nservices:\n  web:\n    image: nginx\n";
+    const h1 = await connectInstall({ allowAppInstall: true });
+    try {
+      loginOk(h1.fake);
+      listOk(h1.fake, []);
+      dryRunThenInstall(h1.fake, { status: 200, json: { success: false } });
+
+      const r1 = await h1.client.callTool({
+        name: "install_app_from_compose",
+        arguments: { source: rejectedSource },
+      });
+      expect(r1.isError).toBeFalsy();
+      expect(JSON.parse(textOf(r1))).toEqual({ status: "rejected", accepted: false });
+      // The single attempt was made exactly once; no retry.
+      expect(h1.urls.filter((u) => u.includes(INSTALL_URL_SUFFIX))).toHaveLength(1);
+    } finally {
+      await h1.serverTransport.close();
+    }
+
+    // Ambiguous 502 after the single attempt: data, not an error, no echo.
+    const upstreamSource = "name: mcp-upstream-01\nservices:\n  web:\n    image: nginx\n";
+    const h2 = await connectInstall({ allowAppInstall: true });
+    try {
+      loginOk(h2.fake);
+      listOk(h2.fake, []);
+      dryRunThenInstall(h2.fake, { status: 502, text: "SECRET-UPSTREAM-TEXT" });
+
+      const r2 = await h2.client.callTool({
+        name: "install_app_from_compose",
+        arguments: { source: upstreamSource },
+      });
+      expect(r2.isError).toBeFalsy();
+      expect(JSON.parse(textOf(r2))).toEqual({
+        status: "upstream_error",
+        accepted: false,
+      });
+      expect(h2.urls.filter((u) => u.includes(INSTALL_URL_SUFFIX))).toHaveLength(1);
+      // Upstream free-form text is never relayed to the client.
+      expect(textOf(r2)).not.toContain("SECRET-UPSTREAM-TEXT");
+    } finally {
+      await h2.serverTransport.close();
+    }
+  });
+
+  it("fails closed on a duplicate identity without any install POST", async () => {
+    const source = "name: mcp-dup-01\nservices:\n  web:\n    image: nginx\n";
+    const h = await connectInstall({ allowAppInstall: true });
+    try {
+      loginOk(h.fake);
+      listOk(h.fake, [{ id: "mcp-dup-01" }]);
+
+      const result = await h.client.callTool({
+        name: "install_app_from_compose",
+        arguments: { source },
+      });
+      expect(result.isError).toBe(true);
+      const text = textOf(result);
+      expect(text).toContain("ZIMAOS_BAD_REQUEST");
+      // Duplicate detected from the single list read; no dry run, no install.
+      expect(
+        h.fake.calls.filter((c) => c.method === "GET" && c.path === COMPOSE_PATH),
+      ).toHaveLength(1);
+      expect(h.urls.filter((u) => u.includes(INSTALL_URL_SUFFIX))).toHaveLength(0);
+    } finally {
+      await h.serverTransport.close();
+    }
+  });
+
+  it("rejects invalid input without any upstream call", async () => {
+    const h = await connectInstall({ allowAppInstall: true });
+    try {
+      loginOk(h.fake); // registered but must never be consumed
+
+      // Schema-level: an empty source is rejected before the handler runs.
+      const empty = await h.client.callTool({
+        name: "install_app_from_compose",
+        arguments: { source: "" },
+      });
+      expect(empty.isError).toBe(true);
+
+      // UTF-8 bytes, not JavaScript string length, define the parser budget.
+      const oversized = await h.client.callTool({
+        name: "install_app_from_compose",
+        arguments: { source: "é".repeat(300_000) },
+      });
+      expect(oversized.isError).toBe(true);
+
+      // Service-level: unparseable YAML fails locally with a normalized, safe
+      // error — no raw input echo, no stack trace.
+      const badSource =
+        "name: mcp-bad-01\nservices:\n  web: [unclosed #SECRET-YAML-MARKER-XYZ\n";
+      const invalid = await h.client.callTool({
+        name: "install_app_from_compose",
+        arguments: { source: badSource },
+      });
+      expect(invalid.isError).toBe(true);
+      const text = textOf(invalid);
+      expect(text).toContain("INPUT_INVALID");
+      expect(text).not.toContain("SECRET-YAML-MARKER-XYZ");
+      expect(text).not.toMatch(/\bat\s+\S+.*\(.+:\d+:\d+/);
+
+      // Local rejections short-circuit before any upstream call (no login).
+      expect(h.fake.calls).toHaveLength(0);
     } finally {
       await h.serverTransport.close();
     }

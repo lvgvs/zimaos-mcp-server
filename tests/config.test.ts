@@ -19,6 +19,7 @@ describe("loadConfig", () => {
     expect(cfg.zimaosUrl).toBe("http://192.0.2.50");
     expect(cfg.zimaosUsername).toBe("admin");
     expect(cfg.allowAppControl).toBe(false); // default: control disabled
+    expect(cfg.allowAppInstall).toBe(false); // default: install disabled
     expect(cfg.port).toBe(3000);
     expect(cfg.logLevel).toBe("info");
   });
@@ -60,6 +61,7 @@ describe("loadConfig", () => {
 
   it.each([
     ["invalid boolean", { ALLOW_APP_CONTROL: "maybe" }],
+    ["invalid install flag", { ALLOW_APP_INSTALL: "maybe" }],
     ["invalid port", { PORT: "99999" }],
     ["non-numeric port", { PORT: "abc" }],
     ["invalid log level", { LOG_LEVEL: "verbose" }],
@@ -74,6 +76,18 @@ describe("loadConfig", () => {
     expect(cfg.allowAppControl).toBe(true);
     expect(cfg.port).toBe(8080);
     expect(cfg.logLevel).toBe("debug");
+  });
+
+  it("parses ALLOW_APP_INSTALL independently of ALLOW_APP_CONTROL", () => {
+    const cfg = loadConfig(envWith({ ALLOW_APP_INSTALL: "true" }));
+    expect(cfg.allowAppInstall).toBe(true);
+    expect(cfg.allowAppControl).toBe(false); // control flag untouched by install flag
+
+    const bothOn = loadConfig(
+      envWith({ ALLOW_APP_CONTROL: "true", ALLOW_APP_INSTALL: "true" }),
+    );
+    expect(bothOn.allowAppControl).toBe(true);
+    expect(bothOn.allowAppInstall).toBe(true);
   });
 
   it("never includes secret values in error messages", () => {
