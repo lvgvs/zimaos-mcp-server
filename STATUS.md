@@ -13,7 +13,11 @@ authoritative.
   asynchronous HTTP 200 install/uninstall responses in addition to explicit
   `success:true` envelopes. It does not alter authorization, preflight,
   duplicate protection, retries, or mutation payloads. Upstream messages are
-  compared internally, never returned to MCP clients.
+  compared internally, never returned to MCP clients. A subsequent repeat full
+  suite exposed a flaky SDK MAC-tamper test: flipping the final base64url
+  character can change only unused bits. The test now flips the first MAC
+  character so it deterministically changes the decoded MAC; no runtime
+  approval semantics were changed.
 - **Final local gates:** `npm test` **390/390 across 19 files**; lint, Prettier,
   production and test TypeScript checks, production build, Docker build
   (`zimaos-mcp-server:phase2-final`), deployment Compose validation and
@@ -48,13 +52,17 @@ authoritative.
 - **Phase 2C HEAD:** `d579a259049250f43b41ff7110a43106d6817e63`, pushed to `origin/main`.
 - **Phase 2D HEAD:** `e5f5a6ef400a5278c671a5c44562c52c49969664`, pushed to `origin/main`.
 - **Phase 2E HEAD:** `b2fb4c05ead8fd8c0f155ba7f0a906dc85de9f1a`, pushed to `origin/main`.
-- **Closing HEAD:** the commit containing this status and response-shape fix;
-  obtain its exact SHA with `git rev-parse HEAD` after commit/push (a Git commit
-  cannot contain its own SHA). The final chat handoff states the verified SHA.
+- **Response-shape closing commit:** `e4390fd5c44e5a3b393d92adfd9a636164c64f04`,
+  pushed to `origin/main`; CI and GHCR publication passed.
+- **Final HEAD:** the follow-up commit containing this status and deterministic
+  MAC-tamper test; obtain its exact SHA with `git rev-parse HEAD` after
+  commit/push (a Git commit cannot contain its own SHA). The final chat handoff
+  states the verified SHA.
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (**private**, per Phase 1 rule)
 - **GHCR:** `ghcr.io/lvgvs/zimaos-mcp-server` private; immutable
   `sha-<commit SHA>` and `latest` are published by CI. Phase 2E workflows
-  passed; verify the closing commit's CI and publish runs after push. Private
+  and response-shape closing workflows passed; verify the final follow-up
+  commit's CI and publish runs after push. Private
   image pull requires a registry credential with `read:packages`.
 
 ## Pause checkpoint — Phase 2B (2026-09-28)

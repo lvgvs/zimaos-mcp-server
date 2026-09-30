@@ -178,9 +178,11 @@ describe("tamper detection", () => {
   it("rejects a tampered MAC with 'mac'", async () => {
     const codec = makeCodec();
     const token = await codec.mint(makePayload(), makeCtx());
-    const last = token.length - 1;
-    const flipped = token[last] === "A" ? "B" : "A";
-    const tampered = `${token.slice(0, last)}${flipped}`;
+    // The final base64url character can have unused padding bits: changing
+    // those bits need not change the decoded MAC. Flip its first character.
+    const macStart = token.lastIndexOf(".") + 1;
+    const flipped = token[macStart] === "A" ? "B" : "A";
+    const tampered = `${token.slice(0, macStart)}${flipped}${token.slice(macStart + 1)}`;
 
     await expectVerifyRejects(() => codec.verify(tampered, makeCtx()), "mac");
   });
