@@ -97,6 +97,7 @@ describe("MCP tools (mocked services)", () => {
           "restart_app",
           "start_app",
           "stop_app",
+          "uninstall_app",
           "validate_app_compose",
         ].sort(),
       );

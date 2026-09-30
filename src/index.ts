@@ -43,6 +43,7 @@ async function main(): Promise<void> {
     permissions: new PermissionLayer({
       allowAppControl: config.allowAppControl,
       allowAppInstall: config.allowAppInstall,
+      allowAppUninstall: config.allowAppUninstall,
     }),
   };
 

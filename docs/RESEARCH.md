@@ -493,6 +493,20 @@ not prove which files/volumes it removes or preserves.
 scratch but retains a version-control description elsewhere: exact live semantics
 remain unresolved; do not expose it as a safety bypass.
 
+### D. Phase 2E DELETE implementation (mocked; 2026-09-30)
+
+The official published `@icewhale/casaos-appmanagement-openapi@0.4.17-alpha1`
+operation `uninstallComposeApp` above supplies the DELETE path, encoded id,
+optional `delete_config_folder` query, and lack of request body. The earlier
+manager-supplied ZimaOS v1.7.1 observation recorded HTTP 200 asynchronous
+acceptance and 404 for missing ids. Neither source proves storage retention for
+`false` or that a 200 means removal has finished. Accordingly the client sends
+an explicit `delete_config_folder=false`, normalizes fixed-shape acceptance,
+and never retries a DELETE. The service checks an exact listed app id and
+allows only one bounded read-only list observation after acceptance; a stale
+listing reports pending rather than triggering a second DELETE. These are
+mocked local results pending live MCP acceptance, not a new live API probe.
+
 ### D. Live ZimaOS v1.7.1 facts — manager-provided evidence, not new tests
 
 These facts were supplied as independently/manual verified evidence for this recovery

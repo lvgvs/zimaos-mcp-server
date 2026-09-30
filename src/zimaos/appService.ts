@@ -7,7 +7,11 @@
  */
 
 import { AppError } from "../errors.js";
-import type { HealthProbeResult, ZimaOsClient } from "./client.js";
+import type {
+  HealthProbeResult,
+  ZimaOsClient,
+  ComposeUninstallResult,
+} from "./client.js";
 import type { ComposeValidationResult } from "./client.js";
 import type { PermissionLayer } from "../permissions.js";
 import { analyzeCompose, type RiskFinding } from "../compose/analyze.js";
@@ -163,6 +167,15 @@ export type InstallSafeResult =
       readonly accepted: boolean;
     };
 
+/** Asynchronous acceptance plus at most one read-only observation. */
+export type UninstallResult = ComposeUninstallResult & {
+  readonly reconciliation?: "absent" | "pending";
+};
+
+const MAX_RESERVED_UNINSTALL_IDS = 4096;
+const reservedUninstallIds = new Set<string>();
+const SAFE_APP_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+
 /**
  * Normalize a local parser/analyzer failure into an AppError without echoing
  * input content: only the modules' own sanitized reason phrases are passed
@@ -183,6 +196,52 @@ export class AppService {
   async listApps(): Promise<AppInfo[]> {
     const data = await this.client.listComposeApps();
     return normalizeAppList(data);
+  }
+
+  /** Uninstall an explicit installed id with one DELETE and a bounded read-only observation. */
+  async uninstallApp(id: string, permissions: PermissionLayer): Promise<UninstallResult> {
+    return runInstallExclusive(async () => {
+      permissions.assertCanUninstall("uninstall_app");
+      if (typeof id !== "string" || !SAFE_APP_ID.test(id)) {
+        throw new AppError(
+          "INPUT_INVALID",
+          "A valid explicit application id is required.",
+        );
+      }
+      if (reservedUninstallIds.has(id)) {
+        throw new AppError(
+          "ZIMAOS_BAD_REQUEST",
+          "An uninstall for this id was already attempted.",
+        );
+      }
+      const apps = await this.listApps();
+      if (!apps.some((app) => app.id === id)) {
+        throw new AppError(
+          "ZIMAOS_NOT_FOUND",
+          "The application id was not found on the host.",
+        );
+      }
+      if (reservedUninstallIds.size >= MAX_RESERVED_UNINSTALL_IDS) {
+        throw new AppError("INTERNAL", "Uninstall reservations are exhausted.");
+      }
+      reservedUninstallIds.add(id);
+      // A thrown post-attempt error is ambiguous; retain the reservation.
+      const result = await this.client.uninstallComposeOnce(id);
+      if (result.status === "rejected") {
+        reservedUninstallIds.delete(id);
+        return result;
+      }
+      if (result.status !== "accepted") return result;
+      // One read only. Failure or stale listing means pending, not retryable.
+      let reconciliation: "absent" | "pending" = "pending";
+      try {
+        const latest = await this.listApps();
+        if (!latest.some((app) => app.id === id)) reconciliation = "absent";
+      } catch {
+        // The DELETE acceptance is authoritative; a failed read is not proof.
+      }
+      return { ...result, reconciliation };
+    });
   }
 
   /** Fetch a single application by id. Throws APP_NOT_FOUND when absent. */

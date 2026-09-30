@@ -63,8 +63,12 @@ services:
       - ALLOW_APP_CONTROL=false
 
       # Enable safe Compose installation separately; disabled by default.
-      # Risky Compose is never installed by the Phase 2C safe path.
+      # Risky Compose requires modern post-disclosure approval before install.
       - ALLOW_APP_INSTALL=false
+
+      # Removal by explicit stable app id; independent and disabled by default.
+      # The server always requests delete_config_folder=false.
+      - ALLOW_APP_UNINSTALL=false
 
       # Log verbosity: debug | info | warn | error.
       - LOG_LEVEL=info

@@ -23,6 +23,14 @@ export interface AppConfig {
    * default-off value applies.
    */
   allowAppInstall?: boolean;
+  /**
+   * When false (default) all application uninstall operations are denied.
+   * Independent of ALLOW_APP_CONTROL and ALLOW_APP_INSTALL: enabling either
+   * does not enable this one. loadConfig always sets it explicitly; the
+   * optionality only lets test fixtures omit it, in which case the safe
+   * default-off value applies.
+   */
+  allowAppUninstall?: boolean;
   /** TCP port the HTTP server listens on. */
   port: number;
   /** debug | info | warn | error */
@@ -130,6 +138,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     mcpAuthToken,
     allowAppControl: parseBool(env["ALLOW_APP_CONTROL"], "ALLOW_APP_CONTROL"),
     allowAppInstall: parseBool(env["ALLOW_APP_INSTALL"], "ALLOW_APP_INSTALL"),
+    allowAppUninstall: parseBool(env["ALLOW_APP_UNINSTALL"], "ALLOW_APP_UNINSTALL"),
     port: parsePort(env["PORT"]),
     logLevel: parseLogLevel(env["LOG_LEVEL"]),
   };

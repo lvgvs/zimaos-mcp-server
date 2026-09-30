@@ -712,3 +712,283 @@ describe("ZimaOsClient.installComposeOnce (mocked HTTP, single real install POST
     expect(result).toEqual({ status: "upstream_error", accepted: false });
   });
 });
+
+describe("ZimaOsClient.uninstallComposeOnce (mocked HTTP, single real uninstall DELETE)", () => {
+  const UNINSTALL_PATH = "/v2/app_management/compose/myapp?delete_config_folder=false";
+
+  /** Client whose fetch also records the full request URL (query string included). */
+  function makeRecordingClient(fake: FakeZimaOs) {
+    const urls: string[] = [];
+    const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+      urls.push(String(input));
+      return fake.fetchImpl(input, init);
+    }) as typeof fetch;
+    const client = new ZimaOsClient({
+      baseUrl: BASE,
+      username: "admin",
+      password: "pw",
+      fetchImpl,
+      timeoutMs: 5_000,
+    });
+    return { client, urls };
+  }
+
+  /** Establish the existing bearer session without any uninstall traffic. */
+  async function withSession(fake: FakeZimaOs): Promise<ZimaOsClient> {
+    loginOk(fake);
+    const client = makeClient(fake);
+    await client.login();
+    return client;
+  }
+
+  it("validates a missing/blank id before any network traffic (no login, no DELETE)", async () => {
+    const fake = new FakeZimaOs();
+    // No routes registered at all: any request would fail the test.
+    const client = makeClient(fake);
+
+    await expect(client.uninstallComposeOnce("")).rejects.toMatchObject({
+      code: "INPUT_INVALID",
+    });
+    await expect(client.uninstallComposeOnce("   ")).rejects.toMatchObject({
+      code: "INPUT_INVALID",
+    });
+    // Nothing was sent — not even a login.
+    expect(fake.calls).toHaveLength(0);
+  });
+
+  it("uses the existing bearer session (no re-login) and sends exactly one DELETE on HTTP 200 success:true", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/myapp", {
+      status: 200,
+      json: { success: true, message: "app is being uninstalled asynchronously" },
+    });
+    const { client, urls } = makeRecordingClient(fake);
+    // Establish the existing bearer session before any uninstall traffic.
+    await client.login();
+
+    const result = await client.uninstallComposeOnce("myapp");
+
+    expect(result).toEqual({ status: "accepted", accepted: true });
+    // Exactly one DELETE, to the explicit non-destructive query (no dry-run flags).
+    expect(urls.filter((u) => u.includes("/v2/app_management/compose"))).toHaveLength(1);
+    expect(urls[0]).toBe(`${BASE}/v1/users/login`);
+    expect(urls[1]).toBe(BASE + UNINSTALL_PATH);
+
+    const req = fake.calls.find((c) => c.path === "/v2/app_management/compose/myapp");
+    expect(req?.method).toBe("DELETE");
+    // No request body on a DELETE.
+    expect(req?.body).toBeUndefined();
+    expect(req?.headers["authorization"]).toBe("Bearer tok-abc");
+    // The pre-existing session was reused: no second login happened.
+    expect(fake.calls.filter((c) => c.path === "/v1/users/login")).toHaveLength(1);
+  });
+
+  it("URL-encodes the id in the path (no raw special characters on the wire)", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    // encodeURIComponent("a/b?c") === "a%2Fb%3Fc": neither / nor ? may reach the wire.
+    fake.on("DELETE", "/v2/app_management/compose/a%2Fb%3Fc", {
+      status: 200,
+      json: { success: true },
+    });
+    const client = await withSession(fake);
+
+    const result = await client.uninstallComposeOnce("a/b?c");
+
+    expect(result).toEqual({ status: "accepted", accepted: true });
+    // The encoded id is what reaches the wire; the raw form never does.
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose/a%2Fb%3Fc"),
+    ).toHaveLength(1);
+  });
+
+  it("logs in once when no session is held, then still sends exactly one DELETE", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/myapp", { status: 200 });
+    const client = makeClient(fake);
+
+    await expect(client.uninstallComposeOnce("myapp")).resolves.toMatchObject({
+      accepted: false, // empty body is not a confirmation of acceptance.
+    });
+    expect(fake.calls.filter((c) => c.path === "/v1/users/login")).toHaveLength(1);
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose/myapp"),
+    ).toHaveLength(1);
+  });
+
+  it("timeout after the single attempt -> ZIMAOS_UNREACHABLE, exactly one DELETE, no retry", async () => {
+    const urls: string[] = [];
+    // Answers login normally; hangs on the uninstall DELETE until the client aborts.
+    const hangingFetch = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      urls.push(url);
+      if (url.endsWith("/v1/users/login")) {
+        return new Response(
+          JSON.stringify({ success: true, data: { token: { access_token: "tok-abc" } } }),
+          { status: 200 },
+        );
+      }
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          const err = new Error("aborted");
+          err.name = "AbortError";
+          reject(err);
+        });
+      });
+    }) as typeof fetch;
+    const client = new ZimaOsClient({
+      baseUrl: BASE,
+      username: "admin",
+      password: "pw",
+      fetchImpl: hangingFetch,
+      timeoutMs: 50,
+    });
+
+    await expect(client.uninstallComposeOnce("myapp")).rejects.toMatchObject({
+      code: "ZIMAOS_UNREACHABLE",
+    });
+    // The attempt was made exactly once — a retry after an ambiguous timeout could
+    // race or repeat a destructive removal.
+    expect(urls.filter((u) => u.includes("/v2/app_management/compose"))).toHaveLength(1);
+  });
+
+  it("HTTP 401 -> ZIMAOS_AUTH_FAILED, exactly one DELETE, no re-login and no retry", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/myapp", { status: 401, json: {} });
+    const client = await withSession(fake);
+
+    await expect(client.uninstallComposeOnce("myapp")).rejects.toMatchObject({
+      code: "ZIMAOS_AUTH_FAILED",
+    });
+    // The single DELETE was attempted exactly once; the stale session is dropped, but no
+    // re-login and no duplicate DELETE happen (a retry could race a running removal).
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose/myapp"),
+    ).toHaveLength(1);
+    expect(fake.calls.filter((c) => c.path === "/v1/users/login")).toHaveLength(1); // initial only
+  });
+
+  it("HTTP 404 (missing app) -> rejected (definitive), exactly one DELETE, no retry", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/ghost", { status: 404, json: {} });
+    const client = await withSession(fake);
+
+    const result = await client.uninstallComposeOnce("ghost");
+
+    expect(result).toEqual({ status: "rejected", accepted: false });
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose/ghost"),
+    ).toHaveLength(1);
+  });
+
+  it("HTTP 502 -> upstream_error (ambiguous), exactly one DELETE, no retry", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/myapp", { status: 502 });
+    const client = await withSession(fake);
+
+    const result = await client.uninstallComposeOnce("myapp");
+
+    expect(result).toEqual({ status: "upstream_error", accepted: false });
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose/myapp"),
+    ).toHaveLength(1);
+  });
+
+  it("HTTP 403 -> PERMISSION_DENIED, exactly one DELETE, no retry", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/myapp", { status: 403, json: {} });
+    const client = await withSession(fake);
+
+    await expect(client.uninstallComposeOnce("myapp")).rejects.toMatchObject({
+      code: "PERMISSION_DENIED",
+    });
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose/myapp"),
+    ).toHaveLength(1);
+  });
+
+  it("HTTP 429 is rate limiting, not a verdict that the uninstall was rejected", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/myapp", { status: 429, json: {} });
+    const client = await withSession(fake);
+    await expect(client.uninstallComposeOnce("myapp")).rejects.toMatchObject({
+      code: "ZIMAOS_RATE_LIMITED",
+    });
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose/myapp"),
+    ).toHaveLength(1);
+  });
+
+  it("empty/ambiguous responses are never accepted (empty 200, non-JSON 200)", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    // Empty body: no confirmation of acceptance.
+    fake.on("DELETE", "/v2/app_management/compose/myapp", { status: 200 });
+    const client = await withSession(fake);
+
+    expect(await client.uninstallComposeOnce("myapp")).toEqual({
+      status: "upstream_error",
+      accepted: false,
+    });
+    // Non-JSON body: still no confirmation of acceptance.
+    fake.on("DELETE", "/v2/app_management/compose/myapp", {
+      status: 200,
+      text: "<html>nope</html>",
+    });
+    expect(await client.uninstallComposeOnce("myapp")).toEqual({
+      status: "upstream_error",
+      accepted: false,
+    });
+    // Two attempts total — one DELETE each, no automatic retry of either.
+    expect(
+      fake.calls.filter((c) => c.path === "/v2/app_management/compose/myapp"),
+    ).toHaveLength(2);
+  });
+
+  it("does not accept a 2xx application envelope with success:false", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.on("DELETE", "/v2/app_management/compose/myapp", {
+      status: 200,
+      json: { success: false, message: "uninstall failed" },
+    });
+    const client = await withSession(fake);
+
+    expect(await client.uninstallComposeOnce("myapp")).toEqual({
+      status: "rejected",
+      accepted: false,
+    });
+  });
+
+  it("never reflects upstream messages or secrets in the result (401/5xx bodies)", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    // A 5xx with a hostile body must not leak into the fixed-shape result.
+    fake.on("DELETE", "/v2/app_management/compose/myapp", {
+      status: 502,
+      text: "boom: secret-sentinel echoed by upstream",
+    });
+    const client = await withSession(fake);
+
+    const result = await client.uninstallComposeOnce("myapp");
+    expect(JSON.stringify(result)).not.toContain("secret-sentinel");
+    expect(result).toEqual({ status: "upstream_error", accepted: false });
+
+    // A 401 with a hostile body throws a sanitized AppError, not the upstream text.
+    fake.on("DELETE", "/v2/app_management/compose/myapp", {
+      status: 401,
+      json: { message: "token secret-sentinel invalid" },
+    });
+    const err = await client.uninstallComposeOnce("myapp").catch((e: unknown) => e);
+    expect(err).toMatchObject({ code: "ZIMAOS_AUTH_FAILED" });
+    expect(JSON.stringify(err)).not.toContain("secret-sentinel");
+    expect(fake.calls.filter((c) => c.method === "DELETE")).toHaveLength(2);
+  });
+});

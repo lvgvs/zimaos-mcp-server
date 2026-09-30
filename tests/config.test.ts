@@ -20,6 +20,7 @@ describe("loadConfig", () => {
     expect(cfg.zimaosUsername).toBe("admin");
     expect(cfg.allowAppControl).toBe(false); // default: control disabled
     expect(cfg.allowAppInstall).toBe(false); // default: install disabled
+    expect(cfg.allowAppUninstall).toBe(false); // default: uninstall disabled
     expect(cfg.port).toBe(3000);
     expect(cfg.logLevel).toBe("info");
   });
@@ -62,6 +63,7 @@ describe("loadConfig", () => {
   it.each([
     ["invalid boolean", { ALLOW_APP_CONTROL: "maybe" }],
     ["invalid install flag", { ALLOW_APP_INSTALL: "maybe" }],
+    ["invalid uninstall flag", { ALLOW_APP_UNINSTALL: "maybe" }],
     ["invalid port", { PORT: "99999" }],
     ["non-numeric port", { PORT: "abc" }],
     ["invalid log level", { LOG_LEVEL: "verbose" }],
@@ -88,6 +90,42 @@ describe("loadConfig", () => {
     );
     expect(bothOn.allowAppControl).toBe(true);
     expect(bothOn.allowAppInstall).toBe(true);
+  });
+
+  it("parses ALLOW_APP_UNINSTALL independently of control and install flags", () => {
+    // Uninstall enabled alone: neither other flag is implied.
+    const uninstallOnly = loadConfig(envWith({ ALLOW_APP_UNINSTALL: "true" }));
+    expect(uninstallOnly.allowAppUninstall).toBe(true);
+    expect(uninstallOnly.allowAppControl).toBe(false);
+    expect(uninstallOnly.allowAppInstall).toBe(false);
+
+    // Control + install enabled: uninstall stays off (no implication either way).
+    const controlAndInstall = loadConfig(
+      envWith({ ALLOW_APP_CONTROL: "true", ALLOW_APP_INSTALL: "true" }),
+    );
+    expect(controlAndInstall.allowAppUninstall).toBe(false);
+
+    // All three on together.
+    const allOn = loadConfig(
+      envWith({
+        ALLOW_APP_CONTROL: "true",
+        ALLOW_APP_INSTALL: "true",
+        ALLOW_APP_UNINSTALL: "true",
+      }),
+    );
+    expect(allOn.allowAppControl).toBe(true);
+    expect(allOn.allowAppInstall).toBe(true);
+    expect(allOn.allowAppUninstall).toBe(true);
+
+    // Explicit false wins over the other flags being on.
+    const explicitOff = loadConfig(
+      envWith({
+        ALLOW_APP_CONTROL: "true",
+        ALLOW_APP_INSTALL: "true",
+        ALLOW_APP_UNINSTALL: "false",
+      }),
+    );
+    expect(explicitOff.allowAppUninstall).toBe(false);
   });
 
   it("never includes secret values in error messages", () => {

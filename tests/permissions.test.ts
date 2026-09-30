@@ -68,6 +68,64 @@ describe("PermissionLayer", () => {
     expect(() => installOnly.assertCanControl("start_app")).toThrowError(AppError);
   });
 
+  it("denies app uninstallation by default (disabled)", () => {
+    // allowAppUninstall omitted entirely: the safe default-off value applies.
+    const layer = new PermissionLayer({ allowAppControl: false });
+    expect(layer.canUninstallApps()).toBe(false);
+    expect(() => layer.assertCanUninstall("uninstall_app")).toThrowError(AppError);
+    try {
+      layer.assertCanUninstall("uninstall_app");
+      throw new Error("should have thrown");
+    } catch (err) {
+      // Distinct code: not APP_CONTROL_DISABLED or APP_INSTALL_DISABLED.
+      expect((err as AppError).code).toBe("APP_UNINSTALL_DISABLED");
+      // The message must name the action and the enabling variable, not leak internals.
+      expect((err as Error).message).toContain("uninstall_app");
+      expect((err as Error).message).toContain("ALLOW_APP_UNINSTALL=true");
+    }
+  });
+
+  it("permits app uninstallation when explicitly enabled", () => {
+    const layer = new PermissionLayer({
+      allowAppControl: false,
+      allowAppUninstall: true,
+    });
+    expect(layer.canUninstallApps()).toBe(true);
+    expect(() => layer.assertCanUninstall("uninstall_app")).not.toThrow();
+  });
+
+  it("keeps uninstall permission independent of control and install permissions (both directions)", () => {
+    // Control + install enabled, uninstall disabled.
+    const noUninstall = new PermissionLayer({
+      allowAppControl: true,
+      allowAppInstall: true,
+      allowAppUninstall: false,
+    });
+    expect(noUninstall.canControlApps()).toBe(true);
+    expect(() => noUninstall.assertCanControl("start_app")).not.toThrow();
+    expect(noUninstall.canInstallApps()).toBe(true);
+    expect(() => noUninstall.assertCanInstall("install_app")).not.toThrow();
+    expect(noUninstall.canUninstallApps()).toBe(false);
+    expect(() => noUninstall.assertCanUninstall("uninstall_app")).toThrowError(AppError);
+
+    // Uninstall enabled, control + install disabled.
+    const uninstallOnly = new PermissionLayer({
+      allowAppControl: false,
+      allowAppInstall: false,
+      allowAppUninstall: true,
+    });
+    expect(uninstallOnly.canUninstallApps()).toBe(true);
+    expect(() => uninstallOnly.assertCanUninstall("uninstall_app")).not.toThrow();
+    expect(uninstallOnly.canControlApps()).toBe(false);
+    expect(() => uninstallOnly.assertCanControl("start_app")).toThrowError(AppError);
+    expect(uninstallOnly.canInstallApps()).toBe(false);
+    expect(() => uninstallOnly.assertCanInstall("install_app")).toThrowError(AppError);
+
+    // Omitted option: default-off even when the other flags are on.
+    const omitted = new PermissionLayer({ allowAppControl: true, allowAppInstall: true });
+    expect(omitted.canUninstallApps()).toBe(false);
+  });
+
   it("read-only operations never consult the permission layer", () => {
     // Structural guarantee: read tools do not call assertCanControl at all.
     const layer = new PermissionLayer({ allowAppControl: false });

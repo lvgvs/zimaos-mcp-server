@@ -6,7 +6,7 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 2 implementation, Phase 2D risky-install approval locally gated. Phases 2A–2C are committed and pushed; Phase 2E and final live acceptance remain.
+- **Phase:** Phase 2 implementation, Phase 2E uninstall locally gated. Phases 2A–2D are committed and pushed; final live acceptance remains.
   Phase 1 tool behavior remains covered by automated tests. Historical live Phase 1 verification is retained below.
 - **Phase B checkpoint:** `yaml@2.9.1` (ISC) selected for
   bounded safety inspection; original scratch probe failed (12 pass / 14 fail), focused
@@ -24,12 +24,11 @@ authoritative.
   Named collisions fail closed; duplicate POST is not idempotent. Manager-provided live
   v1.7.1 findings recovered, including schema-invalid 502 and deterministic duplicate app.
   Actual App Store update semantics remain blocked/unverified.
-- **Current milestone:** Phase 2D native modern risky-install approval is implemented
-  and locally gated; commit/push pending after final diff review. Phase 2C was
-  pushed at `d579a259049250f43b41ff7110a43106d6817e63`.
-- **Next action:** Complete Phase 2D gates/diff review and commit/push; then implement
-  Phase 2E uninstall and perform bounded live acceptance and cleanup. The approved
-  Phase 2D architecture does not need fresh manager approval.
+- **Current milestone:** Phase 2E `uninstall_app` and default-off independent permission
+  are implemented and mocked. Phase 2D was pushed at
+  `e5f5a6ef400a5278c671a5c44562c52c49969664`; Phase 2E commit/push pending final gates.
+- **Next action:** Gate/review/commit Phase 2E, then bounded live MCP acceptance on
+  the disposable VM and cleanup to the pre-existing `mcp-test-nginx` baseline.
   App Store update semantics remain unverified; no update tool.
 
 ## Git / repository
@@ -37,6 +36,7 @@ authoritative.
 - **Branch:** `main`
 - **Phase 2B HEAD:** `e8774f23ce9ecf55050eaac7b0767a3595c72109`, pushed to `origin/main`.
 - **Phase 2C HEAD:** `d579a259049250f43b41ff7110a43106d6817e63`, pushed to `origin/main`.
+- **Phase 2D HEAD:** `e5f5a6ef400a5278c671a5c44562c52c49969664`, pushed to `origin/main`.
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (**private**, per Phase 1 rule)
 - **Research base SHA:** `06fe86c267c27648e48b8616944984b795cb86ae`.
 - **Research checkpoint HEAD:** the commit containing this status, intended as
@@ -205,7 +205,7 @@ This is a historical pause snapshot, superseded by the resumed Phase 2C mileston
   Phase 2C commit. Repo https://github.com/lvgvs/zimaos-mcp-server (private).
   Phase 2D risky approval, Phase 2E uninstall and final live acceptance remain.
 
-## Phase 2D implementation (local, mocked; uncommitted)
+## Phase 2D implementation (local, mocked; committed)
 
 - Modern MCP 2026-07-28 risky installs return native `input_required` form elicitation
   after a non-mutating preflight. The message discloses fixed risk categories/fields,
@@ -228,9 +228,25 @@ This is a historical pause snapshot, superseded by the resumed Phase 2C mileston
   No live Phase 2 VM action has occurred. Client-side human presentation is a
   requirement of the chosen client, not a cryptographic property of MCP;
   automated tests verify wire behavior, not actual human presence.
-- Phase 2D commit/push and final build/Docker/Compose gates pending as of this
-  checkpoint. Next: Phase 2E uninstall, then final live benign acceptance and VM
+- Phase 2D committed/pushed at `e5f5a6ef400a5278c671a5c44562c52c49969664`.
+  Next: Phase 2E uninstall, then final live benign acceptance and VM
   cleanup. App Store update semantics remain unverified; `update_app` is absent.
+
+## Phase 2E implementation (local, mocked)
+
+- Independent default-off `ALLOW_APP_UNINSTALL` does not imply install or app control.
+  `uninstall_app` validates an explicit conservative id and confirms exact presence in
+  a fresh host list before the single supported DELETE with
+  `delete_config_folder=false`. No arbitrary path, volume, or host cleanup is exposed.
+- Shared process-wide serialization and bounded same-id reservations prevent another
+  DELETE while an accepted or ambiguous attempt is unresolved, even with a stale list.
+  A definitive rejection releases a reservation. An accepted response is asynchronous,
+  with one bounded read-only list observation (`pending`/`absent`), not completion proof.
+  No automatic mutation retries. Storage retention effects remain unverified.
+- Independently ran mocked `npm test` **388/388 across 19 files**, lint, format,
+  production/test TypeScript checks, build, Docker build (`zimaos-mcp-server:phase2e`),
+  Compose config validation, and `git diff --check` — all passed. No Phase 2E live
+  VM acceptance yet; GHCR publication of this image has not been verified.
 
 ## Phase 2A implementation verification (local, mocked)
 

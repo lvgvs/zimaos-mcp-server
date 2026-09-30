@@ -16,7 +16,8 @@ socket access, or privileged operations.
 
 Phase 1 read and reversible control tools remain available. Phase 2C adds
 non-mutating Compose validation and default-off safe Compose installation.
-Phase 2D adds a modern-only, single-use risky-install approval flow. See
+Phase 2D adds a modern-only, single-use risky-install approval flow.
+Phase 2E adds separately gated uninstall by exact listed app id. See
 `STATUS.md` for the current milestone and `PROJECT.md` for scope.
 
 ## Security model
@@ -31,6 +32,10 @@ Phase 2D adds a modern-only, single-use risky-install approval flow. See
 - **Install authority is separate.** `install_app_from_compose` requires
   `ALLOW_APP_INSTALL=true` (default `false`). Risky Compose returns findings
   without installing on the first request; validation grants no install authority.
+- **Uninstall authority is separate.** `uninstall_app` requires
+  `ALLOW_APP_UNINSTALL=true` (default `false`), accepts only an explicit listed
+  id, and sets `delete_config_folder=false` on its one DELETE request. The
+  actual effects on configuration files or volumes have not been verified.
 - **Risky approval is modern-only.** A client must negotiate MCP 2026-07-28,
   declare form elicitation support, show the disclosed findings to a human, and
   return an accepted `confirm: true` response with the exact signed request state
@@ -44,16 +49,17 @@ Phase 2D adds a modern-only, single-use risky-install approval flow. See
 
 ## Configuration (environment)
 
-| Variable            | Required | Description                                                          |
-| ------------------- | -------- | -------------------------------------------------------------------- |
-| `ZIMAOS_URL`        | yes      | Base URL of the ZimaOS web/API, e.g. `http://host.docker.internal`.  |
-| `ZIMAOS_USERNAME`   | yes      | ZimaOS account allowed to manage compose apps and read system info.  |
-| `ZIMAOS_PASSWORD`   | yes      | Password for that account.                                           |
-| `MCP_AUTH_TOKEN`    | yes      | Bearer token MCP clients must present; **min 32 chars, no default**. |
-| `ALLOW_APP_CONTROL` | no       | `true`/`false`; enable reversible app controls (default `false`).    |
-| `ALLOW_APP_INSTALL` | no       | `true`/`false`; enable safe Compose install (default `false`).       |
-| `PORT`              | no       | HTTP listen port (default `3000`).                                   |
-| `LOG_LEVEL`         | no       | `debug` \| `info` \| `warn` \| `error` (default `info`).             |
+| Variable              | Required | Description                                                          |
+| --------------------- | -------- | -------------------------------------------------------------------- |
+| `ZIMAOS_URL`          | yes      | Base URL of the ZimaOS web/API, e.g. `http://host.docker.internal`.  |
+| `ZIMAOS_USERNAME`     | yes      | ZimaOS account allowed to manage compose apps and read system info.  |
+| `ZIMAOS_PASSWORD`     | yes      | Password for that account.                                           |
+| `MCP_AUTH_TOKEN`      | yes      | Bearer token MCP clients must present; **min 32 chars, no default**. |
+| `ALLOW_APP_CONTROL`   | no       | `true`/`false`; enable reversible app controls (default `false`).    |
+| `ALLOW_APP_INSTALL`   | no       | `true`/`false`; enable safe Compose install (default `false`).       |
+| `ALLOW_APP_UNINSTALL` | no       | `true`/`false`; enable exact-id uninstall (default `false`).         |
+| `PORT`                | no       | HTTP listen port (default `3000`).                                   |
+| `LOG_LEVEL`           | no       | `debug` \| `info` \| `warn` \| `error` (default `info`).             |
 
 A ready-to-edit example lives in `.env.example`. Never commit real values.
 
@@ -84,6 +90,13 @@ Installation (only when `ALLOW_APP_INSTALL=true`, independent of app control):
   may attempt installation. A bounded read-only observation reports `pending`
   or `observed` after acceptance; neither establishes completion. Do not retry
   an uncertain install without checking host state.
+
+Uninstall (only when `ALLOW_APP_UNINSTALL=true`, independent of install/control):
+
+- `uninstall_app` — accepts an exact stable id from `list_apps`, performs one
+  explicit `delete_config_folder=false` DELETE, and never retries it. `accepted`
+  means asynchronous acceptance, not completion. A single read-only observation
+  reports `pending` or `absent`; a stale list or read failure is `pending`.
 
 ## Running locally (Docker)
 

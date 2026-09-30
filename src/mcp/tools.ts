@@ -374,5 +374,23 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     },
   );
 
+  // Separate default-off permission; explicit id only, no filesystem cleanup.
+  server.registerTool(
+    "uninstall_app",
+    {
+      title: "Uninstall an installed Compose application",
+      description:
+        "Requests one asynchronous uninstall of an explicitly identified installed Compose app. Requires ALLOW_APP_UNINSTALL=true. Sets delete_config_folder=false; exposes no separate filesystem/volume cleanup capability. An accepted response is not completion; reconciliation is a bounded read-only observation.",
+      inputSchema: z.object({ app_id: z.string().min(1).max(128) }),
+    },
+    guard(async (args) => {
+      const result = await deps.apps.uninstallApp(
+        String(args["app_id"]),
+        deps.permissions,
+      );
+      return textResult(JSON.stringify(result));
+    }),
+  );
+
   return server;
 }

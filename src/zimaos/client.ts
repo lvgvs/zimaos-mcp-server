@@ -89,6 +89,31 @@ export interface ComposeInstallResult {
 }
 
 /**
+ * Normalized result of a single real Compose uninstall attempt.
+ *
+ * This is data, not an error: an ambiguous upstream failure or a definitive
+ * rejection are valid outcomes that callers must interpret, not exceptions.
+ */
+export interface ComposeUninstallResult {
+  /**
+   * - "accepted": ZimaOS accepted the uninstall request (HTTP 2xx with a JSON
+   *   application envelope reporting success:true). The removal is asynchronous:
+   *   acceptance is NOT completion — the app may still be present for a while,
+   *   and no further state can be inferred from this response. A 2xx that does
+   *   not explicitly report success:true (empty body, non-JSON body, or an
+   *   envelope without that flag) is ambiguous -> "upstream_error".
+   * - "rejected": ZimaOS definitively rejected it — an HTTP 4xx (including the
+   *   documented 404 for a missing app), or an HTTP 2xx envelope reporting success:false.
+   * - "upstream_error": an ambiguous failure (HTTP 5xx/other status, empty body,
+   *   non-JSON body). This does NOT mean the uninstall failed and does NOT mean it
+   *   succeeded; the outcome is unknown.
+   */
+  status: "accepted" | "rejected" | "upstream_error";
+  /** True only when ZimaOS accepted the request (HTTP 2xx with a JSON envelope reporting success:true). Never implies completion. */
+  accepted: boolean;
+}
+
+/**
  * Minimal typed client for the ZimaOS APIs used by this project.
  * Deliberately small: only operations required by Phase 1.
  */
@@ -337,6 +362,124 @@ export class ZimaOsClient {
     }
 
     return normalizeComposeInstall(outcome.status, outcome.body);
+  }
+
+  /**
+   * Perform one real Compose uninstall attempt and report its acceptance outcome.
+   *
+   * Sends exactly ONE DELETE with no request body to
+   * DELETE /v2/app_management/compose/{id}?delete_config_folder=false (the id is
+   * URL-encoded), using the existing bearer session (logging in once first only
+   * when no session is held). Explicit `delete_config_folder=false` overrides
+   * the documented upstream default of true. Actual storage effects have not
+   * been established; no more destructive option is exposed.
+   *
+   * The id must be a stable, explicitly provided, nonempty string; it is validated
+   * before any network traffic (a blank/missing id throws INPUT_INVALID without
+   * touching the host).
+   *
+   * The DELETE is NON-IDEMPOTENT in effect: re-sending it after an ambiguous
+   * outcome could destroy a different app's state or race a still-running
+   * removal. Therefore this method NEVER retries after the attempt has been made —
+   * not on 401, timeout, network failure, or any other outcome — and it never
+   * re-logs in to retry (a fresh login would only enable a duplicate DELETE).
+   *
+   * The response is an asynchronous acceptance signal, NOT completion: the app
+   * may still be present for a while after acceptance. Outcomes are normalized
+   * into {@link ComposeUninstallResult} and returned as data; upstream free-form
+   * text (which may echo secrets) is never relayed. Only genuine transport/auth
+   * failures throw AppError, after the single attempt has been made at most once.
+   */
+  async uninstallComposeOnce(id: string): Promise<ComposeUninstallResult> {
+    if (typeof id !== "string" || id.trim().length === 0) {
+      // Validate before any network traffic; never echo the input back.
+      throw new AppError("INPUT_INVALID", "A nonempty application id is required.");
+    }
+
+    if (this.accessToken === null) {
+      // No session yet: establish one first. This happens BEFORE any uninstall
+      // traffic, so a failed login never leaves an ambiguous attempt behind.
+      await this.login();
+    }
+
+    let outcome: UninstallOutcome;
+    try {
+      outcome = await this.uninstallOnce(id);
+    } catch (err) {
+      if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
+        // The attempt was made and the session is stale. Drop it so later calls
+        // re-authenticate, but do NOT retry: a second DELETE could race or repeat
+        // a destructive removal. Surface the authentication failure instead.
+        this.invalidateSession();
+      }
+      // Never retry after the mutation attempt (timeout/network/401/any other):
+      // propagate as-is.
+      throw err;
+    }
+
+    return normalizeComposeUninstall(outcome.status, outcome.body);
+  }
+
+  /**
+   * Perform the single real-uninstall DELETE and report the HTTP status plus
+   * parsed body. Non-2xx statuses are returned as data (never thrown) because
+   * they carry the uninstall outcome; only transport/auth failures throw AppError.
+   */
+  private async uninstallOnce(id: string): Promise<UninstallOutcome> {
+    const token = this.accessToken as string;
+
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    let response: Response;
+    try {
+      // Explicit non-destructive default; the id is URL-encoded. No request body.
+      response = await this.fetchImpl(
+        `${this.baseUrl}/v2/app_management/compose/${encodeURIComponent(id)}?delete_config_folder=false`,
+        { method: "DELETE", headers, signal: controller.signal },
+      );
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new AppError(
+          "ZIMAOS_UNREACHABLE",
+          `Timed out after ${this.timeoutMs} ms while contacting ZimaOS.`,
+        );
+      }
+      throw new AppError(
+        "ZIMAOS_UNREACHABLE",
+        "Could not reach the ZimaOS host (network error).",
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+
+    // 401/403/429 are auth/authorization/rate-limit failures, not uninstall outcomes.
+    // Never retry the DELETE or relay upstream text on these responses.
+    if (response.status === 429) {
+      throw fromHttpStatus(429);
+    }
+    if (response.status === 401) {
+      throw new AppError("ZIMAOS_AUTH_FAILED", "ZimaOS rejected the session token.");
+    }
+    if (response.status === 403) {
+      throw fromHttpStatus(403); // PERMISSION_DENIED, safe fixed message.
+    }
+
+    const text = await response.text();
+    let body: unknown = null;
+    if (text.length > 0) {
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // A non-JSON body is still an outcome, not a crash: keep no structured data.
+        body = null;
+      }
+    }
+    return { status: response.status, body };
   }
 
   /**
@@ -628,6 +771,12 @@ interface InstallOutcome {
   body: unknown;
 }
 
+/** One real-uninstall attempt: the HTTP status plus the parsed body (null when empty/non-JSON). */
+interface UninstallOutcome {
+  status: number;
+  body: unknown;
+}
+
 // Bounding constants so a hostile/verbose upstream payload cannot grow an MCP reply.
 const MAX_PORTS_IN_USE = 64;
 
@@ -736,6 +885,55 @@ function normalizeComposeInstall(status: number, body: unknown): ComposeInstallR
     statusOut = "rejected";
   } else {
     // 5xx (incl. the observed empty 502) and any other unexpected status: ambiguous.
+    statusOut = "upstream_error";
+  }
+
+  return { status: statusOut, accepted: statusOut === "accepted" };
+}
+
+/**
+ * Normalize a real-uninstall outcome into {@link ComposeUninstallResult}.
+ *
+ * The uninstall is asynchronous: an accepted response only means ZimaOS took the
+ * request — it is NOT completion; the app may still be present for a while.
+ *
+ *   - 2xx with a JSON application envelope reporting success:true -> "accepted"
+ *     (async acceptance). A 2xx envelope reporting success:false is a definitive
+ *     negative -> "rejected". Any other 2xx body (empty, non-JSON, or an envelope
+ *     without an explicit success flag) gives no confirmation of acceptance ->
+ *     "upstream_error" (ambiguous; does NOT mean the uninstall failed and does
+ *     NOT mean it succeeded).
+ *   - 4xx -> "rejected" (ZimaOS definitively rejected: e.g. the documented 404
+ *     for a missing app, or any other client-side rejection).
+ *   - otherwise (5xx incl. an empty 502, any other status) -> "upstream_error":
+ *     ambiguous; does NOT mean the uninstall failed and does NOT mean it succeeded.
+ *
+ * Upstream free-form messages may echo secrets. They are never relayed: only
+ * this fixed-shape result is returned.
+ */
+function normalizeComposeUninstall(
+  status: number,
+  body: unknown,
+): ComposeUninstallResult {
+  let statusOut: ComposeUninstallResult["status"];
+  if (status >= 200 && status < 300) {
+    // Only an explicit JSON application envelope reporting success:true confirms
+    // acceptance. A 2xx envelope reporting success:false is a definitive negative.
+    // Empty/non-JSON bodies and envelopes without that flag give no confirmation of
+    // acceptance — treat them as ambiguous, never accepted.
+    if (!isRecord(body)) {
+      statusOut = "upstream_error";
+    } else if (body["success"] === true) {
+      statusOut = "accepted";
+    } else if (body["success"] === false) {
+      statusOut = "rejected";
+    } else {
+      statusOut = "upstream_error";
+    }
+  } else if (status >= 400 && status < 500) {
+    statusOut = "rejected";
+  } else {
+    // 5xx and any other unexpected status: ambiguous.
     statusOut = "upstream_error";
   }
 
