@@ -17,6 +17,7 @@ import type { PermissionLayer } from "../permissions.js";
 import { analyzeCompose, type RiskFinding } from "../compose/analyze.js";
 import { parseCompose } from "../compose/parse.js";
 import { preflightInstall } from "./installPreflight.js";
+import { ComposeEditService } from "./composeEdit.js";
 import type { ChallengeLedger } from "../approval/challengeLedger.js";
 import {
   assertPendingInstallIntentsMatch,
@@ -191,6 +192,16 @@ function toLocalValidationError(err: unknown, stage: "parse" | "analyze"): AppEr
 
 export class AppService {
   constructor(private readonly client: ZimaOsClient) {}
+
+  /** Read the authoritative interpolated Compose representation and its digest. */
+  async getAppCompose(id: string) {
+    return new ComposeEditService(this.client).read(id);
+  }
+
+  /** Validate an exact proposed existing-app edit without mutation. */
+  async validateAppComposeChange(id: string, fingerprint: string, source: string) {
+    return new ComposeEditService(this.client).validate(id, fingerprint, source);
+  }
 
   /** List all installed compose applications (normalized summaries). */
   async listApps(): Promise<AppInfo[]> {

@@ -202,6 +202,91 @@ export class ZimaOsClient {
     );
   }
 
+  /** Read the official interpolated YAML representation (not raw stored source). */
+  async getComposeAppYaml(id: string): Promise<string> {
+    if (this.accessToken === null) await this.login();
+    try {
+      return await this.readComposeYamlOnce(id);
+    } catch (err) {
+      if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
+        this.invalidateSession();
+        await this.login();
+        return await this.readComposeYamlOnce(id);
+      }
+      throw err;
+    }
+  }
+
+  private async readComposeYamlOnce(id: string): Promise<string> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    try {
+      const response = await this.fetchImpl(
+        `${this.baseUrl}/v2/app_management/compose/${encodeURIComponent(id)}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/yaml",
+            Authorization: `Bearer ${this.accessToken}`,
+          },
+          signal: controller.signal,
+        },
+      );
+      if (!response.ok) throw fromHttpStatus(response.status);
+      // The returned YAML may contain interpolated secrets. Read within a hard
+      // bound; neither error bodies nor the YAML are ever included in errors.
+      if (Number(response.headers.get("content-length")) > 512 * 1024) {
+        throw new AppError(
+          "ZIMAOS_UPSTREAM_ERROR",
+          "Compose response exceeds size limit.",
+        );
+      }
+      const reader = response.body?.getReader();
+      if (!reader) throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Empty Compose response.");
+      const chunks: Uint8Array[] = [];
+      let bytes = 0;
+      while (true) {
+        const part = await reader.read();
+        if (part.done) break;
+        bytes += part.value.byteLength;
+        if (bytes > 512 * 1024) {
+          await reader.cancel();
+          throw new AppError(
+            "ZIMAOS_UPSTREAM_ERROR",
+            "Compose response exceeds size limit.",
+          );
+        }
+        chunks.push(part.value);
+      }
+      if (bytes === 0)
+        throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Empty Compose response.");
+      let source: string;
+      try {
+        source = new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks));
+      } catch {
+        throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Invalid Compose response encoding.");
+      }
+      if (
+        source.includes(this.password) ||
+        (this.accessToken !== null && source.includes(this.accessToken))
+      ) {
+        throw new AppError(
+          "ZIMAOS_UPSTREAM_ERROR",
+          "Compose contains ZimaOS credentials.",
+        );
+      }
+      return source;
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new AppError("ZIMAOS_UNREACHABLE", "ZimaOS Compose read timed out.");
+      }
+      throw new AppError("ZIMAOS_UNREACHABLE", "Could not reach the ZimaOS host.");
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   /**
    * Start/stop/restart: PUT /v2/app_management/compose/{id}/status.
    * The upstream body is a raw JSON string literal ("start" | "restart" | "stop").
@@ -296,19 +381,39 @@ export class ZimaOsClient {
    * AppError for genuine transport/auth failures, like every other client call.
    */
   async validateCompose(source: string): Promise<ComposeValidationResult> {
+    return this.validateComposeAtPath("/v2/app_management/compose", "POST", source);
+  }
+
+  /** Official existing-app PUT dry-run, with port checking and no mutation. */
+  async validateComposeChange(
+    id: string,
+    source: string,
+  ): Promise<ComposeValidationResult> {
+    return this.validateComposeAtPath(
+      `/v2/app_management/compose/${encodeURIComponent(id)}`,
+      "PUT",
+      source,
+    );
+  }
+
+  private async validateComposeAtPath(
+    path: string,
+    method: "POST" | "PUT",
+    source: string,
+  ): Promise<ComposeValidationResult> {
     let outcome: DryRunOutcome;
     try {
       // The dry-run endpoint is a BaseResponse: the HTTP status is the signal.
       // 4xx (malformed YAML, schema-invalid Compose, port conflict) and 5xx are
       // data here, not failures — so read the raw response instead of letting
       // rawRequest throw on non-2xx.
-      outcome = await this.composeDryRunOnce(source);
+      outcome = await this.composeDryRunOnce(source, path, method);
     } catch (err) {
       if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
         // Stale/expired token: retry once with a fresh login, mirroring authedRequest.
         this.invalidateSession();
         await this.login();
-        outcome = await this.composeDryRunOnce(source);
+        outcome = await this.composeDryRunOnce(source, path, method);
       } else {
         throw err;
       }
@@ -546,11 +651,15 @@ export class ZimaOsClient {
   }
 
   /**
-   * Perform one dry-run POST and report the HTTP status plus parsed body.
+   * Perform one dry-run POST or PUT and report the HTTP status plus parsed body.
    * Non-2xx statuses are returned as data (never thrown) because they carry the
    * validation outcome; only transport/auth failures throw AppError.
    */
-  private async composeDryRunOnce(source: string): Promise<DryRunOutcome> {
+  private async composeDryRunOnce(
+    source: string,
+    path: string,
+    method: "POST" | "PUT",
+  ): Promise<DryRunOutcome> {
     if (this.accessToken === null) {
       await this.login();
     }
@@ -568,9 +677,9 @@ export class ZimaOsClient {
     let response: Response;
     try {
       response = await this.fetchImpl(
-        `${this.baseUrl}/v2/app_management/compose?dry_run=true&check_port_conflict=true`,
+        `${this.baseUrl}${path}?dry_run=true&check_port_conflict=true`,
         // The exact original UTF-8 string is sent unchanged as the body.
-        { method: "POST", headers, body: source, signal: controller.signal },
+        { method, headers, body: source, signal: controller.signal },
       );
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {

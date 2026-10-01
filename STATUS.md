@@ -10,7 +10,8 @@ authoritative.
   `5ffdb92831ee76109d44460db3a6f060db8f153f`. At handoff, `origin/main` matched, the worktree
   was clean, no child remained active, 390/390 tests passed, all local quality/build/Docker/Compose
   gates passed, and final CI/GHCR publishing succeeded.
-- **Phase 3A:** official-API research and live semantics completed; no Phase 3 runtime edits yet.
+- **Phase 3A:** official-API research and live semantics completed and pushed at
+  `93a794bbdabba46ee41c6c7f057065a9241604e6`.
   Official IceWhaleTech OpenAPI defines `GET /v2/app_management/compose/{id}` (interpolated
   YAML) and `PUT` on that path (dry-run or apply); both were exercised against v1.7.1 on a
   dedicated disposable app. Exact posted source differs from reformatted GET YAML. Live env and
@@ -24,21 +25,29 @@ authoritative.
   3C safe edit with independent default-off `ALLOW_APP_EDIT` and optimistic concurrency →
   3D risky-edit approval reusing the modern single-use Phase 2 approval model → 3E only
   verified recovery/rollback behavior.
+- **Phase 3B:** authenticated MCP `get_app_compose` and `validate_app_compose_change`
+  read the official interpolated YAML, fingerprint the returned bytes, compare risk
+  instances using the existing analyzer, and submit the exact candidate to official
+  PUT dry-run/port checking without a real apply. A stale fingerprint or project rename
+  fails closed. Known ZimaOS credential fields or actual configured credential bytes in
+  returned YAML are refused. Mocked/local full suite **408/408** tests, lint, format,
+  production/test typechecks, build, Docker build and deployment Compose validation
+  passed on the final Phase 3B worktree, as did `git diff --check`. No live Phase 3B
+  MCP acceptance yet.
 - **Core Phase 3 boundary:** keep the supported ZimaOS App Management API abstraction. Do not add
   arbitrary filesystem writes, SSH, shell access, Docker socket access, privileged MCP-server
   mode, or undocumented host-control shortcuts.
 - **Phase 2 limitations carried forward:** `update_app` remains intentionally absent because
   supported App Store update semantics are unverified. ZimaOS Custom App UI paste/install remains
   an optional manual deployment check.
-- **Next action:** implement Phase 3B read/fingerprint/diff/non-mutating validation using
-  the official GET and PUT dry-run, with explicit interpolated-read/secret handling. Then
-  complete 3C–3E under the approved scope. No child is active.
-- **Current branch/base HEAD:** `main` at planning commit
-  `c5d1d0edff0c5fe1c239693262fae6517b0c6e51` before the Phase 3A research commit;
-  `origin/main` matched at start. GitHub: https://github.com/lvgvs/zimaos-mcp-server.
-  Last full mocked gates remain the Phase 2 390/390 result, **not** a Phase 3 rerun. Phase 3A
-  used live secret-safe probes; no product build or Docker image was made. GHCR Phase 3 image
-  has not been published. No blockers requiring manager approval currently; recovery remains
+- **Next action:** finish Phase 3B regression gates and commit/push; then implement
+  default-off 3C safe edit, 3D modern single-use risky approval, and conservative 3E.
+  The bounded Qwen risk-delta worker timed out without finishing; its partial untracked
+  code was replaced and independently tested. No child is active.
+- **Current branch/base HEAD:** `main` at Phase 3A research commit
+  `93a794bbdabba46ee41c6c7f057065a9241604e6`, matched by `origin/main` before
+  3B edits. GitHub: https://github.com/lvgvs/zimaos-mcp-server. GHCR Phase 3 image
+  has not been verified. No blocker requiring manager approval; recovery remains
   conservative without an explicit rollback API. No manual action required.
 
 ## Git / repository

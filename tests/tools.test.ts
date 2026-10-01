@@ -80,7 +80,52 @@ function makeDeps(overrides: { allowAppControl?: boolean } = {}): ToolDeps {
 }
 
 describe("MCP tools (mocked services)", () => {
-  it("exposes the Phase 1 tool set alongside validate_app_compose", async () => {
+  it("returns Phase 3 read and non-mutating validation through MCP", async () => {
+    const deps = makeDeps();
+    const fingerprint = "a".repeat(64);
+    const source = "name: myapp\nservices:\n  web:\n    image: nginx\n";
+    deps.apps.getAppCompose = async () => ({
+      app_id: "myapp",
+      source,
+      fingerprint,
+      representation: "interpolated_yaml",
+    });
+    deps.apps.validateAppComposeChange = async () => ({
+      app_id: "myapp",
+      baseFingerprint: fingerprint,
+      proposedFingerprint: fingerprint,
+      upstream: { accepted: true, status: "accepted" },
+      changes: { addedServices: [], removedServices: [], changedServices: [] },
+      risks: {
+        currentFindings: [],
+        proposedFindings: [],
+        unchanged: [],
+        removed: [],
+        introduced: [],
+        escalated: [],
+        requiresApproval: false,
+      },
+    });
+    const { client, serverTransport } = await connect(deps);
+    try {
+      const read = await client.callTool({
+        name: "get_app_compose",
+        arguments: { app_id: "myapp" },
+      });
+      expect(JSON.parse(textOf(read))).toMatchObject({ source, fingerprint });
+      const validation = await client.callTool({
+        name: "validate_app_compose_change",
+        arguments: { app_id: "myapp", expected_fingerprint: fingerprint, source },
+      });
+      expect(JSON.parse(textOf(validation))).toMatchObject({
+        upstream: { accepted: true },
+        risks: { requiresApproval: false },
+      });
+    } finally {
+      await serverTransport.close();
+    }
+  });
+  it("exposes prior tools alongside Phase 3 read and validation", async () => {
     const { client, serverTransport } = await connect(makeDeps());
     try {
       const { tools } = await client.listTools();
@@ -88,6 +133,7 @@ describe("MCP tools (mocked services)", () => {
       expect(names).toEqual(
         [
           "get_app",
+          "get_app_compose",
           "get_app_health",
           "get_app_logs",
           "get_system_info",
@@ -99,6 +145,7 @@ describe("MCP tools (mocked services)", () => {
           "stop_app",
           "uninstall_app",
           "validate_app_compose",
+          "validate_app_compose_change",
         ].sort(),
       );
     } finally {

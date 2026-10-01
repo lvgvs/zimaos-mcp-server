@@ -19,6 +19,8 @@ non-mutating Compose validation and default-off safe Compose installation.
 Phase 2D adds a modern-only, single-use risky-install approval flow.
 Phase 2E adds separately gated uninstall by exact listed app id. See
 `STATUS.md` for the current milestone and `PROJECT.md` for scope.
+Phase 3B adds read-only existing-app Compose inspection and change validation;
+editing remains unavailable until the independently gated Phase 3C/3D work.
 
 ## Security model
 
@@ -74,6 +76,15 @@ Read-only (always available):
 - `list_app_containers` — normalized container/service info for one application.
 - `get_system_info` — ZimaOS version, hostname, and basic system facts.
 - `validate_app_compose` — local risk analysis and ZimaOS dry run, without installation.
+- `get_app_compose` — read the bounded, interpolated (not original stored) YAML
+  for an existing app and SHA-256 fingerprint of the returned exact bytes. Treat
+  the response as sensitive; known ZimaOS credential-bearing content is refused.
+- `validate_app_compose_change` — supply exact existing app id, base fingerprint
+  and proposed UTF-8 Compose source. Returns structural changes, current/proposed
+  findings, unchanged/removed/new/escalated risk, and official existing-app PUT
+  dry-run/port check. It rejects stale bases and project renames; never applies.
+  The fingerprint is of the interpolated GET representation, so read after every
+  edit. A dry-run result neither grants edit authority nor guarantees later apply.
 
 Control operations (only when `ALLOW_APP_CONTROL=true`; otherwise a clear permission error):
 

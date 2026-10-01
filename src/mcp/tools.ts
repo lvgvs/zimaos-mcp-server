@@ -227,6 +227,44 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     }),
   );
 
+  server.registerTool(
+    "get_app_compose",
+    {
+      title: "Read an installed application's Compose",
+      description:
+        "Returns the bounded, interpolated ZimaOS Compose YAML and a SHA-256 fingerprint of those returned bytes. It is not the original stored source. Treat application configuration as sensitive; ZimaOS credential-bearing configurations are refused.",
+      inputSchema: z.object({ app_id: appIdSchema }),
+    },
+    guard(async (args) =>
+      textResult(JSON.stringify(await deps.apps.getAppCompose(String(args["app_id"])))),
+    ),
+  );
+
+  server.registerTool(
+    "validate_app_compose_change",
+    {
+      title: "Validate a proposed edit to an installed application",
+      description:
+        "Checks the current Compose fingerprint, exact project identity, local risk delta and the official ZimaOS PUT dry-run with port conflict checking. Never mutates. A successful dry-run does not grant edit permission.",
+      inputSchema: z.object({
+        app_id: appIdSchema,
+        expected_fingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+        source: composeSourceSchema,
+      }),
+    },
+    guard(async (args) =>
+      textResult(
+        JSON.stringify(
+          await deps.apps.validateAppComposeChange(
+            String(args["app_id"]),
+            String(args["expected_fingerprint"]),
+            String(args["source"]),
+          ),
+        ),
+      ),
+    ),
+  );
+
   // ------------------------------------------------- reversible controls --
 
   const controlTool = (name: string, action: "start" | "stop" | "restart") => {
