@@ -486,6 +486,16 @@ export class ZimaOsClient {
       }
       throw err;
     }
+    // The observed v1.7.1 HTTP 200 message denotes async acceptance, not
+    // completion. Never treat an unrelated message-only body as accepted.
+    if (
+      outcome.status === 200 &&
+      isRecord(outcome.body) &&
+      Object.keys(outcome.body).length === 1 &&
+      outcome.body["message"] === "app is being applied with changes asynchronously"
+    ) {
+      return { status: "accepted", accepted: true };
+    }
     return normalizeComposeInstall(outcome.status, outcome.body);
   }
 

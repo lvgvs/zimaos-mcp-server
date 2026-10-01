@@ -21,10 +21,9 @@ authoritative.
   Failed invalid/occupied-port real PUTs left the previous GET digest unchanged in these probes,
   but this is **not** a general rollback guarantee. Research matrix: `docs/RESEARCH.md`.
   Fixture was removed; read-only list showed only pre-existing `mcp-test-nginx`.
-- **Planned Phase 3 sequence:** 3A research/live semantics → 3B read/fingerprint/diff/validate →
-  3C safe edit with independent default-off `ALLOW_APP_EDIT` and optimistic concurrency →
-  3D risky-edit approval reusing the modern single-use Phase 2 approval model → 3E only
-  verified recovery/rollback behavior.
+- **Phase 3 sequence:** 3A research/live semantics → 3B read/fingerprint/diff/validate →
+  3C default-off safe edit and optimistic concurrency → 3D modern single-use risky
+  approval → 3E conservative read-only recovery conclusion.
 - **Phase 3B:** authenticated MCP `get_app_compose` and `validate_app_compose_change`
   read the official interpolated YAML, fingerprint the returned bytes, compare risk
   instances using the existing analyzer, and submit the exact candidate to official
@@ -54,22 +53,52 @@ authoritative.
   consumes the challenge before at most one real PUT, and reconciles read-only. Mocked
   full suite **426/426** tests, lint, format, production/test typechecks, build, Docker
   image build, deployment Compose validation, and `git diff --check` passed on the
-  Phase 3D worktree. Live risky edit intentionally not exercised yet.
+  Phase 3D worktree. Committed/pushed at
+  `70173eea39d9be2b77ff8428c7afff6cb19e38db`. Risky privileged continuation
+  was tested via mocked authenticated HTTP, not by mutating the live VM.
+- **Phase 3 closing / 3E:** Live v1.7.1 existing-app PUT returned HTTP 200 with the
+  exact async message `app is being applied with changes asynchronously`. The
+  generic install normalizer classified that message `upstream_error` even though
+  GET observed the edits. The edit-specific client now accepts only that exact
+  message-only HTTP 200 (or the already-supported explicit `success:true`), rejects
+  `success:false`, and never relays arbitrary upstream text. **429/429 mocked
+  tests across 25 files**, focused edit/client tests, lint, format, both strict
+  TypeScript checks, production build, Docker build, deployment Compose check and
+  `git diff --check` passed on the closing candidate. A fresh dedicated live
+  fixture verified read/fingerprint, non-mutating dry run, default-off denial,
+  one benign environment edit returned `accepted` and was read back with the
+  requested value, stale-base rejection, risky native first round without
+  mutation, and healthy fixture state. It was removed; final read-only list
+  contained only `mcp-test-nginx`, with healthy probe. Earlier dedicated runs
+  also observed benign port and restart-policy edits, invalid YAML/name rejection
+  and container/log readbacks. Privileged approval continuation was not live
+  mutated; the wire/replay behavior was mocked. No supported explicit rollback
+  API or reliable general rollback guarantee exists in the verified evidence;
+  only bounded read-only reconciliation is offered, not a rollback tool. An
+  invalid/occupied-port PUT leaving old YAML unchanged is not proof of rollback.
+- **Official API boundary:** Phase 3 uses only authenticated official
+  `GET /v2/app_management/compose/{id}` with `Accept: application/yaml` and
+  `PUT /v2/app_management/compose/{id}` with exact `application/yaml` and explicit
+  `dry_run`/`check_port_conflict` options. Test fixture setup/cleanup used the
+  supported POST/DELETE. No product SSH, shell, Docker socket, privileged mode,
+  host-file writes or undocumented ZimaOS endpoint was introduced.
 - **Core Phase 3 boundary:** keep the supported ZimaOS App Management API abstraction. Do not add
   arbitrary filesystem writes, SSH, shell access, Docker socket access, privileged MCP-server
   mode, or undocumented host-control shortcuts.
 - **Phase 2 limitations carried forward:** `update_app` remains intentionally absent because
   supported App Store update semantics are unverified. ZimaOS Custom App UI paste/install remains
   an optional manual deployment check.
-- **Next action:** finish Phase 3D full gates and commit/push; then conclude 3E
-  conservatively and run dedicated live acceptance/cleanup.
-  The bounded Qwen risk-delta worker timed out without finishing; its partial untracked
-  code was replaced and independently tested. No child is active.
-- **Current branch/base HEAD:** `main` at Phase 3C commit
-  `8b3e054c2f06b54023f16fb0aa1c5387c89c1028`, matched by `origin/main` before
-  3D edits. GitHub: https://github.com/lvgvs/zimaos-mcp-server. GHCR Phase 3 image
-  has not been verified. No blocker requiring manager approval; recovery remains
-  conservative without an explicit rollback API. No manual action required.
+- **Git / deployment handoff:** branch `main`, last pushed Phase 3D HEAD and
+  `origin/main` `70173eea39d9be2b77ff8428c7afff6cb19e38db` before the
+  closing commit. Final closing SHA is the commit containing this status; check
+  `git rev-parse HEAD`. Repository: https://github.com/lvgvs/zimaos-mcp-server.
+  Final-head CI/GHCR must be checked after push; GHCR tag form is
+  `ghcr.io/lvgvs/zimaos-mcp-server:sha-<full HEAD>`, with private-package pull
+  authentication still required. ZimaOS Compose passed syntax validation; UI
+  paste/install remains optional manual verification. `update_app` remains
+  intentionally absent. No child was used in this parent-only closing pass;
+  no child is active. No blocker or required manual action for Phase 3; next
+  manager action is review/approval of the completed Phase 3, not Phase 4 work.
 
 ## Git / repository
 

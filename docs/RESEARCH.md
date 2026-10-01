@@ -655,3 +655,48 @@ document this residual race. The
 read representation may interpolate environment values and thus contain app
 secrets: do not log it or upstream error messages, and do not use the MCP server's
 own Compose as an acceptance fixture.
+
+### Phase 3 live MCP acceptance and async response (2026-10-01)
+
+Two disposable characterization runs used a dedicated `p3-edit-acceptance`
+nginx application on ZimaOS v1.7.1; each run installed and deleted it via the
+official APIs, and read-only enumeration confirmed the baseline returned to
+only `mcp-test-nginx`.
+The authenticated MCP product read its interpolated YAML and 64-character
+fingerprint, validated without mutation, rejected the default-off edit, invalid
+YAML, wrong project name and stale fingerprint, and applied benign environment,
+published-loopback-port and restart-policy changes. The GET fingerprint changed
+after each HTTP-200 PUT; `get_app_health` reported healthy, one container was
+listed and logs were accessible. Immediately after the last edit the list/detail
+status still read `created` while the health probe was healthy: no synchronous
+completion or container-recreation guarantee follows from that status alone.
+Modern risky first-round elicitation produced a signed request state without a
+real risky mutation; actual privileged continuation was deliberately not tested
+against the VM. Automated local HTTP tests cover accepted continuation and replay.
+
+The **real existing-app PUT** returned HTTP 200 with the exact, fixed message
+`app is being applied with changes asynchronously` (three observations). The
+initial generic install response normalizer marked this message `upstream_error`
+even though subsequent GETs changed. Existing-app response handling now
+recognizes **only** this verified message-only 200 envelope as `accepted`;
+other unknown 200 messages remain uncertain. Acceptance does not prove apply
+completion. The official OpenAPI source and version pinned above remain the
+authority for the endpoint; this live finding only constrains its response
+normalization.
+
+A third, bounded closing run used a fresh `p3-edit-close-1001` fixture and the
+corrected MCP server. A single benign environment-value edit returned
+`accepted` with a changed read-only observation; a subsequent GET contained
+the requested value. The dry run left the original fingerprint unchanged,
+default-off permission denied mutation, a stale base was rejected, and a
+privileged candidate yielded modern input-required without mutation. Fixture
+removal was accepted and read-only enumeration again showed only
+`mcp-test-nginx`, whose health probe was healthy. This did not test privileged
+approval continuation, explicit rollback, or a human client's disclosure UI.
+
+**Phase 3E recovery conclusion:** No official explicit rollback API or reliable
+partial-failure recovery guarantee was found in the OpenAPI, package or live
+tests. The product offers bounded read-only reconciliation after a single PUT,
+not rollback, `.bak` access, host-file writes or automatic retry. An ambiguous
+response remains uncertain even if a subsequent GET is unchanged; an observed
+changed fingerprint is not proof that the candidate has completed successfully.

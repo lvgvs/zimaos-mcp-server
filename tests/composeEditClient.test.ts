@@ -84,6 +84,61 @@ describe("existing-app Compose official API client (mocked)", () => {
       accepted: false,
     });
   });
+  it("recognizes the observed async existing-app acceptance without claiming completion", async () => {
+    const { fake, client } = setup();
+    fake.on("PUT", path, {
+      json: { message: "app is being applied with changes asynchronously" },
+    });
+    expect(await client.applyComposeChangeOnce("test-app", source)).toMatchObject({
+      status: "accepted",
+      accepted: true,
+    });
+    expect(fake.calls.filter((call) => call.method === "PUT")).toHaveLength(1);
+  });
+
+  it("keeps unrelated 200 messages ambiguous and explicit failure rejected without reflecting upstream text", async () => {
+    const verified = "app is being applied with changes asynchronously";
+    for (const { body, status } of [
+      { body: { message: "accepted: " + source }, status: "upstream_error" },
+      { body: { message: verified, extra: true }, status: "upstream_error" },
+      { body: { message: verified, success: false }, status: "rejected" },
+      { body: { message: "failure: " + source, success: false }, status: "rejected" },
+    ] as const) {
+      const { fake, client } = setup();
+      fake.on("PUT", path, { json: body });
+      const result = await client.applyComposeChangeOnce("test-app", source);
+      expect(result).toMatchObject({ status, accepted: false });
+      expect(JSON.stringify(result)).not.toContain(source);
+      expect(JSON.stringify(result)).not.toContain("failure:");
+      expect(fake.calls.filter((call) => call.method === "PUT")).toHaveLength(1);
+    }
+  });
+
+  it("keeps 4xx rejections separate from auth and rate-limit failures", async () => {
+    for (const code of [400, 404]) {
+      const { fake, client } = setup();
+      fake.on("PUT", path, { status: code, json: { message: source } });
+      expect(await client.applyComposeChangeOnce("test-app", source)).toMatchObject({
+        status: "rejected",
+        accepted: false,
+      });
+      expect(fake.calls.filter((call) => call.method === "PUT")).toHaveLength(1);
+    }
+    for (const [status, errorCode] of [
+      [403, "PERMISSION_DENIED"],
+      [429, "ZIMAOS_RATE_LIMITED"],
+    ] as const) {
+      const { fake, client } = setup();
+      fake.on("PUT", path, { status, json: { message: source } });
+      const error = await client
+        .applyComposeChangeOnce("test-app", source)
+        .catch((e: unknown) => e);
+      expect(error).toMatchObject({ code: errorCode });
+      expect(String(error)).not.toContain(source);
+      expect(fake.calls.filter((call) => call.method === "PUT")).toHaveLength(1);
+    }
+  });
+
   it("applies the exact source via one official real PUT and never retries a 401", async () => {
     const { fake, client } = setup();
     fake.on("PUT", path, { json: { success: true } });
