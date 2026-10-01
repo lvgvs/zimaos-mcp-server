@@ -6,113 +6,54 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase 2:** complete and manager-approved. Final implementation HEAD before Phase 3 planning:
-  `5ffdb92831ee76109d44460db3a6f060db8f153f`. At handoff, `origin/main` matched, the worktree
-  was clean, no child remained active, 390/390 tests passed, all local quality/build/Docker/Compose
-  gates passed, and final CI/GHCR publishing succeeded.
-- **Phase 3A:** official-API research and live semantics completed and pushed at
-  `93a794bbdabba46ee41c6c7f057065a9241604e6`.
-  Official IceWhaleTech OpenAPI defines `GET /v2/app_management/compose/{id}` (interpolated
-  YAML) and `PUT` on that path (dry-run or apply); both were exercised against v1.7.1 on a
-  dedicated disposable app. Exact posted source differs from reformatted GET YAML. Live env and
-  port edits were observed read-only after 200 `{message}` responses; invalid YAML, invalid
-  Compose, name mismatch in dry-run, occupied port, missing id, 401 and concurrent conflicting
-  real PUTs were characterized. Two simultaneous PUTs both returned 200; no upstream CAS.
-  Failed invalid/occupied-port real PUTs left the previous GET digest unchanged in these probes,
-  but this is **not** a general rollback guarantee. Research matrix: `docs/RESEARCH.md`.
-  Fixture was removed; read-only list showed only pre-existing `mcp-test-nginx`.
-- **Phase 3 sequence:** 3A research/live semantics → 3B read/fingerprint/diff/validate →
-  3C default-off safe edit and optimistic concurrency → 3D modern single-use risky
-  approval → 3E conservative read-only recovery conclusion.
-- **Phase 3B:** authenticated MCP `get_app_compose` and `validate_app_compose_change`
-  read the official interpolated YAML, fingerprint the returned bytes, compare risk
-  instances using the existing analyzer, and submit the exact candidate to official
-  PUT dry-run/port checking without a real apply. A stale fingerprint or project rename
-  fails closed. Known ZimaOS credential fields or actual configured credential bytes in
-  returned YAML are refused. Mocked/local full suite **408/408** tests, lint, format,
-  production/test typechecks, build, Docker build and deployment Compose validation
-  passed on the final Phase 3B worktree, as did `git diff --check`. No live Phase 3B
-  MCP acceptance yet. Committed and pushed at `a783f4e74405f1a0144aca6c3c8380a8c1037a69`.
-- **Phase 3C:** independent `ALLOW_APP_EDIT` default-off flag is wired to runtime and
-  deployment. `edit_app_compose` handles benign changes only: base fingerprint, exact
-  project identity, risk delta, official PUT dry-run, process-wide per-app serialization,
-  immediate re-read, one real official PUT, and bounded read-only observation. Accepted
-  or uncertain edits reserve their base against another same-base request while GET lags.
-  No upstream CAS exists; external actor races remain possible. Risk-increasing edits
-  return `confirmation_required` without mutation pending Phase 3D modern approval.
-  Mocked full suite **418/418** tests, lint, format, production/test typechecks,
-  build, Docker image build, deployment Compose validation, and `git diff --check`
-  passed on the Phase 3C worktree. Committed/pushed at
-  `8b3e054c2f06b54023f16fb0aa1c5387c89c1028`. No Phase 3C live MCP mutation yet.
-- **Phase 3D:** risky edit first round now uses native modern MCP `input_required` form
-  with introduced/escalated risk disclosure; legacy clients fail closed. A short-lived
-  signed payload binds operation, app, exact base/content fingerprints, complete risk
-  delta digest, target and fixed PUT options. The existing process-wide ledger supplies
-  single-use challenges. On approved continuation the service re-reads, reanalyzes,
-  reruns the official dry run, rechecks permission and base under the same per-app lock,
-  consumes the challenge before at most one real PUT, and reconciles read-only. Mocked
-  full suite **426/426** tests, lint, format, production/test typechecks, build, Docker
-  image build, deployment Compose validation, and `git diff --check` passed on the
-  Phase 3D worktree. Committed/pushed at
-  `70173eea39d9be2b77ff8428c7afff6cb19e38db`. Risky privileged continuation
-  was tested via mocked authenticated HTTP, not by mutating the live VM.
-- **Phase 3 closing / 3E:** Live v1.7.1 existing-app PUT returned HTTP 200 with the
-  exact async message `app is being applied with changes asynchronously`. The
-  generic install normalizer classified that message `upstream_error` even though
-  GET observed the edits. The edit-specific client now accepts only that exact
-  message-only HTTP 200 (or the already-supported explicit `success:true`), rejects
-  `success:false`, and never relays arbitrary upstream text. **429/429 mocked
-  tests across 25 files**, focused edit/client tests, lint, format, both strict
-  TypeScript checks, production build, Docker build, deployment Compose check and
-  `git diff --check` passed on the closing candidate. A fresh dedicated live
-  fixture verified read/fingerprint, non-mutating dry run, default-off denial,
-  one benign environment edit returned `accepted` and was read back with the
-  requested value, stale-base rejection, risky native first round without
-  mutation, and healthy fixture state. It was removed; final read-only list
-  contained only `mcp-test-nginx`, with healthy probe. Earlier dedicated runs
-  also observed benign port and restart-policy edits, invalid YAML/name rejection
-  and container/log readbacks. Privileged approval continuation was not live
-  mutated; the wire/replay behavior was mocked. No supported explicit rollback
-  API or reliable general rollback guarantee exists in the verified evidence;
-  only bounded read-only reconciliation is offered, not a rollback tool. An
-  invalid/occupied-port PUT leaving old YAML unchanged is not proof of rollback.
-- **Official API boundary:** Phase 3 uses only authenticated official
-  `GET /v2/app_management/compose/{id}` with `Accept: application/yaml` and
-  `PUT /v2/app_management/compose/{id}` with exact `application/yaml` and explicit
-  `dry_run`/`check_port_conflict` options. Test fixture setup/cleanup used the
-  supported POST/DELETE. No product SSH, shell, Docker socket, privileged mode,
-  host-file writes or undocumented ZimaOS endpoint was introduced.
-- **Core Phase 3 boundary:** keep the supported ZimaOS App Management API abstraction. Do not add
-  arbitrary filesystem writes, SSH, shell access, Docker socket access, privileged MCP-server
-  mode, or undocumented host-control shortcuts.
-- **Phase 2 limitations carried forward:** `update_app` remains intentionally absent because
-  supported App Store update semantics are unverified. ZimaOS Custom App UI paste/install remains
-  an optional manual deployment check.
-- **Git / deployment handoff:** branch `main`, last pushed Phase 3D HEAD and
-  `origin/main` `70173eea39d9be2b77ff8428c7afff6cb19e38db` before the
-  closing commit. Final closing SHA is the commit containing this status; check
-  `git rev-parse HEAD`. Repository: https://github.com/lvgvs/zimaos-mcp-server.
-  Final-head CI/GHCR must be checked after push; GHCR tag form is
-  `ghcr.io/lvgvs/zimaos-mcp-server:sha-<full HEAD>`, with private-package pull
-  authentication still required. ZimaOS Compose passed syntax validation; UI
-  paste/install remains optional manual verification. `update_app` remains
-  intentionally absent. No child was used in this parent-only closing pass;
-  no child is active. No blocker or required manual action for Phase 3; next
-  manager action is review/approval of the completed Phase 3, not Phase 4 work.
+- **Phase 3:** complete and manager-approved. Final Phase 3 HEAD:
+  `a20a35efd9dea08fbfc3c69f0661b03217934ff6`.
+- **Phase 3 milestones:** 3A `93a794bbdabba46ee41c6c7f057065a9241604e6`; 3B
+  `a783f4e74405f1a0144aca6c3c8380a8c1037a69`; 3C
+  `8b3e054c2f06b54023f16fb0aa1c5387c89c1028`; 3D
+  `70173eea39d9be2b77ff8428c7afff6cb19e38db`; closing fix
+  `a20a35efd9dea08fbfc3c69f0661b03217934ff6`.
+- **Phase 3 final verification:** **429/429** mocked tests passed. Lint, formatting, production and
+  test TypeScript checks, production build, Docker build, ZimaOS deployment Compose validation,
+  and `git diff --check` passed. Final-head GitHub CI run `36894143739` and GHCR publish run
+  `36894143683` both completed successfully.
+- **Phase 3 live acceptance:** a fresh benign existing-app edit returned normalized `accepted`
+  after the narrow verified async-response correction, and read-after-write confirmed the requested
+  value. Default-off denial, non-mutating dry run, stale-base rejection, and risky first-round
+  non-mutation passed. Privileged risky continuation remained mocked rather than live-mutated.
+  Dedicated fixtures were removed; the final disposable-VM list contained only pre-existing
+  `mcp-test-nginx`, whose health probe was healthy.
+- **Phase 3 API/recovery boundary:** runtime remained inside supported official ZimaOS APIs.
+  No supported explicit rollback API or reliable general rollback guarantee was verified, so the
+  product provides bounded read-only reconciliation rather than automatic rollback. External-writer
+  race remains because upstream exposes no atomic compare-and-swap. `update_app` remains absent
+  because App Store update/version-transition semantics are still unverified.
+- **Phase 4:** **Release Hardening + First Release is now explicitly manager-authorized** in
+  `PROJECT.md`. Phase 3 is the feature cutoff. Phase 4 should harden deployment/config/auth/docs/
+  release engineering, run bounded real-user UAT gates with the manager, fix concrete release
+  defects, and prepare the first tagged release.
+- **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
+  publication, final version/tag, source-repository visibility, and GHCR visibility changes require
+  explicit manager approval. Do not begin a later phase automatically.
+- **Current next action:** start a fresh Phase 4 orchestration session, verify this durable state,
+  perform the automated first-release readiness audit/hardening, run pre-UAT gates, and stop at the
+  first bounded normal-user ZimaOS Custom App install UAT. No Phase 4 implementation/UAT has run yet.
 
 ## Git / repository
 
 - **Branch:** `main`
-- **Phase 2A HEAD:** `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`
-- **Phase 2B HEAD:** `e8774f23ce9ecf55050eaac7b0767a3595c72109`
-- **Phase 2C HEAD:** `d579a259049250f43b41ff7110a43106d6817e63`
-- **Phase 2D HEAD:** `e5f5a6ef400a5278c671a5c44562c52c49969664`
-- **Phase 2E HEAD:** `b2fb4c05ead8fd8c0f155ba7f0a906dc85de9f1a`
-- **Phase 2 response-shape closing commit:** `e4390fd5c44e5a3b393d92adfd9a636164c64f04`
 - **Phase 2 final implementation HEAD:** `5ffdb92831ee76109d44460db3a6f060db8f153f`
+- **Phase 3A HEAD:** `93a794bbdabba46ee41c6c7f057065a9241604e6`
+- **Phase 3B HEAD:** `a783f4e74405f1a0144aca6c3c8380a8c1037a69`
+- **Phase 3C HEAD:** `8b3e054c2f06b54023f16fb0aa1c5387c89c1028`
+- **Phase 3D HEAD:** `70173eea39d9be2b77ff8428c7afff6cb19e38db`
+- **Phase 3 final implementation HEAD:** `a20a35efd9dea08fbfc3c69f0661b03217934ff6`
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server
-- **GHCR:** `ghcr.io/lvgvs/zimaos-mcp-server`; Phase 2 final publish succeeded. Package
-  visibility/readability remains governed separately from source visibility.
+- **Repository visibility at Phase 4 authorization:** private.
+- **GHCR:** `ghcr.io/lvgvs/zimaos-mcp-server:sha-a20a35efd9dea08fbfc3c69f0661b03217934ff6`;
+  final Phase 3 publish workflow succeeded. Package visibility could not be independently queried
+  with the available token because it lacks `read:packages`; visibility changes remain a separate
+  explicit manager decision.
 
 ## Pause checkpoint — Phase 2B (2026-09-28)
 

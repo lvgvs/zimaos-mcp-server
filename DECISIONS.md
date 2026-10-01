@@ -240,3 +240,27 @@ read-only observation is not an automatic rollback or a second mutation.
 **Rejected alternative:** Retry ambiguous PUTs or infer apply completion from a
 message-only 200. Either could silently overwrite newer state; there is no verified
 atomic CAS or reliable explicit rollback endpoint.
+
+## 2026-10-01 — Phase 3 is the first-release feature cutoff; Phase 4 is release hardening
+
+**Decision:** Phase 3 is complete and is the feature cutoff for the first public-facing release
+candidate. Authorize Phase 4 as **Release Hardening + First Release**: improve deployment,
+configuration/authentication UX, documentation, release engineering, automated regression, and
+bounded real-user acceptance of the already-approved Phase 1–3 capabilities. Substantial new
+capability families remain out of scope unless separately approved.
+
+**Reason:** The existing feature set is broad enough for a meaningful first release. The remaining
+risk is primarily whether a normal user can install, configure, connect to, understand, recover from
+expected errors, upgrade, and remove/reinstall the product without developer-only rescue steps.
+Those properties require release hardening plus actual user acceptance rather than more feature
+expansion.
+
+**Release gates:** Normal-user UAT is performed by the manager/user one bounded flow at a time.
+Final version/tag/GitHub Release publication and source-repository or GHCR visibility changes require
+explicit manager approval. A failed normal-user flow is treated as a release defect or documented
+limitation rather than hidden with SSH, Docker-socket/CLI, direct filesystem, or undocumented-API
+workarounds.
+
+**Execution note:** The parent model should handle routine Phase 4 work itself. A local coding worker
+is optional only for a genuinely substantial, bounded implementation workload; the parent retains
+review, testing, Git, and release ownership.

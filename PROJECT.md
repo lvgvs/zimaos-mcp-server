@@ -1161,4 +1161,137 @@ Phase 3 is complete only when all applicable items below are satisfied:
 - disposable VM test state is restored/cleaned;
 - documentation and durable state accurately describe implemented behavior and limitations.
 
+Phase 3 is complete and manager-approved. Phase 4 is explicitly authorized under the specification below.
+
+# Phase 4 — Release Hardening + First Release
+
+## Objective
+
+Phase 3 is the first-release **feature cutoff**. Phase 4 does not add a new capability family; it
+turns the existing Phase 1–3 product into a release-ready package that a normal ZimaOS user can
+install, configure, connect to, understand, troubleshoot, update between release candidates, and
+remove/reinstall safely.
+
+Phase 4 ends with the first tagged release only after explicit manager approval.
+
+## Phase 4 scope
+
+Phase 4 may:
+
+- audit and fix release-blocking defects in existing Phase 1–3 behavior;
+- harden the ZimaOS Custom App Docker Compose/YAML installation path;
+- improve startup, health/readiness, configuration validation, authentication, and normalized errors;
+- make required versus optional configuration clear and safe by default;
+- harden MCP client connection/setup and tool-discovery documentation;
+- verify existing read, control, provisioning, uninstall, Compose repair, and risky-approval flows;
+- verify restart, ZimaOS reboot, uninstall/reinstall, and release-candidate upgrade behavior;
+- improve CI, GHCR publishing, release automation, versioning metadata, changelog/release notes,
+  dependency/license review, and secret/log review;
+- add or improve tests and documentation needed for release confidence;
+- make small UX/API-shape corrections when required to make an already-approved capability usable.
+
+Keep fixes bounded. If an issue is a future enhancement rather than a first-release blocker, record
+it for later instead of expanding Phase 4.
+
+## Feature freeze / exclusions
+
+Do not add substantial new product capabilities during Phase 4 merely for completeness.
+
+In particular, Phase 4 does not automatically add:
+
+- `update_app`; supported App Store update/version-transition semantics remain unverified;
+- App Store search/account management;
+- arbitrary filesystem tools or host-file mutation;
+- SSH or arbitrary shell execution;
+- Docker CLI/socket as a control plane;
+- privileged MCP-server runtime;
+- unsupported rollback/recovery;
+- storage/RAID, ZVM, ZimaOS OTA, or user/account administration.
+
+All runtime behavior must remain inside the existing supported official ZimaOS API boundary. If a
+release blocker would require an undocumented/private endpoint, direct internal files/DB, shell,
+Docker socket, privileged runtime, or another unsupported internal mechanism, stop for manager
+review instead of implementing it.
+
+## Real-user UAT
+
+Real-user acceptance is mandatory in Phase 4 and is performed personally by the manager/user.
+
+The execution manager should advance one coherent UAT gate at a time. At each gate it must give
+short, exact normal-user instructions, stop, and wait for the user's reported result before
+continuing.
+
+UAT must use the intended supported user flow, such as the ZimaOS web UI, Custom App YAML import,
+documented configuration, and an actual MCP client. Do not hide a release defect by asking the user
+to rescue the system through SSH, Docker CLI, direct filesystem edits, hidden developer commands, or
+undocumented APIs. If the documented normal-user path requires such a workaround, treat that as a
+release defect or an explicitly documented limitation.
+
+Expected UAT coverage includes, in bounded stages:
+
+- fresh ZimaOS Custom App install and first start;
+- health/readiness and required configuration;
+- MCP client connection and `tools/list`;
+- first read-only use;
+- default-off permission behavior;
+- existing start/stop/restart controls;
+- install/uninstall flow;
+- Compose read/validate/edit repair flow;
+- risky-approval UX with a safe bounded scenario;
+- wrong MCP token, wrong ZimaOS credentials, and unreachable/bad ZimaOS URL behavior;
+- MCP server/container restart and ZimaOS reboot persistence;
+- uninstall/reinstall;
+- release-candidate upgrade;
+- documentation-only fresh-user flow.
+
+A failed UAT gate should lead to a bounded fix, automated regression, and repetition of only the
+affected user flow before advancing.
+
+## Local-model delegation during Phase 4
+
+The parent/orchestration model should do routine Phase 4 work itself. A local coding worker is
+optional, not required.
+
+Use at most one bounded local worker only when a genuinely substantial, well-defined implementation
+workload materially benefits from delegation, such as a significant deployment/release refactor or a
+large mechanical test/refactor task. Small bug fixes, documentation, focused tests, simple workflow
+edits, and routine UAT-driven corrections should remain parent-only.
+
+The parent owns project decisions, review, tests, Git commits, and pushes. No nested delegation.
+
+## Release and visibility approval gates
+
+Do not change the source repository visibility or GHCR package visibility without explicit manager
+approval.
+
+Do not publish the final first-release tag or GitHub Release without explicit manager approval.
+The execution manager may prepare and test release-candidate commits/images and propose a version,
+but final version/tag publication is a manager gate.
+
+## Phase 4 acceptance criteria
+
+Phase 4 is complete only when all applicable items below are satisfied:
+
+- the existing Phase 1–3 feature set remains intact and regression-tested;
+- fresh normal-user ZimaOS Custom App installation succeeds through the documented YAML flow;
+- required configuration, authentication, health/readiness, and MCP connection are understandable
+  and verified;
+- existing permission boundaries and default-off mutation controls are clear and behave correctly;
+- representative read/control/provision/uninstall/repair/risky-approval user flows pass UAT;
+- expected authentication/configuration/network failures produce useful non-secret behavior;
+- restart and ZimaOS reboot behavior is verified;
+- uninstall/reinstall is verified;
+- a release-candidate upgrade path is verified;
+- Quick Start, configuration reference, permissions, security model, risky approval, troubleshooting,
+  limitations, upgrade, uninstall/reinstall, MCP examples, changelog/release notes, and release
+  metadata are release-ready;
+- dependency/license and secret/log reviews are complete;
+- full automated tests, lint, formatting, TypeScript checks, production build, Docker build,
+  deployment Compose validation, and repository diff checks pass;
+- final candidate CI and GHCR workflows succeed;
+- repository/GHCR visibility decisions are explicit;
+- known limitations are documented;
+- the manager explicitly approves the final version/tag/release;
+- the first tagged release is published only after that approval.
+
 Do not begin a later phase automatically.
