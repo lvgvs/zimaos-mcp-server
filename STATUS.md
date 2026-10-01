@@ -6,64 +6,42 @@ authoritative.
 
 ## Current phase / milestone
 
-- **Phase:** Phase 2 closing pass complete, pending verification of this closing
-  commit's remote CI/GHCR runs after push. Do not begin Phase 3 automatically.
-- **Milestones:** Phase 2A–2E committed/pushed in order (SHAs below). The final
-  post-live-acceptance correction recognizes only the verified message-only
-  asynchronous HTTP 200 install/uninstall responses in addition to explicit
-  `success:true` envelopes. It does not alter authorization, preflight,
-  duplicate protection, retries, or mutation payloads. Upstream messages are
-  compared internally, never returned to MCP clients. A subsequent repeat full
-  suite exposed a flaky SDK MAC-tamper test: flipping the final base64url
-  character can change only unused bits. The test now flips the first MAC
-  character so it deterministically changes the decoded MAC; no runtime
-  approval semantics were changed.
-- **Final local gates:** `npm test` **390/390 across 19 files**; lint, Prettier,
-  production and test TypeScript checks, production build, Docker build
-  (`zimaos-mcp-server:phase2-final`), deployment Compose validation and
-  `git diff --check` passed on the reviewed closing worktree. CI and private
-  GHCR publishing both passed for Phase 2E HEAD before the closing commit;
-  the final commit's remote runs require post-push verification.
-- **Live acceptance / cleanup:** Authenticated MCP, unauthenticated 401,
-  non-mutating validation, default-off install/uninstall permissions, risky
-  modern first-round disclosure with no mutation, benign install, duplicate
-  blocking and uninstall were exercised. Corrected install and uninstall each
-  returned `accepted` in a later bounded live run; read-only app lists observed
-  appearance then disappearance. The disposable VM's last read-only MCP list
-  contained only pre-existing `mcp-test-nginx`. The temporary local acceptance
-  container was stopped and is absent; no Phase 2 child or local acceptance
-  process remains. No additional VM mutation was needed for this closing pass.
-- **Phase 1:** Original tools remain registered; their mocked regressions pass
-  within the 390 tests. Historical live Phase 1 verification is recorded below.
-- **Limitations:** `update_app` is intentionally absent: supported App Store
-  update semantics are unverified. A human's actual viewing/approval is a
-  client-side requirement, not cryptographically provable by MCP; the risky
-  approved second-round path was mocked, not live-mutated. ZimaOS Custom App UI
-  paste/install remains an optional manual deployment check. No blocking
-  manager decision is required for the implemented Phase 2 scope.
-- **Next action for manager:** Review the Phase 2 handoff and approve any
-  future phase separately. Do not infer update semantics or expand scope.
+- **Phase 2:** complete and manager-approved. Final implementation HEAD before Phase 3 planning:
+  `5ffdb92831ee76109d44460db3a6f060db8f153f`. At handoff, `origin/main` matched, the worktree
+  was clean, no child remained active, 390/390 tests passed, all local quality/build/Docker/Compose
+  gates passed, and final CI/GHCR publishing succeeded.
+- **Phase 3:** explicitly approved/planned as **App Configuration & Repair**; implementation has
+  not started. Phase 3 begins with supported-API/source research plus disposable-VM live
+  characterization of existing-app Compose read/apply/rollback/concurrency semantics before any
+  edit mutation is implemented.
+- **Planned Phase 3 sequence:** 3A research/live semantics → 3B read/fingerprint/diff/validate →
+  3C safe edit with independent default-off `ALLOW_APP_EDIT` and optimistic concurrency →
+  3D risky-edit approval reusing the modern single-use Phase 2 approval model → 3E only
+  verified recovery/rollback behavior.
+- **Core Phase 3 boundary:** keep the supported ZimaOS App Management API abstraction. Do not add
+  arbitrary filesystem writes, SSH, shell access, Docker socket access, privileged MCP-server
+  mode, or undocumented host-control shortcuts.
+- **Phase 2 limitations carried forward:** `update_app` remains intentionally absent because
+  supported App Store update semantics are unverified. ZimaOS Custom App UI paste/install remains
+  an optional manual deployment check.
+- **Next action:** start Phase 3A under a fresh manager/orchestrator execution prompt. Read
+  AGENTS.md/PROJECT.md/STATUS.md/DECISIONS.md/docs/RESEARCH.md and current Git state first; then
+  verify the exact existing-app Compose read/apply semantics against official sources and the
+  authorized disposable VM. Do not infer mutation or rollback behavior.
 
 ## Git / repository
 
 - **Branch:** `main`
-- **Phase 2A HEAD:** `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`, pushed to `origin/main`.
-- **Phase 2B HEAD:** `e8774f23ce9ecf55050eaac7b0767a3595c72109`, pushed to `origin/main`.
-- **Phase 2C HEAD:** `d579a259049250f43b41ff7110a43106d6817e63`, pushed to `origin/main`.
-- **Phase 2D HEAD:** `e5f5a6ef400a5278c671a5c44562c52c49969664`, pushed to `origin/main`.
-- **Phase 2E HEAD:** `b2fb4c05ead8fd8c0f155ba7f0a906dc85de9f1a`, pushed to `origin/main`.
-- **Response-shape closing commit:** `e4390fd5c44e5a3b393d92adfd9a636164c64f04`,
-  pushed to `origin/main`; CI and GHCR publication passed.
-- **Final HEAD:** the follow-up commit containing this status and deterministic
-  MAC-tamper test; obtain its exact SHA with `git rev-parse HEAD` after
-  commit/push (a Git commit cannot contain its own SHA). The final chat handoff
-  states the verified SHA.
-- **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server (**private**, per Phase 1 rule)
-- **GHCR:** `ghcr.io/lvgvs/zimaos-mcp-server` private; immutable
-  `sha-<commit SHA>` and `latest` are published by CI. Phase 2E workflows
-  and response-shape closing workflows passed; verify the final follow-up
-  commit's CI and publish runs after push. Private
-  image pull requires a registry credential with `read:packages`.
+- **Phase 2A HEAD:** `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`
+- **Phase 2B HEAD:** `e8774f23ce9ecf55050eaac7b0767a3595c72109`
+- **Phase 2C HEAD:** `d579a259049250f43b41ff7110a43106d6817e63`
+- **Phase 2D HEAD:** `e5f5a6ef400a5278c671a5c44562c52c49969664`
+- **Phase 2E HEAD:** `b2fb4c05ead8fd8c0f155ba7f0a906dc85de9f1a`
+- **Phase 2 response-shape closing commit:** `e4390fd5c44e5a3b393d92adfd9a636164c64f04`
+- **Phase 2 final implementation HEAD:** `5ffdb92831ee76109d44460db3a6f060db8f153f`
+- **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server
+- **GHCR:** `ghcr.io/lvgvs/zimaos-mcp-server`; Phase 2 final publish succeeded. Package
+  visibility/readability remains governed separately from source visibility.
 
 ## Pause checkpoint — Phase 2B (2026-09-28)
 

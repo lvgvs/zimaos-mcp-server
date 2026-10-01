@@ -866,3 +866,299 @@ Phase 2 is complete only when all applicable items below are satisfied:
 Do not weaken the security model merely to make a Phase 2 acceptance item easier to satisfy.
 
 Do not begin a later phase automatically.
+
+Phase 2 is complete and manager-approved. Phase 3 is explicitly authorized under the specification below.
+
+# Phase 3 — App Configuration & Repair
+
+## Objective
+
+Allow an authenticated MCP client to inspect, diagnose, validate, and safely change the Docker
+Compose configuration of an already-installed ZimaOS application through verified supported ZimaOS
+application-management APIs.
+
+The purpose of Phase 3 is troubleshooting and repair: an agent should be able to use existing
+read/log/health tools, inspect the application's current Compose configuration, propose a bounded
+change, validate that exact proposed configuration, apply it safely when permitted, and verify the
+result.
+
+Phase 3 must remain inside the existing architecture:
+
+MCP client
+→ authenticated MCP server
+→ permission / safety layer
+→ typed ZimaOS API abstraction
+→ supported ZimaOS APIs
+
+Phase 3 does NOT grant the MCP server arbitrary host-file writes, SSH, shell execution, Docker
+socket access, privileged mode, or direct mutation of undocumented ZimaOS internals.
+
+## Phase 3 execution order
+
+Phase 3 should be executed in the following sequence. A manager/orchestrator may receive the whole
+Phase 3 assignment at once, but implementation work should still be decomposed into bounded,
+reviewed tasks with durable checkpoints.
+
+### Phase 3A — Supported API research and live semantics characterization
+
+Before implementing Compose mutation, verify the exact current behavior of the supported ZimaOS
+API on the authorized disposable VM.
+
+At minimum determine and record:
+
+- the supported endpoint/method for reading an installed app's Compose;
+- whether the returned Compose is the exact stored/raw YAML or a transformed representation;
+- the supported endpoint/method for applying a replacement Compose to an existing app;
+- request content type, query/options, response envelope, and authentication behavior;
+- synchronous vs asynchronous apply behavior;
+- app-id/project-name invariants;
+- behavior for malformed YAML;
+- behavior for syntactically valid but invalid Compose;
+- behavior for project/name mismatch;
+- port-conflict behavior;
+- missing-app behavior;
+- 401/403/404/409/429/5xx behavior where safely reproducible;
+- container recreation/restart behavior for representative env/port/image changes;
+- concurrent/conflicting edit behavior;
+- read-after-write visibility/lag;
+- actual rollback/recovery behavior when apply fails.
+
+Use current official ZimaSpace/IceWhaleTech sources first, then the authorized disposable VM to
+resolve undocumented or ambiguous behavior. Record verified findings in docs/RESEARCH.md.
+
+Do not implement a mutating edit tool until the endpoint and critical mutation/rollback semantics
+needed by that tool are verified.
+
+### Phase 3B — Read, fingerprint, diff, and validate
+
+Add a read-only tool conceptually equivalent to:
+
+- `get_app_compose`
+
+It should return the current Compose representation needed for safe editing plus a stable content
+fingerprint suitable for optimistic concurrency. Avoid leaking unrelated upstream payloads.
+
+Add a non-mutating validation capability conceptually equivalent to:
+
+- `validate_app_compose_change`
+
+It should evaluate a proposed replacement Compose for a specific existing app without applying it.
+
+The validation result should include, where meaningful:
+
+- target app identity;
+- expected/current base fingerprint;
+- proposed-content fingerprint;
+- structural/local validation result;
+- upstream dry-run/validation result;
+- port-conflict result;
+- concise structured change summary;
+- existing risk set;
+- proposed risk set;
+- risk delta, distinguishing newly introduced/escalated risk from unchanged or removed risk.
+
+The exact original proposed UTF-8 Compose string is authoritative for validation, approval, and any
+later mutation. Do not silently canonicalize/reserialize it into a different document.
+
+### Phase 3C — Safe existing-app Compose edit
+
+Add a dedicated permission:
+
+`ALLOW_APP_EDIT`
+
+Default:
+
+`false`
+
+Do not reuse `ALLOW_APP_CONTROL`, install permission, or uninstall permission as authority to edit
+an existing application.
+
+A safe edit must:
+
+1. identify one existing app explicitly;
+2. read the current Compose and establish a base fingerprint;
+3. require the caller's expected base fingerprint for mutation;
+4. reject the operation if the app changed since the caller read it;
+5. require the proposed Compose to preserve the verified existing app/project identity;
+6. run local parsing/safety analysis;
+7. run supported upstream validation/dry-run and port-conflict checks where applicable;
+8. evaluate risk delta;
+9. use a per-app/process-local serialization mechanism sufficient for the verified single-process
+   deployment model;
+10. re-read/re-fingerprint immediately before mutation;
+11. perform at most one real apply mutation for the accepted request;
+12. never automatically retry an ambiguous/uncertain mutation outcome;
+13. use bounded read-only reconciliation after asynchronous acceptance.
+
+Optimistic concurrency is mandatory: an agent must not overwrite a newer ZimaOS/UI/user change
+based on stale Compose state.
+
+Do not expose a generic patch-language or filesystem-write capability merely for convenience. The
+mutation boundary is a verified existing-app Compose API operation.
+
+### Phase 3D — Risky edit informed approval
+
+Reuse/generalize the approved Phase 2 modern risky-approval architecture for edits that introduce
+or materially escalate host-impacting risk.
+
+A risky edit's first request must not mutate.
+
+Approval must be bound at minimum to:
+
+- operation = existing-app Compose edit;
+- target app identity;
+- exact expected base/current fingerprint;
+- exact proposed Compose content/fingerprint;
+- disclosed risk delta;
+- relevant options.
+
+Changing the current app state or proposed Compose invalidates prior approval.
+
+Preserve the existing properties:
+
+- modern native MCP input-required / elicitation flow;
+- signed short-lived request state;
+- separate bounded process-wide pending/consumed ledger;
+- single-use consumption;
+- permission recheck;
+- base-fingerprint/concurrency recheck;
+- re-analysis and upstream validation before mutation;
+- consume approval before the mutation boundary;
+- at most one real apply mutation;
+- no automatic mutation retry;
+- risky legacy clients fail closed;
+- no claim that MCP cryptographically proves human presence.
+
+Existing risk should not automatically be presented as newly introduced risk. Risk disclosure for
+an edit should focus on the delta while still preserving enough context to avoid hiding material
+danger.
+
+### Phase 3E — Recovery / rollback
+
+Research and live-test ZimaOS's actual apply-failure rollback behavior before relying on it as a
+product guarantee.
+
+If a supported and sufficiently verified rollback/recovery operation exists, expose only the
+smallest safe recovery capability justified by that evidence.
+
+Do not claim that a backend `.bak` file or implementation detail guarantees successful recovery
+without live verification.
+
+Do not add arbitrary snapshot/file-copy/host-filesystem tools as a rollback substitute.
+
+If reliable explicit rollback semantics cannot be verified, document that limitation and keep
+recovery conservative rather than inventing rollback behavior.
+
+## Phase 3 safety invariants
+
+Phase 3 must preserve all earlier-phase guarantees unless an explicitly approved later decision
+changes them.
+
+In particular:
+
+- all existing Phase 1 and Phase 2 tools and permission boundaries remain intact;
+- app editing is independently default-off;
+- exact source content is preserved across validation/approval/apply;
+- stale-base edits fail closed;
+- app identity/project name cannot silently change as part of an edit;
+- newly introduced/escalated risky capabilities require post-disclosure approval;
+- no global unsafe-edit bypass exists;
+- no mutation is automatically retried after an ambiguous apply attempt;
+- upstream free-form error text must not reflect Compose secrets back to MCP clients/logs;
+- no SSH, arbitrary shell, Docker socket, privileged MCP-server container, or direct host-file
+  mutation is introduced.
+
+## Phase 3 testing
+
+Maintain all Phase 1/2 regression coverage.
+
+Add deterministic tests for at least:
+
+- Compose read normalization and fingerprinting;
+- exact-content preservation;
+- same-base successful validation;
+- stale-base conflict rejection;
+- app/project identity mismatch;
+- benign change validation;
+- risk delta: unchanged risk, removed risk, and newly introduced/escalated risk;
+- edit permission default-off;
+- no mutation before risky-edit approval;
+- approval binding to target/base/proposed content/risk delta;
+- approval invalidation after current Compose changes;
+- approval replay/single-use rejection;
+- legacy risky-edit fail-closed behavior;
+- at-most-one apply mutation;
+- no automatic retry after timeout/ambiguous response;
+- concurrency/race behavior for edits to the same app;
+- unrelated/different-app behavior where concurrency design permits;
+- bounded read-only post-apply reconciliation;
+- rollback/recovery behavior only if it is actually implemented.
+
+Live acceptance on the disposable VM should use a dedicated benign test app and, where safely
+reproducible, exercise:
+
+1. read current Compose;
+2. validate without mutation;
+3. benign env/config change;
+4. benign port change;
+5. representative image/config apply if useful;
+6. stale-fingerprint rejection;
+7. project/name mismatch rejection;
+8. representative invalid YAML/Compose failure;
+9. risky-edit first round without mutation;
+10. post-apply read/health/log verification;
+11. verified rollback/failure behavior if Phase 3E supports it;
+12. cleanup/restoration to the known VM baseline.
+
+Do not expose VM credentials or secret Compose values while testing.
+
+## Explicit Phase 3 exclusions
+
+Phase 3 does not automatically add:
+
+- App Store search/account management;
+- unverified App Store update semantics;
+- arbitrary environment mutation outside the verified Compose edit path;
+- arbitrary filesystem MCP tools;
+- direct host filesystem browsing/writes/deletion;
+- SSH;
+- arbitrary shell execution;
+- Docker socket access;
+- privileged MCP-server mode;
+- storage/RAID mutation;
+- ZVM management;
+- ZimaOS OTA/system update management;
+- user/account management.
+
+Those remain later-phase candidates unless separately approved.
+
+## Phase 3 acceptance criteria
+
+Phase 3 is complete only when all applicable items below are satisfied:
+
+- Phase 3A exact read/apply/error/async semantics needed by the implementation are verified and
+  recorded;
+- current app Compose can be read safely through MCP;
+- base fingerprint/optimistic concurrency is implemented and tested;
+- proposed Compose changes can be validated without mutation;
+- structured current/proposed risk delta is implemented;
+- `ALLOW_APP_EDIT` is independent and defaults to false;
+- safe existing-app Compose edit works through a verified supported ZimaOS API;
+- app/project identity is preserved;
+- stale-base edits fail closed;
+- at most one real apply mutation occurs per accepted request;
+- ambiguous mutation outcomes are never automatically retried;
+- risky-edit first request is non-mutating;
+- risky-edit approval is bound to target, base, exact proposed content, and disclosed risk delta;
+- approval is expiring and single-use;
+- risky legacy edit fails closed;
+- post-apply state is reconciled read-only;
+- rollback/recovery claims are limited to behavior actually verified in Phase 3E;
+- all Phase 1/2 regressions remain passing;
+- full automated quality gates pass;
+- production Docker/Compose packaging remains valid;
+- live benign read/validate/edit/reconcile behavior is verified on the disposable VM;
+- disposable VM test state is restored/cleaned;
+- documentation and durable state accurately describe implemented behavior and limitations.
+
+Do not begin a later phase automatically.

@@ -186,3 +186,39 @@ multi-replica approval would need a separate atomic shared-state design.
 **Limit:** Native elicitation and server-side signing cannot attest that the
 client displayed the disclosure to a human. Client-side human-UI behavior
 requires separate acceptance verification; no global approval bypass is added.
+
+## 2026-10-01 — Phase 3: existing-app Compose configuration and repair
+
+**Decision:** Authorize Phase 3 as **App Configuration & Repair**. The product may add supported
+ZimaOS-API-based read/validate/edit capabilities for an already-installed application's Compose,
+but only after Phase 3A verifies the exact current read/apply/error/async/rollback semantics against
+official sources and the authorized disposable VM.
+
+Safe edit design direction:
+
+- read current Compose and derive a stable base fingerprint;
+- require optimistic-concurrency/base-fingerprint matching before mutation;
+- preserve exact proposed UTF-8 Compose content across validation, approval, and apply;
+- preserve app/project identity rather than turning edit into rename/recreate;
+- compute current/proposed **risk delta**, distinguishing unchanged/removed risk from
+  newly introduced or escalated risk;
+- gate mutation behind an independent default-off `ALLOW_APP_EDIT`;
+- serialize/recheck the target app immediately before mutation;
+- perform at most one real apply mutation and never automatically retry an ambiguous outcome;
+- reuse/generalize the approved modern Phase 2 single-use risky-approval flow for newly
+  introduced/escalated risk;
+- rely on rollback/recovery only to the extent its actual supported behavior is verified.
+
+**Reason:** Troubleshooting frequently requires changing an existing app's configuration after
+logs/health identify the cause. Doing that through a verified ZimaOS App Management API preserves
+the project's supported-API architecture and enables useful repair workflows without granting the
+agent arbitrary host-file, shell, Docker-socket, or privileged access.
+
+**Rejected alternative:** Expose generic filesystem/Compose-file write access, SSH, shell, or
+Docker-socket mutation. Those would bypass ZimaOS's application-management abstraction and expand
+the trust boundary far beyond the repair capability needed for Phase 3.
+
+**Research boundary:** Official source code may establish that a backend capability exists, but
+product semantics such as exact endpoint shape, asynchronous behavior, concurrency, and rollback
+must be characterized on the disposable ZimaOS VM before the mutating edit surface is implemented
+or claimed safe.
