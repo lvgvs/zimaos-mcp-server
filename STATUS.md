@@ -35,9 +35,64 @@ authoritative.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** start a fresh Phase 4 orchestration session, verify this durable state,
-  perform the automated first-release readiness audit/hardening, run pre-UAT gates, and stop at the
-  first bounded normal-user ZimaOS Custom App install UAT. No Phase 4 implementation/UAT has run yet.
+- **Current next action:** manager image-access decision required before meaningful fresh-install
+  UAT; see the Phase 4 checkpoint below. No manager UAT result has been reported.
+
+## Phase 4 initial audit — image-access manager gate (2026-10-01)
+
+- **Reconciliation:** clean `main` at Phase 3 implementation HEAD was safely fast-forwarded
+  through the single manager transition commit to `3b250aa59be75f1ec1e874196e3bd0c3d1f4fea9`;
+  `origin/main` matched. Durable Phase 4 authorization and Phase 3 closing evidence were read.
+  No history rewrite, local model, child, or new live VM mutation/test was used.
+- **Checkpoint candidate:** the containing checkpoint commit on `main`; runtime remains exactly
+  the manager transition baseline above. Only README, deployment comments, research, and this
+  status were changed. This is an audit checkpoint, **not a UAT-ready release candidate**.
+  Parent self-review owns the diff; no delegated reviewer was used.
+- **Automated baseline verification:** 429/429 mocked tests across 25 files passed; lint,
+  formatting, production/test TypeScript checks, production build, Docker build
+  (`zimaos-mcp-server:phase4-audit`), ZimaOS Compose config validation and `git diff --check`
+  passed. Config/auth/modern/legacy HTTP regressions ran as part of the full suite.
+  Production `npm audit --omit=dev` reported zero vulnerabilities. Lockfile runtime licenses
+  are Apache-2.0 (project), MIT and ISC (dependencies); no dependency changes were made.
+  `.env.integration.local` remains ignored, untracked and unstaged; only `.env.example` is
+  tracked among environment files. No runtime shell/SSH/socket/privileged control path was added.
+- **Remote baseline verification:** CI `36903520647` and GHCR publish `36903520625` succeeded
+  for `3b250aa59be75f1ec1e874196e3bd0c3d1f4fea9`; Phase 3 closing runs also read back as successful.
+  Checkpoint CI/GHCR results must be checked for the containing commit before handoff; do not
+  substitute these baseline runs as evidence for a later SHA.
+- **Image-access blocker:** source repository freshly verified `PRIVATE`. Current GHCR package
+  visibility cannot be queried: token lacks `read:packages` (HTTP 403). Anonymous pull-scoped
+  GHCR token request returned HTTP 401. No supported normal-user ZimaOS UI registry-auth flow
+  has been verified. Published images alone do not unblock installation. README's developer
+  host-build rescue path was removed; deployment comments no longer recommend it.
+- **Manager decision:** approve public GHCR package access while retaining private source,
+  acknowledging exposure of existing package versions, or identify an intended supported UI
+  registry-auth flow for verification. No package/repository visibility was changed. Do not
+  begin installation UAT, ask for shell rescue, or add a permanent PAT requirement meanwhile.
+- **Audit findings queued for bounded hardening after this gate:** `PORT` currently uses
+  `parseInt` and accepts numeric prefixes; malformed URL errors reflect the configured value;
+  URL userinfo/query/fragment are not rejected; shipped credential/token placeholders are not
+  rejected (the example token exceeds the minimum, contrary to deployment comments); the Docker
+  healthcheck fixes port 3000 and checks only HTTP success, not `ready`; raw error-message log
+  paths and generic upstream detail extraction need secret-reflection regression coverage.
+  These are not fixed by this docs-only checkpoint and prevent a UAT-ready claim.
+- **Release engineering/docs remaining:** package and MCP metadata remain `0.1.0`, not an
+  approved first-release version; no tags, GitHub Releases, changelog or release workflow exist.
+  Current publish workflow publishes `latest` for main and all `v*` tags independently of CI;
+  SHA tags are a naming convention, not enforced registry immutability. Review publication gates
+  and prerelease/latest behavior before any tag. Quick Start, troubleshooting, permission/approval
+  coverage, upgrade and uninstall/reinstall instructions remain release-preparation work.
+- **Current UAT gate/result:** fresh ZimaOS Custom App install + first start; **not started**,
+  blocked on image access and queued automated hardening. Phase 3 VM baseline restoration is
+  durable historical evidence (only `mcp-test-nginx`); it was not re-probed in this pass.
+- **Known limits preserved:** `update_app` absent; no supported explicit rollback/general recovery
+  guarantee; async acceptance is not completion; external-writer race remains; risky legacy
+  clients fail closed; human disclosure UX remains untested; approvals/locks are single-process;
+  uninstall storage-retention semantics remain unverified. No final release tag or GitHub Release.
+- **Exact resume action:** read current disk state, check usage and Git/remote relationship,
+  obtain manager image-access decision, then TDD-fix the concrete queued release defects,
+  finish release docs/config audit, run all exact-candidate pre-UAT gates, commit/push and verify
+  exact-SHA CI/GHCR. Only then supply one SHA-pinned fresh-install UI UAT and wait for its result.
 
 ## Git / repository
 

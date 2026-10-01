@@ -187,8 +187,11 @@ Published images carry these tags:
 
 Pin deployments to `sha-<full-commit-sha>` (visible in the GHCR publish
 workflow run) when you need a reproducible image; use `latest` or a `v*` tag
-when tracking releases is sufficient. The package remains private, so pulling
-requires a GitHub token with `read:packages`.
+when tracking releases is sufficient. `latest` currently tracks development,
+not a manager-approved first release. Package visibility requires separate
+manager approval; the Phase 4 audit could not query it with the available token,
+and anonymous registry access was denied. Private pulls require registry
+authentication with `read:packages` access.
 
 ## ZimaOS Custom App deployment
 
@@ -203,21 +206,21 @@ The Compose uses `extra_hosts: ["host.docker.internal:host-gateway"]` so the
 container reaches this host's ZimaOS API — no host networking mode, no Docker
 socket, and no privileged mode are used.
 
-### Private-image limitation (initial development)
+### Image-access gate (first-release preparation)
 
-During initial private development the GHCR package is not anonymously
-pullable, so a fresh ZimaOS install cannot `docker pull` it yet. Until the
-package is published, build the image on the target host first:
+Fresh normal-user Custom App installation is **blocked until image access is
+resolved**. A successful GHCR publish does not make a private image anonymously
+pullable. No supported ZimaOS UI registry-authentication flow has been verified
+for this deployment. Do not use SSH, a host-side build, or manual Docker login/pull
+as a substitute for the intended installation path.
 
-```bash
-# On the ZimaOS host (or any machine with Docker + this repo):
-git clone <your-private-repo-url> zimaos-mcp-server
-cd zimaos-mcp-server
-docker build -t ghcr.io/<owner>/zimaos-mcp-server:latest .
-```
-
-Then install the Compose as above; it will use the locally built image. Once
-the package is published to GHCR, the same Compose works without a local build.
+The manager must approve anonymous access to the GHCR package (independently of
+the private source repository), or identify a supported normal-user registry flow
+for review. Making a package public may expose its existing image versions, not
+just the eventual release candidate. No visibility change has been made.
+Once access is resolved and the candidate is hardened, use the exact SHA-pinned
+deployment artifact supplied at the fresh-install UAT gate. Compose validation
+alone does not establish that the ZimaOS UI import/install succeeds.
 
 ## Development
 

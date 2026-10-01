@@ -21,9 +21,10 @@ name: zimaos-mcp-server
 
 services:
   zimaos-mcp-server:
-    # Long-term image reference (GHCR). During initial private development the
-    # package is not anonymously pullable yet; see README "Private-image
-    # limitation" for how to build/run locally until it is published.
+    # Development image reference, NOT an approved release candidate.
+    # Fresh UI installation requires manager-approved image access; see README
+    # "Image-access gate". Do not rescue installation with host shell commands.
+    # The UAT artifact must pin the exact reviewed sha-<full-commit-sha> image.
     image: ghcr.io/lvgvs/zimaos-mcp-server:latest
     container_name: zimaos-mcp-server
     restart: unless-stopped

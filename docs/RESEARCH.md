@@ -611,6 +611,30 @@ the one observed name-to-id mapping.
 - No fresh live verification, SDK integration test, runtime implementation, or Phase 2
   acceptance claim was made by this research pass. All are later approved work.
 
+## Phase 4 image-access audit (2026-10-01)
+
+- GitHub's official [Container registry documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+  was retrieved directly: public container images support anonymous pulls and
+  package permissions can be independent of repository permissions. Private
+  registry authentication requires appropriate package access; publication alone
+  does not imply public visibility.
+- Fresh GitHub repository metadata reports `PRIVATE`. The package metadata API
+  (`GET /users/lvgvs/packages/container/zimaos-mcp-server`) returned HTTP 403,
+  explicitly requiring `read:packages`. Exact current package visibility is
+  therefore **unverified**, not inferred from repository visibility.
+- An anonymous pull-scoped request to GHCR's token endpoint for
+  `lvgvs/zimaos-mcp-server` returned HTTP 401. This verifies anonymous access is
+  currently denied from the audit environment; it is not package-visibility metadata.
+  No registry token or credential was emitted.
+- No supported ZimaOS Custom App UI registry-authentication flow was verified.
+  Official Docker-app publishing documentation retrieval was blocked (403), and
+  a community search result suggests a CLI workaround, which is not an approved
+  normal-user installation path or authoritative product requirement.
+- **Implication:** stop before fresh-install UAT for the manager's image-access
+  decision. Public package access and source-repository visibility are separate
+  decisions. Do not change visibility, introduce a permanent PAT deployment
+  requirement, or substitute host-side Docker/SSH workarounds.
+
 ## Phase 3A — existing-app Compose API (2026-10-01)
 
 **Official boundary:** IceWhaleTech's Apache-2.0 `CasaOS-AppManagement` OpenAPI at
