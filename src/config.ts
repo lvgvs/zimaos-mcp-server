@@ -31,6 +31,8 @@ export interface AppConfig {
    * default-off value applies.
    */
   allowAppUninstall?: boolean;
+  /** Independent, default-off permission for existing-app Compose edits. */
+  allowAppEdit?: boolean;
   /** TCP port the HTTP server listens on. */
   port: number;
   /** debug | info | warn | error */
@@ -139,6 +141,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     allowAppControl: parseBool(env["ALLOW_APP_CONTROL"], "ALLOW_APP_CONTROL"),
     allowAppInstall: parseBool(env["ALLOW_APP_INSTALL"], "ALLOW_APP_INSTALL"),
     allowAppUninstall: parseBool(env["ALLOW_APP_UNINSTALL"], "ALLOW_APP_UNINSTALL"),
+    allowAppEdit: parseBool(env["ALLOW_APP_EDIT"], "ALLOW_APP_EDIT"),
     port: parsePort(env["PORT"]),
     logLevel: parseLogLevel(env["LOG_LEVEL"]),
   };

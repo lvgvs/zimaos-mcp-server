@@ -3,6 +3,21 @@ import { AppError } from "../src/errors.js";
 import { PermissionLayer } from "../src/permissions.js";
 
 describe("PermissionLayer", () => {
+  it("keeps editing default-off and independent of control/install/uninstall", () => {
+    const others = new PermissionLayer({
+      allowAppControl: true,
+      allowAppInstall: true,
+      allowAppUninstall: true,
+    });
+    expect(others.canEditApps()).toBe(false);
+    expect(() => others.assertCanEdit()).toThrowError(AppError);
+    const editOnly = new PermissionLayer({ allowAppControl: false, allowAppEdit: true });
+    expect(editOnly.canEditApps()).toBe(true);
+    expect(editOnly.canInstallApps()).toBe(false);
+    expect(editOnly.canControlApps()).toBe(false);
+    expect(editOnly.canUninstallApps()).toBe(false);
+    expect(() => editOnly.assertCanEdit()).not.toThrow();
+  });
   it("denies application control by default (disabled)", () => {
     const layer = new PermissionLayer({ allowAppControl: false });
     expect(layer.canControlApps()).toBe(false);

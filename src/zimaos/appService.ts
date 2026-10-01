@@ -203,6 +203,15 @@ export class AppService {
     return new ComposeEditService(this.client).validate(id, fingerprint, source);
   }
 
+  async editAppCompose(
+    id: string,
+    fingerprint: string,
+    source: string,
+    permissions: PermissionLayer,
+  ) {
+    return new ComposeEditService(this.client).edit(id, fingerprint, source, permissions);
+  }
+
   /** List all installed compose applications (normalized summaries). */
   async listApps(): Promise<AppInfo[]> {
     const data = await this.client.listComposeApps();

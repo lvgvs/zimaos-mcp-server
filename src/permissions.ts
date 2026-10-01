@@ -27,17 +27,21 @@ export interface PermissionLayerOptions {
    * not enable this one. Omitting it applies the safe default-off value.
    */
   allowAppUninstall?: boolean;
+  /** Independent, default-off existing-app Compose edit permission. */
+  allowAppEdit?: boolean;
 }
 
 export class PermissionLayer {
   private readonly allowAppControl: boolean;
   private readonly allowAppInstall: boolean;
   private readonly allowAppUninstall: boolean;
+  private readonly allowAppEdit: boolean;
 
   constructor(options: PermissionLayerOptions) {
     this.allowAppControl = options.allowAppControl;
     this.allowAppInstall = options.allowAppInstall ?? false;
     this.allowAppUninstall = options.allowAppUninstall ?? false;
+    this.allowAppEdit = options.allowAppEdit ?? false;
   }
 
   /** True when application-control operations are permitted. */
@@ -93,6 +97,17 @@ export class PermissionLayer {
       throw new AppError(
         "APP_UNINSTALL_DISABLED",
         `Application uninstall ("${action}") is disabled. Set ALLOW_APP_UNINSTALL=true to enable it.`,
+      );
+    }
+  }
+  canEditApps(): boolean {
+    return this.allowAppEdit;
+  }
+  assertCanEdit(): void {
+    if (!this.allowAppEdit) {
+      throw new AppError(
+        "APP_EDIT_DISABLED",
+        "Application Compose editing is disabled. Set ALLOW_APP_EDIT=true to enable it.",
       );
     }
   }

@@ -21,6 +21,7 @@ describe("loadConfig", () => {
     expect(cfg.allowAppControl).toBe(false); // default: control disabled
     expect(cfg.allowAppInstall).toBe(false); // default: install disabled
     expect(cfg.allowAppUninstall).toBe(false); // default: uninstall disabled
+    expect(cfg.allowAppEdit).toBe(false); // independent default-off edit
     expect(cfg.port).toBe(3000);
     expect(cfg.logLevel).toBe("info");
   });
@@ -64,6 +65,7 @@ describe("loadConfig", () => {
     ["invalid boolean", { ALLOW_APP_CONTROL: "maybe" }],
     ["invalid install flag", { ALLOW_APP_INSTALL: "maybe" }],
     ["invalid uninstall flag", { ALLOW_APP_UNINSTALL: "maybe" }],
+    ["invalid edit flag", { ALLOW_APP_EDIT: "maybe" }],
     ["invalid port", { PORT: "99999" }],
     ["non-numeric port", { PORT: "abc" }],
     ["invalid log level", { LOG_LEVEL: "verbose" }],

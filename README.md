@@ -19,8 +19,9 @@ non-mutating Compose validation and default-off safe Compose installation.
 Phase 2D adds a modern-only, single-use risky-install approval flow.
 Phase 2E adds separately gated uninstall by exact listed app id. See
 `STATUS.md` for the current milestone and `PROJECT.md` for scope.
-Phase 3B adds read-only existing-app Compose inspection and change validation;
-editing remains unavailable until the independently gated Phase 3C/3D work.
+Phase 3 adds existing-app Compose inspection, change validation, and an
+independently gated safe edit path. Risk-increasing edit approval is a separate
+modern-only flow; see `STATUS.md` for its milestone status.
 
 ## Security model
 
@@ -60,6 +61,7 @@ editing remains unavailable until the independently gated Phase 3C/3D work.
 | `ALLOW_APP_CONTROL`   | no       | `true`/`false`; enable reversible app controls (default `false`).    |
 | `ALLOW_APP_INSTALL`   | no       | `true`/`false`; enable safe Compose install (default `false`).       |
 | `ALLOW_APP_UNINSTALL` | no       | `true`/`false`; enable exact-id uninstall (default `false`).         |
+| `ALLOW_APP_EDIT`      | no       | `true`/`false`; enable existing-app Compose edits (default `false`). |
 | `PORT`                | no       | HTTP listen port (default `3000`).                                   |
 | `LOG_LEVEL`           | no       | `debug` \| `info` \| `warn` \| `error` (default `info`).             |
 
@@ -85,6 +87,19 @@ Read-only (always available):
   dry-run/port check. It rejects stale bases and project renames; never applies.
   The fingerprint is of the interpolated GET representation, so read after every
   edit. A dry-run result neither grants edit authority nor guarantees later apply.
+
+Editing (only when `ALLOW_APP_EDIT=true`, independently of install/control/uninstall):
+
+- `edit_app_compose` — supply the exact app id, current base fingerprint, and
+  exact UTF-8 proposed YAML. A benign change is dry-run validated, serialized
+  per app within this server process, re-read immediately before one real PUT,
+  and observed once afterward without retry. A stale base fails closed.
+  `accepted` means request acceptance, **not** completed application repair;
+  `upstream_error` is uncertain even if the subsequent read changed. A pending
+  or uncertain attempt reserves its base against duplicate edits while host
+  reads lag. There is no upstream conditional-write/CAS API: other actors can
+  still race between the last read and apply. Newly introduced/escalated risk
+  never follows the benign edit path.
 
 Control operations (only when `ALLOW_APP_CONTROL=true`; otherwise a clear permission error):
 

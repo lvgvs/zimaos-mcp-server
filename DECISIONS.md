@@ -222,3 +222,21 @@ the trust boundary far beyond the repair capability needed for Phase 3.
 product semantics such as exact endpoint shape, asynchronous behavior, concurrency, and rollback
 must be characterized on the disposable ZimaOS VM before the mutating edit surface is implemented
 or claimed safe.
+
+## 2026-10-01 — Existing-app edits use interpolated read fingerprints and process-local reservations
+
+**Decision:** Fingerprint the exact bytes returned by the official interpolated-YAML GET,
+not the original stored YAML (which the API does not return). Before one official PUT
+apply, compare the caller's base against a fresh GET while holding a per-app,
+process-wide lock. Reserve the base after an accepted or uncertain attempt while
+read-after-write may lag; release only on definitive rejection or an observed
+different current fingerprint. `ALLOW_APP_EDIT` is independent and default-off.
+
+**Reason:** Live conflicting PUTs both succeeded, and the official API offers no
+conditional write. This bounds duplicate process-local edits without pretending to
+prevent external races or prove completion from an asynchronous response. A single
+read-only observation is not an automatic rollback or a second mutation.
+
+**Rejected alternative:** Retry ambiguous PUTs or infer apply completion from a
+message-only 200. Either could silently overwrite newer state; there is no verified
+atomic CAS or reliable explicit rollback endpoint.

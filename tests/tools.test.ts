@@ -80,6 +80,24 @@ function makeDeps(overrides: { allowAppControl?: boolean } = {}): ToolDeps {
 }
 
 describe("MCP tools (mocked services)", () => {
+  it("keeps existing-app editing denied by default independently of other controls", async () => {
+    const deps = makeDeps();
+    const { client, serverTransport } = await connect(deps);
+    try {
+      const result = await client.callTool({
+        name: "edit_app_compose",
+        arguments: {
+          app_id: "myapp",
+          expected_fingerprint: "a".repeat(64),
+          source: "name: myapp\nservices:\n  web:\n    image: nginx\n",
+        },
+      });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toContain("APP_EDIT_DISABLED");
+    } finally {
+      await serverTransport.close();
+    }
+  });
   it("returns Phase 3 read and non-mutating validation through MCP", async () => {
     const deps = makeDeps();
     const fingerprint = "a".repeat(64);
@@ -132,6 +150,7 @@ describe("MCP tools (mocked services)", () => {
       const names = tools.map((t) => t.name).sort();
       expect(names).toEqual(
         [
+          "edit_app_compose",
           "get_app",
           "get_app_compose",
           "get_app_health",

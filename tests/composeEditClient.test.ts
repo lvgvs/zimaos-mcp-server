@@ -84,4 +84,20 @@ describe("existing-app Compose official API client (mocked)", () => {
       accepted: false,
     });
   });
+  it("applies the exact source via one official real PUT and never retries a 401", async () => {
+    const { fake, client } = setup();
+    fake.on("PUT", path, { json: { success: true } });
+    expect(await client.applyComposeChangeOnce("test-app", source)).toMatchObject({
+      status: "accepted",
+    });
+    expect(fake.calls[1]).toMatchObject({ method: "PUT", path, body: source });
+    const unauthorized = setup();
+    unauthorized.fake.on("PUT", path, { status: 401 });
+    await expect(
+      unauthorized.client.applyComposeChangeOnce("test-app", source),
+    ).rejects.toMatchObject({ code: "ZIMAOS_AUTH_FAILED" });
+    expect(unauthorized.fake.calls.filter((call) => call.method === "PUT")).toHaveLength(
+      1,
+    );
+  });
 });

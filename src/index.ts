@@ -44,6 +44,7 @@ async function main(): Promise<void> {
       allowAppControl: config.allowAppControl,
       allowAppInstall: config.allowAppInstall,
       allowAppUninstall: config.allowAppUninstall,
+      allowAppEdit: config.allowAppEdit,
     }),
   };
 

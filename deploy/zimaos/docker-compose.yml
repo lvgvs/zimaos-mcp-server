@@ -70,6 +70,9 @@ services:
       # The server always requests delete_config_folder=false.
       - ALLOW_APP_UNINSTALL=false
 
+      # Existing-app Compose edits are independently gated; disabled by default.
+      - ALLOW_APP_EDIT=false
+
       # Log verbosity: debug | info | warn | error.
       - LOG_LEVEL=info
 

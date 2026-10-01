@@ -467,6 +467,28 @@ export class ZimaOsClient {
     return normalizeComposeInstall(outcome.status, outcome.body);
   }
 
+  /** One official existing-app PUT apply. Never retry after transmission. */
+  async applyComposeChangeOnce(
+    id: string,
+    source: string,
+  ): Promise<ComposeInstallResult> {
+    if (this.accessToken === null) await this.login();
+    let outcome: InstallOutcome;
+    try {
+      outcome = await this.installOnce(
+        source,
+        `/v2/app_management/compose/${encodeURIComponent(id)}`,
+        "PUT",
+      );
+    } catch (err) {
+      if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
+        this.invalidateSession();
+      }
+      throw err;
+    }
+    return normalizeComposeInstall(outcome.status, outcome.body);
+  }
+
   /**
    * Perform one real Compose uninstall attempt and report its acceptance outcome.
    *
@@ -590,7 +612,11 @@ export class ZimaOsClient {
    * body. Non-2xx statuses are returned as data (never thrown) because they
    * carry the install outcome; only transport/auth failures throw AppError.
    */
-  private async installOnce(source: string): Promise<InstallOutcome> {
+  private async installOnce(
+    source: string,
+    path = "/v2/app_management/compose",
+    method: "POST" | "PUT" = "POST",
+  ): Promise<InstallOutcome> {
     const token = this.accessToken as string;
 
     const BEARER = "Bearer";
@@ -606,9 +632,9 @@ export class ZimaOsClient {
     let response: Response;
     try {
       response = await this.fetchImpl(
-        `${this.baseUrl}/v2/app_management/compose?dry_run=false&check_port_conflict=true`,
+        `${this.baseUrl}${path}?dry_run=false&check_port_conflict=true`,
         // The exact original UTF-8 string is sent unchanged as the body.
-        { method: "POST", headers, body: source, signal: controller.signal },
+        { method, headers, body: source, signal: controller.signal },
       );
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {

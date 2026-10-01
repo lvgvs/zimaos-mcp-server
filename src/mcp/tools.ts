@@ -265,6 +265,33 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     ),
   );
 
+  server.registerTool(
+    "edit_app_compose",
+    {
+      title: "Edit an installed application's Compose (default off)",
+      description:
+        "Applies a benign exact-source edit only when ALLOW_APP_EDIT=true and the base fingerprint still matches. Risky edits require modern single-use approval. Acceptance is not completion.",
+      inputSchema: z.object({
+        app_id: appIdSchema,
+        expected_fingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+        source: composeSourceSchema,
+      }),
+    },
+    guard(async (args) => {
+      deps.permissions.assertCanEdit();
+      return textResult(
+        JSON.stringify(
+          await deps.apps.editAppCompose(
+            String(args["app_id"]),
+            String(args["expected_fingerprint"]),
+            String(args["source"]),
+            deps.permissions,
+          ),
+        ),
+      );
+    }),
+  );
+
   // ------------------------------------------------- reversible controls --
 
   const controlTool = (name: string, action: "start" | "stop" | "restart") => {
