@@ -57,8 +57,8 @@ Read-only tools do not inherit mutation authority from any of these flags.
 
 ## Security model
 
-- **MCP authentication is mandatory.** Every MCP request must use `Authorization: Bearer
-  <token>` matching `MCP_AUTH_TOKEN`.
+- **MCP authentication is mandatory.** Every MCP request must use
+  `Authorization: Bearer <token>` matching `MCP_AUTH_TOKEN`.
 - **No default MCP secret ships with the project.** `MCP_AUTH_TOKEN` must be at least 32
   characters.
 - **ZimaOS credentials are never returned to MCP clients.**

@@ -26,8 +26,7 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 kullanıcı UAT süreci devam ediyor. İlk etiketli sürüm henüz yayınlanmadı.
 
 `latest` şu anda geliştirme dalını takip eder ve kararlı sürüm olarak
-değerlendirilmemelidir. İlk sürümden önce kurulum ayrıntıları ve release artifact'leri
-değişebilir.
+değerlendirilmemelidir. İlk sürümden önce kurulum ayrıntıları ve sürüm çıktıları değişebilir.
 
 Güncel geliştirme durumu için [`STATUS.md`](STATUS.md), onaylı kapsam ve güvenlik
 sınırları için [`PROJECT.md`](PROJECT.md) dosyasına bakın.
