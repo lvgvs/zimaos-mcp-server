@@ -173,6 +173,9 @@ Otomatik testler mock/fake bileşenler ve yerel HTTP test sunucuları kullanır.
 - [`DECISIONS.md`](DECISIONS.md) — mimari kararlar.
 - [`docs/RESEARCH.md`](docs/RESEARCH.md) — doğrulanmış API/protokol araştırmaları ve uygulama sonuçları.
 - [`AGENTS.md`](AGENTS.md) — implementation agent'ları için repo çalışma kuralları.
+- [`CHANGELOG.md`](CHANGELOG.md) — kullanıcıya yönelik sürüm değişiklik geçmişi.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — katkı ve geliştirme yönergeleri.
+- [`SECURITY.md`](SECURITY.md) — güvenlik açığı bildirim politikası.
 
 ## Lisans
 

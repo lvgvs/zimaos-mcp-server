@@ -173,6 +173,9 @@ Automated tests use mocks/fakes and local HTTP test servers. Live ZimaOS integra
 - [`DECISIONS.md`](DECISIONS.md) — architectural decisions.
 - [`docs/RESEARCH.md`](docs/RESEARCH.md) — verified API/protocol research and implementation implications.
 - [`AGENTS.md`](AGENTS.md) — repository operating rules for implementation agents.
+- [`CHANGELOG.md`](CHANGELOG.md) — user-facing release history.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution and development guidelines.
+- [`SECURITY.md`](SECURITY.md) — vulnerability reporting policy.
 
 ## License
 
