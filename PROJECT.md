@@ -1183,6 +1183,7 @@ Phase 4 may:
 - improve startup, health/readiness, configuration validation, authentication, and normalized errors;
 - make required versus optional configuration clear and safe by default;
 - harden MCP client connection/setup and tool-discovery documentation;
+- keep the English and Turkish public READMEs semantically synchronized and updated together;
 - verify existing read, control, provisioning, uninstall, Compose repair, and risky-approval flows;
 - verify restart, ZimaOS reboot, uninstall/reinstall, and release-candidate upgrade behavior;
 - improve CI, GHCR publishing, release automation, versioning metadata, changelog/release notes,
@@ -1285,6 +1286,7 @@ Phase 4 is complete only when all applicable items below are satisfied:
 - Quick Start, configuration reference, permissions, security model, risky approval, troubleshooting,
   limitations, upgrade, uninstall/reinstall, MCP examples, changelog/release notes, and release
   metadata are release-ready;
+- `README.md` and `README.tr.md` contain the same public-facing information in English and Turkish and have been updated/reviewed together;
 - dependency/license and secret/log reviews are complete;
 - full automated tests, lint, formatting, TypeScript checks, production build, Docker build,
   deployment Compose validation, and repository diff checks pass;

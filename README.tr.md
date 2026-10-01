@@ -2,7 +2,7 @@
 
 [English README](README.md)
 
-> **Yapay zekâ geliştirme bildirimi:** Bu proje GPT-5.6 Sol, GPT-6 Sol, GPT-6.1 Sol ve Qwen3.8-27B kullanılarak geliştirilmiştir. İnsan denetimi üst düzey yönlendirme, kapsam/güvenlik kararları ve sürüm kararlarıyla sınırlı kalmıştır; kod tabanı bağımsız olarak bir insan tarafından satır satır incelenmemiştir.
+> **Yapay zekâ geliştirme bildirimi:** Bu proje GPT-5.6 Sol, GPT-6 Sol, GPT-6.1 Sol ve Qwen3.8-27B kullanılarak geliştirilmiştir. İnsan denetimi yönlendirme, kapsam/güvenlik kararları ve sürüm kararlarıyla sınırlı kalmıştır; kod tabanı bağımsız olarak bir insan tarafından satır satır incelenmemiştir.
 
 MCP destekli yapay zekâ istemcilerinin ZimaOS Compose uygulamalarını küçük, tipli ve izin kontrollü bir API yüzeyi üzerinden incelemesini ve yönetmesini sağlayan bir Model Context Protocol (MCP) sunucusudur.
 

@@ -2,7 +2,7 @@
 
 [Türkçe README](README.tr.md)
 
-> **AI development disclosure:** This project was authored using GPT-5.6 Sol, GPT-6 Sol, GPT-6.1 Sol, and Qwen3.8-27B. Human oversight has consisted of high-level direction, scope/security decisions, and release decisions; the codebase has not been independently reviewed line by line by a human.
+> **AI development disclosure:** This project was authored using GPT-5.6 Sol, GPT-6 Sol, GPT-6.1 Sol, and Qwen3.8-27B. Human oversight has consisted of direction, scope/security decisions, and release decisions; the codebase has not been independently reviewed line by line by a human.
 
 A Model Context Protocol (MCP) server that lets MCP-capable assistants inspect and manage ZimaOS Compose applications through a small, typed, permission-checked API surface.
 

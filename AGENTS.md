@@ -84,6 +84,25 @@ stricter discipline:
 
 Generated or disposable untracked artifacts may be recreated normally when appropriate.
 
+## Public README localization and ownership
+
+`README.md` is the canonical English public README. `README.tr.md` is its Turkish translation.
+
+Whenever either README changes:
+
+- update **both** files in the same commit;
+- keep their section structure, technical meaning, warnings, limitations, and examples semantically equivalent;
+- translate prose naturally, but do not add product claims or omit caveats in only one language;
+- keep the language-switch link near the top of both files;
+- review both rendered documents before considering the documentation change complete.
+
+README changes are owned by the technical manager or the parent/orchestration model. Do **not**
+delegate README authoring or translation to Qwen or another local/child coding worker. If a child
+task could touch documentation, explicitly exclude `README.md` and `README.tr.md` from its scope.
+
+CI should preserve a mechanical guard that fails when only one of the two README files changes;
+that guard supplements, but does not replace, parent review for semantic translation parity.
+
 ## Clean-room requirement
 
 This project is a new implementation.
