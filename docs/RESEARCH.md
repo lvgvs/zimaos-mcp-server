@@ -610,3 +610,48 @@ the one observed name-to-id mapping.
   outcomes. No safe automatic retry can be inferred from 200 async or transport failure.
 - No fresh live verification, SDK integration test, runtime implementation, or Phase 2
   acceptance claim was made by this research pass. All are later approved work.
+
+## Phase 3A — existing-app Compose API (2026-10-01)
+
+**Official boundary:** IceWhaleTech's Apache-2.0 `CasaOS-AppManagement` OpenAPI at
+[`debfa317`](https://github.com/IceWhaleTech/CasaOS-AppManagement/blob/debfa317f0f996b91b43210e8d57799461388704/api/app_management/openapi.yaml#L449-L497)
+defines `GET /compose/{id}` (`Accept: application/yaml` yields **interpolated** YAML)
+and `PUT /compose/{id}` (`application/yaml` exact request body; `dry_run`,
+`check_port_conflict`, optional `uncontrolled`). Its 200 apply response is only
+`BaseResponse`; 400/404/500 are specified. The official published Apache-2.0
+`@icewhale/casaos-appmanagement-openapi@0.4.17-alpha1` contains the same
+`myComposeApp` and `applyComposeAppSettings` operations. These are approved,
+documented operations, **not** internal endpoint discoveries. `PATCH /compose/{id}`
+is a different App Store image-update operation and remains outside Phase 3.
+Authenticated requests use the already verified login bearer session. No official
+compare-and-swap header, version parameter, explicit rollback endpoint, or raw
+uninterpolated installed-app Compose read is specified here. A process-local lock
+cannot prevent an external actor from writing between the last GET and PUT.
+
+**Live matrix:** disposable ZimaOS v1.7.1, dedicated `p3-repair-probe-1001` nginx
+fixture, removed afterward. Probes used the official endpoints only; HTTP status,
+envelope keys, counts and digests were printed, never source bodies or tokens.
+
+| Case                                              | Observed result / implication                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Existing `GET` JSON / YAML                        | 200 JSON `{data:{compose,status,store_info},message}`; `compose` is an object. YAML returns `text/plain; charset=UTF-8`, interpolated/reformatted content. Exact posted bytes **did not** match the returned YAML even immediately after install or apply. Fingerprint the authoritative **returned representation**, not the posted source, and do not infer source equality from its digest. |
+| Missing `GET`, unauthenticated `GET`              | 404 `{message}` for both JSON/YAML; 401 `{message}` without bearer. 403, 429 and 5xx could not be safely forced on read.                                                                                                                                                                                                                                                                       |
+| Existing `PUT` dry-run                            | `?dry_run=true&check_port_conflict=true` returned 200 `{message}` for valid exact YAML; no mutation. Malformed YAML: 400 `{message}`; schema-invalid service scalar: empty 502; occupied port 80: 400 with `data.ports_in_use`; absent id: 404; unauthenticated: 401. No raw upstream message should reach MCP clients.                                                                        |
+| Project-name mismatch in dry-run                  | **200** despite changed top-level `name`. Product must check identity locally; upstream dry-run is not an identity safeguard. A real mismatched PUT was deliberately not sent.                                                                                                                                                                                                                 |
+| Real `PUT` env/config and port                    | `?dry_run=false&check_port_conflict=true` each returned 200 `{message}`; subsequent YAML GET observed the changed marker or benign published port 18977 on first two-second observation. GET source was reformatted; container API returned 200 after each. This establishes visible post-apply state, **not** synchronous completion or container recreation details.                         |
+| Real invalid Compose                              | The service-scalar invalid document returned empty 502. Three seconds later the existing YAML digest and app-list ids were unchanged. This one failure **does not prove rollback**; it may have failed before any mutation.                                                                                                                                                                    |
+| Existing self-port / real occupied-port rejection | Unchanged YAML from an app already publishing a host port passed PUT dry-run with `check_port_conflict=true`; the check does not reject its own port. A real PUT to occupied host port 80 returned 400 with `data.ports_in_use`; three seconds later the fixture's YAML digest was unchanged. This does not prove restoration after a partial apply.                                           |
+| Concurrent conflicting real PUTs                  | Two simultaneous edits to the same dedicated fixture, both based on the same read, each returned 200 `{message}`; after bounded read-only observation one candidate's environment marker won. No conflict response/CAS was observed. The product must serialize its own writes and recheck the base, but cannot guarantee safety against concurrent external writers.                          |
+| Fixture cleanup                                   | Official DELETE with `delete_config_folder=false` returned 200 `{message}`; app disappeared from read-only list on first two-second poll. Only pre-existing `mcp-test-nginx` remained.                                                                                                                                                                                                         |
+
+**Unresolved / conservative implementation boundary:** No explicit supported
+rollback API or reliable rollback guarantee has been verified. An invalid PUT
+leaving the old configuration visible is not evidence that every partially applied
+edit can be restored. A second actual mutation must not be issued as an automatic
+"rollback" after an uncertain first attempt. The OpenAPI contains no atomic
+conditional-write primitive, and live conflicting PUTs both succeeded. Concurrent
+external writes cannot be made impossible with process-local optimistic concurrency;
+document this residual race. The
+read representation may interpolate environment values and thus contain app
+secrets: do not log it or upstream error messages, and do not use the MCP server's
+own Compose as an acceptance fixture.

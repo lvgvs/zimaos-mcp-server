@@ -10,10 +10,16 @@ authoritative.
   `5ffdb92831ee76109d44460db3a6f060db8f153f`. At handoff, `origin/main` matched, the worktree
   was clean, no child remained active, 390/390 tests passed, all local quality/build/Docker/Compose
   gates passed, and final CI/GHCR publishing succeeded.
-- **Phase 3:** explicitly approved/planned as **App Configuration & Repair**; implementation has
-  not started. Phase 3 begins with supported-API/source research plus disposable-VM live
-  characterization of existing-app Compose read/apply/rollback/concurrency semantics before any
-  edit mutation is implemented.
+- **Phase 3A:** official-API research and live semantics completed; no Phase 3 runtime edits yet.
+  Official IceWhaleTech OpenAPI defines `GET /v2/app_management/compose/{id}` (interpolated
+  YAML) and `PUT` on that path (dry-run or apply); both were exercised against v1.7.1 on a
+  dedicated disposable app. Exact posted source differs from reformatted GET YAML. Live env and
+  port edits were observed read-only after 200 `{message}` responses; invalid YAML, invalid
+  Compose, name mismatch in dry-run, occupied port, missing id, 401 and concurrent conflicting
+  real PUTs were characterized. Two simultaneous PUTs both returned 200; no upstream CAS.
+  Failed invalid/occupied-port real PUTs left the previous GET digest unchanged in these probes,
+  but this is **not** a general rollback guarantee. Research matrix: `docs/RESEARCH.md`.
+  Fixture was removed; read-only list showed only pre-existing `mcp-test-nginx`.
 - **Planned Phase 3 sequence:** 3A research/live semantics → 3B read/fingerprint/diff/validate →
   3C safe edit with independent default-off `ALLOW_APP_EDIT` and optimistic concurrency →
   3D risky-edit approval reusing the modern single-use Phase 2 approval model → 3E only
@@ -24,10 +30,16 @@ authoritative.
 - **Phase 2 limitations carried forward:** `update_app` remains intentionally absent because
   supported App Store update semantics are unverified. ZimaOS Custom App UI paste/install remains
   an optional manual deployment check.
-- **Next action:** start Phase 3A under a fresh manager/orchestrator execution prompt. Read
-  AGENTS.md/PROJECT.md/STATUS.md/DECISIONS.md/docs/RESEARCH.md and current Git state first; then
-  verify the exact existing-app Compose read/apply semantics against official sources and the
-  authorized disposable VM. Do not infer mutation or rollback behavior.
+- **Next action:** implement Phase 3B read/fingerprint/diff/non-mutating validation using
+  the official GET and PUT dry-run, with explicit interpolated-read/secret handling. Then
+  complete 3C–3E under the approved scope. No child is active.
+- **Current branch/base HEAD:** `main` at planning commit
+  `c5d1d0edff0c5fe1c239693262fae6517b0c6e51` before the Phase 3A research commit;
+  `origin/main` matched at start. GitHub: https://github.com/lvgvs/zimaos-mcp-server.
+  Last full mocked gates remain the Phase 2 390/390 result, **not** a Phase 3 rerun. Phase 3A
+  used live secret-safe probes; no product build or Docker image was made. GHCR Phase 3 image
+  has not been published. No blockers requiring manager approval currently; recovery remains
+  conservative without an explicit rollback API. No manual action required.
 
 ## Git / repository
 
