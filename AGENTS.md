@@ -257,6 +257,16 @@ Container package visibility is a separate decision.
 
 Use the available GitHub skill/integration for GitHub operations where appropriate.
 
+Git commits, pushes, and history/ref operations are owned by Hermes using this local
+repository's Git. Manager/parent sessions may review or prepare content, but external
+assistant-side direct GitHub commit/ref writes are not part of the normal workflow.
+Local Qwen workers do not own Git. Explicitly approved repository administration may
+use the GitHub integration/API; it does not transfer commit/push ownership.
+
+`lvgvs/zimaos-mcp-server` is the single active canonical repository. The separate private
+historical repository is preservation-only: no future development, dual-write, mirroring,
+or synchronization back to it.
+
 Work in logical commits.
 
 Before pushing a commit that claims a feature works, run the relevant:

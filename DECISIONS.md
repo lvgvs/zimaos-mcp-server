@@ -264,3 +264,24 @@ workarounds.
 **Execution note:** The parent model should handle routine Phase 4 work itself. A local coding worker
 is optional only for a genuinely substantial, bounded implementation workload; the parent retains
 review, testing, Git, and release ownership.
+
+## 2026-10-01 — One canonical sanitized repository; private history is preservation-only
+
+**Decision:** Migrate the preserved sanitized project history into a new, initially private
+`lvgvs/zimaos-mcp-server` repository. Preserve the original repository, original GitHub identity,
+history, PRs and Actions as the private `lvgvs/zimaos-mcp-server-private-history` archive.
+Only the new repository receives future development; no dual-write, mirroring or synchronization.
+Keep the existing `ghcr.io/lvgvs/zimaos-mcp-server` package name; package access/linkage is a separate
+manager gate. Repository Git commits/pushes/history operations remain Hermes/local-Git owned.
+
+**Reason:** GitHub-managed closed-PR refs cannot be rewritten by ordinary Git pushes. A distinct
+canonical repository preserves meaningful sanitized project history without importing those refs,
+while retaining original private historical evidence without deleting or force-pushing it.
+
+**Rejected alternative:** An in-place branch rewrite that leaves old PR history reachable, or
+parallel active repositories that could accidentally reintroduce unsanitized history.
+
+**Boundary:** Migrate `main` only; inspected old Dependabot branches contain generated dependency
+updates, not unique manager/development work. Backup/candidate/PR refs stay out of the new remote.
+Freeze the old repository after canonical CI/privacy verification and once doing so will not
+obstruct GHCR access/linkage migration. Neither source nor package becomes public in this operation.

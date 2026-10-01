@@ -728,6 +728,9 @@ changed fingerprint is not proof that the candidate has completed successfully.
 
 ## Pre-public GitHub history-retention boundary (2026-10-01)
 
+Historical finding: the manager subsequently approved a distinct canonical-repository migration
+rather than an in-place remote rewrite. The original private PR refs remain preservation-only.
+
 - Authoritative source: [GitHub: Removing sensitive data from a repository](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository).
   GitHub marks `refs/pull/*` read-only; a branch-history rewrite cannot update those
   internal refs. Old data can remain accessible through PRs and cached SHA views.
@@ -741,3 +744,23 @@ changed fingerprint is not proof that the candidate has completed successfully.
   pre-public privacy sanitization. Stop before remote replacement for a manager decision
   on GitHub-managed history retention; do not delete PRs, recreate the repository,
   change visibility or contact Support without approval.
+
+## Canonical repository migration / GHCR identity boundary (2026-10-01)
+
+- Read-back verification: the renamed private historical repository retained GitHub numeric ID
+  `1388638620` and its original main. The new empty private canonical repository has distinct ID
+  `1400704911`. A normal `main` push imported 48 sanitized commits; independent clone/scan verified
+  the initial tree and history. No old backup/candidate/PR ref was pushed.
+- Authoritative source: [GitHub Container registry documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
+  Package linkage/access is separate from the image's namespace. GitHub recommends
+  `org.opencontainers.image.source` for repository association; linked repositories can inherit
+  Actions package access. An unchanged repository name does not establish unchanged repository ID.
+  The runtime Dockerfile now labels the canonical source URL explicitly.
+- New-repository workflow evidence at initial import: GHCR login and image build succeeded;
+  tag publication failed with `permission_denied: write_package`. Available API credentials still
+  cannot read package visibility, linked repository or versions (`read:packages` required, HTTP 403).
+  Do not infer current linkage, visibility or stale-image cleanup from those failures.
+- Implication: an owner must inspect package settings and grant the new repository Actions write
+  access to the existing package, then verify/relink its canonical source as appropriate. No new
+  package name, personal-token workaround, visibility change or package-version deletion is needed.
+  Preserve the historical repository unarchived until linkage/access migration is resolved.

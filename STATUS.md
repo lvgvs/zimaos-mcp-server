@@ -4,7 +4,59 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 pre-public history sanitization — blocked before remote update (2026-10-01)
+## Phase 4 canonical migration — GHCR access manager gate (2026-10-01)
+
+- **Canonical source:** https://github.com/lvgvs/zimaos-mcp-server is a new PRIVATE
+  repository, GitHub numeric ID `1400704911`, default branch `main`. Normal push imported
+  the preserved sanitized candidate `a736778a4ba5527b5620bb0facbf4c2cf935e6e5` with 48 commits
+  (47 original project commits plus the privacy checkpoint). The containing migration
+  commit adds only durable ownership/migration documentation and the OCI source label.
+  Local `main` tracks the new `origin/main`; future development goes only here.
+- **Private historical preservation:** https://github.com/lvgvs/zimaos-mcp-server-private-history
+  retained original GitHub ID `1388638620`, original refs/history, PRs and Actions. It remains
+  PRIVATE, not deleted or rewritten, with original main unchanged. GitHub archival is
+  deferred until package access/linkage is resolved. Local `archive` is fetch-only with
+  a disabled push URL; `remote.pushDefault=origin`. No dual-write, mirroring or synchronization.
+- **Ref classification:** only `main` migrated. All eight inspected unique old branches were
+  generated Dependabot updates, not manager/development work; they remain in the private
+  historical repository. Recovery/candidate refs remain local-only. No old PR ref migrated;
+  any subsequent automated Dependabot activity in the new repository is newly generated.
+- **Privacy verification:** an independent bare clone of the new canonical repository
+  matched the imported main tree/history; Gitleaks v8.30.1 full-history scan was clean.
+  Main's 48-commit local preflight independently inspected 228 reachable blobs: no personal
+  Hotmail metadata, RFC 1918 literals or real secret was found. No credential rotation
+  indicated. Rewritten commit-reference consistency and approved external SHA pins remain
+  intact; pre-rewrite registry tags are explicitly historical artifact identifiers.
+- **Ownership/docs/image:** AGENTS now records Hermes/local-Git commit/push/history ownership
+  and one canonical source, with no Git ownership for Qwen or external assistant-side writes.
+  The manager-approved migration decision and registry findings are durable. PROJECT and
+  both public READMEs remain unchanged; bilingual parity/links/disclosures were reviewed.
+  Production Docker label `org.opencontainers.image.source` names the canonical repository;
+  a built-image inspection verified the exact URL. Package name is unchanged.
+- **Executed local migration gates:** 429/429 mocked tests in 25 files passed; dependency
+  install, format, lint, both TypeScript checks, production build, Docker build
+  (`zimaos-mcp-server:canonical-migration`), Compose config and diff checks passed.
+  No live ZimaOS test or mutation was performed; no general Phase 4 hardening was started.
+- **New-repository workflow evidence at imported head:** CI `36924353462` succeeded,
+  including README parity and all configured quality/Docker/Compose gates. GHCR publish
+  `36924353519` failed at tag push with `permission_denied: write_package`; login and image
+  build succeeded. These are new-repository runs, not inherited old-repository evidence.
+  The containing migration follow-up requires its own exact-head workflow read-back.
+- **GHCR manager gate:** package metadata still returns HTTP 403 (`read:packages` absent).
+  Current linked repository, package visibility and stale pre-rewrite version inventory are
+  unverified. No visibility/access setting or version was changed; no old images were deleted.
+  Owner action: open the existing `zimaos-mcp-server` container package's settings, under
+  **Manage Actions access** add the new canonical repository and select **Write**; inspect
+  and report its connected repository, visibility and retained old SHA tags. Actions access
+  and connected-repository linkage are separate settings. Do not make the package public.
+- **Next action:** stop for that bounded package-setting action, then verify exact-head
+  GHCR publication and canonical linkage before freezing the old repository. No final release
+  tag/GitHub Release/public visibility change, force push, Qwen or subagent was used.
+
+## Historical pre-public sanitization checkpoint — superseded by migration (2026-10-01)
+
+The snapshot below records the earlier stop. Its in-place force-push proposal is withdrawn;
+the historical repository must not receive rewritten refs or future normal development.
 
 - **Scope/state:** parent-only, manager-authorized privacy rewrite; no feature hardening.
   Original remote `main`: `835be86704b7a981054ea11c90483ec54a3d8a9c`
@@ -53,11 +105,10 @@ authoritative.
   because the available token lacks `read:packages`; stale published pre-rewrite tags
   may remain and have not been deleted. Visibility is unverified, not inferred.
   No release tag, GitHub Release, source/GHCR visibility change, local model or subagent.
-- **Exact next action:** manager must resolve GitHub read-only PR/cached-history retention
-  before approving a branch-only replacement or another cleanup route. Preserve the local
-  candidate and backups. If cleared, finish all branch-tip SHA reconciliation, rescan and
-  rerun gates, verify every explicit old-ref lease, then atomically force-with-lease the
-  nine approved writable refs and verify exact-head CI/GHCR. Do not make the repo public.
+- **Superseded next action:** the manager rejected the proposed in-place force-with-lease
+  replacement and approved migration to a distinct canonical repository. Preserve the
+  local candidate/backups and original private historical repository; never push rewritten
+  history or synchronize future development to the archive.
 
 ## History-reference interpretation
 
@@ -100,7 +151,7 @@ this current document reconciles the reachable repository commit references.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** resolve the pre-public history-retention blocker above.
+- **Current next action:** resolve new-canonical-repository GHCR Actions access/linkage above.
   The separate image-access/UAT manager gate remains pending; no UAT result was reported.
 
 ## Phase 4 initial audit — image-access manager gate (2026-10-01)

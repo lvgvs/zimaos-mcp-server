@@ -17,6 +17,7 @@ RUN npm run build && rm -rf node_modules
 # Runtime stage: production dependencies only, non-root user.
 # ---------------------------------------------------------------------------
 FROM node:22-alpine AS runtime
+LABEL org.opencontainers.image.source="https://github.com/lvgvs/zimaos-mcp-server"
 ENV NODE_ENV=production
 WORKDIR /app
 
