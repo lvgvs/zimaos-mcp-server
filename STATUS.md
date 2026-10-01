@@ -4,18 +4,23 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 canonical migration — GHCR access manager gate (2026-10-01)
+## Phase 4 canonical migration — GHCR verified; manager review (2026-10-01 UTC)
 
 - **Canonical source:** https://github.com/lvgvs/zimaos-mcp-server is a new PRIVATE
   repository, GitHub numeric ID `1400704911`, default branch `main`. Normal push imported
   the preserved sanitized candidate `a736778a4ba5527b5620bb0facbf4c2cf935e6e5` with 48 commits
-  (47 original project commits plus the privacy checkpoint). The containing migration
-  commit adds only durable ownership/migration documentation and the OCI source label.
+  (47 original project commits plus the privacy checkpoint). The verified migration implementation is
+  `a709194e536286a992953c27f55e59bb01ed67dd`, with 49 commits after the migration documentation
+  and OCI source-label commit. The containing status-only checkpoint adds one commit;
+  its own exact-head CI/GHCR must be verified after push. The earlier successful publication
+  rerun required no new commit.
   Local `main` tracks the new `origin/main`; future development goes only here.
 - **Private historical preservation:** https://github.com/lvgvs/zimaos-mcp-server-private-history
   retained original GitHub ID `1388638620`, original refs/history, PRs and Actions. It remains
-  PRIVATE, not deleted or rewritten, with original main unchanged. GitHub archival is
-  deferred until package access/linkage is resolved. Local `archive` is fetch-only with
+  PRIVATE, not deleted or rewritten, with original main unchanged. GitHub archival was
+  completed and read back after exact-head canonical CI/GHCR success; its branch/tag
+  inventory remained identical. No old workflow was queued/running at freeze.
+  Local `archive` is fetch-only with
   a disabled push URL; `remote.pushDefault=origin`. No dual-write, mirroring or synchronization.
 - **Ref classification:** only `main` migrated. All eight inspected unique old branches were
   generated Dependabot updates, not manager/development work; they remain in the private
@@ -41,17 +46,26 @@ authoritative.
   including README parity and all configured quality/Docker/Compose gates. GHCR publish
   `36924353519` failed at tag push with `permission_denied: write_package`; login and image
   build succeeded. These are new-repository runs, not inherited old-repository evidence.
-  The containing migration follow-up requires its own exact-head workflow read-back.
-- **GHCR manager gate:** package metadata still returns HTTP 403 (`read:packages` absent).
+  At migration implementation head `a709194e536286a992953c27f55e59bb01ed67dd`, CI `36924944519`
+  succeeded. After the owner granted the new repository Actions WRITE access, GHCR run
+  `36924944585`, attempt 2, was rerun without a commit and succeeded, including tag push.
+  `ghcr.io/lvgvs/zimaos-mcp-server:latest` and
+  `ghcr.io/lvgvs/zimaos-mcp-server:sha-a709194e536286a992953c27f55e59bb01ed67dd`
+  both published digest `sha256:ffc58b6cdfc1fcae2963edd533a178665e1aee75cba994427972adecead123e2`.
+- **Package metadata limitation:** package metadata still returns HTTP 403 (`read:packages` absent).
   Current linked repository, package visibility and stale pre-rewrite version inventory are
-  unverified. No visibility/access setting or version was changed; no old images were deleted.
-  Owner action: open the existing `zimaos-mcp-server` container package's settings, under
-  **Manage Actions access** add the new canonical repository and select **Write**; inspect
-  and report its connected repository, visibility and retained old SHA tags. Actions access
-  and connected-repository linkage are separate settings. Do not make the package public.
-- **Next action:** stop for that bounded package-setting action, then verify exact-head
-  GHCR publication and canonical linkage before freezing the old repository. No final release
-  tag/GitHub Release/public visibility change, force push, Qwen or subagent was used.
+  unverified. Hermes changed no package visibility/access setting or version; no old images were deleted.
+  The canonical repository's working Actions WRITE path is verified by its own successful
+  publication. Its image has the canonical OCI source label; that is not proof of the
+  package settings' connected-repository field. The manager reports removing the old
+  private-history repository's Actions access while retaining canonical WRITE access;
+  this owner UI cleanup is manager-reported, not independently verified through the API.
+  Access removal must not be conflated with unlinking the package, changing
+  inheritance/visibility or deleting versions.
+- **Next action:** verify this checkpoint's exact-head CI/GHCR, then stop for manager review.
+  Owner may inspect/report the connected repository, visibility and retained old SHA tags.
+  No general Phase 4 work,
+  final release tag/GitHub Release/public visibility change, force push, Qwen or subagent.
 
 ## Historical pre-public sanitization checkpoint — superseded by migration (2026-10-01)
 
@@ -151,7 +165,7 @@ this current document reconciles the reachable repository commit references.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** resolve new-canonical-repository GHCR Actions access/linkage above.
+- **Current next action:** manager review of successful canonical CI/GHCR and archive freeze above.
   The separate image-access/UAT manager gate remains pending; no UAT result was reported.
 
 ## Phase 4 initial audit — image-access manager gate (2026-10-01)
