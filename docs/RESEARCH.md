@@ -162,7 +162,8 @@ unwrap a `data` key for `/v2/zimaos/*`.
 ## Phase 2 research checkpoint — 2026-09-27
 
 This is research, not implemented behavior. The Astra recovery pass started with clean
-`main` and remote main at `06fe86c267c27648e48b8616944984b795cb86ae`.
+`main` and remote main at `a0d7f3a6154fb18e56d4417e36bfe62f513cedf2`
+(rewritten equivalent after the approved pre-public history sanitization).
 No live ZimaOS requests or mutations were made in this pass. Evidence classes below
 separate official documentation, local synthetic experiments, and manager-provided live facts.
 
@@ -724,3 +725,19 @@ tests. The product offers bounded read-only reconciliation after a single PUT,
 not rollback, `.bak` access, host-file writes or automatic retry. An ambiguous
 response remains uncertain even if a subsequent GET is unchanged; an observed
 changed fingerprint is not proof that the candidate has completed successfully.
+
+## Pre-public GitHub history-retention boundary (2026-10-01)
+
+- Authoritative source: [GitHub: Removing sensitive data from a repository](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository).
+  GitHub marks `refs/pull/*` read-only; a branch-history rewrite cannot update those
+  internal refs. Old data can remain accessible through PRs and cached SHA views.
+  GitHub describes Support-assisted PR dereferencing, cache removal and server garbage
+  collection, but explicitly says Support will not remove non-sensitive data and applies
+  its own sensitive-data criteria. Do not promise that personal-email cleanup qualifies.
+- Live read-only evidence: remote ref enumeration found open-PR heads/merge refs and
+  closed PR #3's head. The closed PR is unmerged; its fetched history reaches seven
+  commits containing the personal email in metadata. No private email value is recorded.
+- Implication: the locally verified branch rewrite alone is not proof of complete
+  pre-public privacy sanitization. Stop before remote replacement for a manager decision
+  on GitHub-managed history retention; do not delete PRs, recreate the repository,
+  change visibility or contact Support without approval.

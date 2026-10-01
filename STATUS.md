@@ -4,15 +4,80 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
+## Phase 4 pre-public history sanitization — blocked before remote update (2026-10-01)
+
+- **Scope/state:** parent-only, manager-authorized privacy rewrite; no feature hardening.
+  Original remote `main`: `835be86704b7a981054ea11c90483ec54a3d8a9c`
+  (**pre-rewrite recovery identifier**, not a rewritten reachable commit).
+  Local rewritten equivalent: `3767df680bce54b4d7799b0d7dfcd602034299ae`;
+  the containing normal checkpoint commit is the local candidate on `main`.
+  Local-only backup `refs/backup/pre-public-history-rewrite` and per-branch backups
+  preserve recovery; the complete filter-repo commit map is retained locally.
+- **Sanitization verified locally:** git-filter-repo v2.47.0 processed all 55 commits
+  across `main` and eight inspected Dependabot branches; 54 commit IDs changed.
+  No commits disappeared; parents/topology, names, dates and messages were preserved.
+  The personal commit email was replaced exactly with the GitHub noreply identity;
+  no Hotmail author/committer metadata remains in the rewritten candidate histories.
+  Three path-scoped project examples now use RFC 5737 addresses; no RFC 1918 literal
+  remains in rewritten branch content history. Current product-tree change is only
+  a configuration comment, plus this checkpoint/SHA-reference documentation.
+- **Secret/privacy scans:** Gitleaks v8.30.1 found no leaks before or after rewriting.
+  The original-history scan was expanded to GitHub PR refs: 64 reachable commits
+  (56 non-merge commits reported by Gitleaks), 243 unique blobs independently inspected.
+  Additional token/key/bearer/credential/env/email/topology pattern checks found only
+  code references, placeholders and mock fixtures; no real secret or local integration
+  secret-value match was found. No credential rotation is indicated by these results.
+  `.env.integration.local` remains ignored and untracked; scanner reports stay local.
+- **SHA/documentation reconciliation:** current `main` Markdown commit references use
+  the reliable old-to-new map; existing registry tags are explicitly pre-rewrite
+  artifacts, and historical workflow evidence is not claimed for rewritten SHAs.
+  External upstream SHA pins remain untouched. Both READMEs are unchanged, parent-reviewed
+  for semantic parity, language links and the approved AI-development disclosures.
+  AGENTS/PROJECT constraints remain intact. Dependabot tip-document reconciliation is
+  pending the remote-ref decision; no remote candidate is claimed ready to push.
+- **Local gates:** 429/429 mocked tests across 25 files passed; format check, lint,
+  production/test TypeScript checks, production build, Docker build
+  (`zimaos-mcp-server:history-sanitized`), deployment Compose config and diff check passed.
+  Initial dependency installation inherited `NODE_ENV=production` and omitted developer
+  tools; installing developer dependencies resolved that environment-only failure.
+  No live VM test or mutation was performed for this history operation.
+- **Blocking remote retention:** GitHub-managed `refs/pull/*` are read-only. Closed,
+  unmerged PR #3 retains `refs/pull/3/head`, independently fetched and verified to reach
+  seven commits with the personal email. Rewriting the nine writable branch refs alone
+  cannot satisfy the full privacy-safe public-history requirement. Do not assume an open
+  PR refresh purges closed PR refs or cached commit views. GitHub documents Support-assisted
+  cleanup, but warns it will not remove non-sensitive data; success is not assured.
+- **Remote/package status:** source repository freshly verified PRIVATE. No force push
+  was performed; remote `main` remains at the original pre-rewrite head. Rewritten-head
+  CI/GHCR runs do not exist yet. GHCR visibility/version inventory queries return HTTP 403
+  because the available token lacks `read:packages`; stale published pre-rewrite tags
+  may remain and have not been deleted. Visibility is unverified, not inferred.
+  No release tag, GitHub Release, source/GHCR visibility change, local model or subagent.
+- **Exact next action:** manager must resolve GitHub read-only PR/cached-history retention
+  before approving a branch-only replacement or another cleanup route. Preserve the local
+  candidate and backups. If cleared, finish all branch-tip SHA reconciliation, rescan and
+  rerun gates, verify every explicit old-ref lease, then atomically force-with-lease the
+  nine approved writable refs and verify exact-head CI/GHCR. Do not make the repo public.
+
+## History-reference interpretation
+
+Repository commit references below identify the rewritten equivalents after the approved
+pre-public privacy sanitization. Historical CI/GHCR run IDs still describe executions
+on the original, pre-rewrite commits, not verification of the rewritten equivalents.
+Existing `sha-` container tags are intentionally retained as **pre-rewrite artifact
+identifiers**; Git rewriting does not rename or delete registry images. Historical
+snapshot SHA references in earlier file revisions are likewise pre-rewrite identifiers;
+this current document reconciles the reachable repository commit references.
+
 ## Current phase / milestone
 
 - **Phase 3:** complete and manager-approved. Final Phase 3 HEAD:
-  `a20a35efd9dea08fbfc3c69f0661b03217934ff6`.
-- **Phase 3 milestones:** 3A `93a794bbdabba46ee41c6c7f057065a9241604e6`; 3B
-  `a783f4e74405f1a0144aca6c3c8380a8c1037a69`; 3C
-  `8b3e054c2f06b54023f16fb0aa1c5387c89c1028`; 3D
-  `70173eea39d9be2b77ff8428c7afff6cb19e38db`; closing fix
-  `a20a35efd9dea08fbfc3c69f0661b03217934ff6`.
+  `febdcf5c061edb9f21f80dc5115f30e51149de0b`.
+- **Phase 3 milestones:** 3A `3102cdcd5533293c921c99c8f61e313daeed17b1`; 3B
+  `14b8f44180d1e4fb37fafca79c5d86e73fec25f4`; 3C
+  `60879a80d83659493e8256a765862c6e33cd5a4e`; 3D
+  `8467546bd137d9bdb6703f3d4dde3c181264be58`; closing fix
+  `febdcf5c061edb9f21f80dc5115f30e51149de0b`.
 - **Phase 3 final verification:** **429/429** mocked tests passed. Lint, formatting, production and
   test TypeScript checks, production build, Docker build, ZimaOS deployment Compose validation,
   and `git diff --check` passed. Final-head GitHub CI run `36894143739` and GHCR publish run
@@ -35,13 +100,13 @@ authoritative.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** manager image-access decision required before meaningful fresh-install
-  UAT; see the Phase 4 checkpoint below. No manager UAT result has been reported.
+- **Current next action:** resolve the pre-public history-retention blocker above.
+  The separate image-access/UAT manager gate remains pending; no UAT result was reported.
 
 ## Phase 4 initial audit — image-access manager gate (2026-10-01)
 
 - **Reconciliation:** clean `main` at Phase 3 implementation HEAD was safely fast-forwarded
-  through the single manager transition commit to `3b250aa59be75f1ec1e874196e3bd0c3d1f4fea9`;
+  through the single manager transition commit to `5e31b3dfe47bc2f6c7a1bcc4d446379b1d3d710c`;
   `origin/main` matched. Durable Phase 4 authorization and Phase 3 closing evidence were read.
   No history rewrite, local model, child, or new live VM mutation/test was used.
 - **Checkpoint candidate:** the containing checkpoint commit on `main`; runtime remains exactly
@@ -57,8 +122,9 @@ authoritative.
   `.env.integration.local` remains ignored, untracked and unstaged; only `.env.example` is
   tracked among environment files. No runtime shell/SSH/socket/privileged control path was added.
 - **Remote baseline verification:** CI `36903520647` and GHCR publish `36903520625` succeeded
-  for `3b250aa59be75f1ec1e874196e3bd0c3d1f4fea9`; Phase 3 closing runs also read back as successful.
-  Audit checkpoint `7d3e36b0247795575b317ebe2b961e4565667285` was committed/pushed with clean
+  for the rewritten equivalent `5e31b3dfe47bc2f6c7a1bcc4d446379b1d3d710c`; Phase 3 closing
+  runs also read back as successful on their original pre-rewrite commits.
+  Audit checkpoint `99ee2fcf2b5c8df22b7ac945fd8ae46f4e7bea2b` was committed/pushed with clean
   `main` matching origin; CI `36906056806` and GHCR publish `36906057235` both succeeded.
   Its image is `ghcr.io/lvgvs/zimaos-mcp-server:sha-7d3e36b0247795575b317ebe2b961e4565667285`.
   This containing documentation-only follow-up records those results; verify its own exact-SHA
@@ -100,12 +166,12 @@ authoritative.
 ## Git / repository
 
 - **Branch:** `main`
-- **Phase 2 final implementation HEAD:** `5ffdb92831ee76109d44460db3a6f060db8f153f`
-- **Phase 3A HEAD:** `93a794bbdabba46ee41c6c7f057065a9241604e6`
-- **Phase 3B HEAD:** `a783f4e74405f1a0144aca6c3c8380a8c1037a69`
-- **Phase 3C HEAD:** `8b3e054c2f06b54023f16fb0aa1c5387c89c1028`
-- **Phase 3D HEAD:** `70173eea39d9be2b77ff8428c7afff6cb19e38db`
-- **Phase 3 final implementation HEAD:** `a20a35efd9dea08fbfc3c69f0661b03217934ff6`
+- **Phase 2 final implementation HEAD:** `7dcb169d29df8b154c4658a689f5b9120db2e4f0`
+- **Phase 3A HEAD:** `3102cdcd5533293c921c99c8f61e313daeed17b1`
+- **Phase 3B HEAD:** `14b8f44180d1e4fb37fafca79c5d86e73fec25f4`
+- **Phase 3C HEAD:** `60879a80d83659493e8256a765862c6e33cd5a4e`
+- **Phase 3D HEAD:** `8467546bd137d9bdb6703f3d4dde3c181264be58`
+- **Phase 3 final implementation HEAD:** `febdcf5c061edb9f21f80dc5115f30e51149de0b`
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server
 - **Repository visibility at Phase 4 authorization:** private.
 - **GHCR:** `ghcr.io/lvgvs/zimaos-mcp-server:sha-a20a35efd9dea08fbfc3c69f0661b03217934ff6`;
@@ -118,8 +184,8 @@ authoritative.
 This section is a historical pause snapshot, superseded by the current milestone above and
 the resumed implementation record below.
 
-- **HEAD / branch / remote:** `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`,
-  `main`, remote `main` matched. Phase 2A (`0968107`) was committed and pushed
+- **HEAD / branch / remote:** `d2c7b49b015c3c5b9e350b223a86649cd164ac53`,
+  `main`, remote `main` matched. Phase 2A (`d2c7b49`) was committed and pushed
   before the pause; no commit or push was made during the pause procedure.
 - **Completed bounded work since Phase 2A:** Added exact `yaml@2.9.1` production
   dependency and a bounded parser (`src/compose/parse.ts`), preserving the original
@@ -177,7 +243,7 @@ the resumed implementation record below.
   `docker compose -f deploy/zimaos/docker-compose.yml config --quiet`, and
   `git diff --check` — all passed. These are mocked/local gates, not live VM acceptance.
   `.env.integration.local` remains Git-ignored. No Phase 2 live VM action yet.
-- Branch `main`; base commit before Phase 2B is `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`;
+- Branch `main`; base commit before Phase 2B is `d2c7b49b015c3c5b9e350b223a86649cd164ac53`;
   repository https://github.com/lvgvs/zimaos-mcp-server (private). GHCR Phase 2 image not
   verified; ZimaOS Compose deployment not yet exercised for Phase 2.
 
@@ -210,8 +276,8 @@ the resumed implementation record below.
 
 This is a historical pause snapshot, superseded by the resumed Phase 2C milestone below.
 
-- `main` HEAD `e8774f23ce9ecf55050eaac7b0767a3595c72109` (pushed Phase 2B);
-  Phase 2A was committed/pushed at `0968107dc5280b4e0099e0d8b2538634eaf5ab6c`.
+- `main` HEAD `74c7d6cf7b797a2552e5109c9fbe582da00bf35b` (pushed Phase 2B);
+  Phase 2A was committed/pushed at `d2c7b49b015c3c5b9e350b223a86649cd164ac53`.
   Worktree intentionally dirty: modified `STATUS.md`, `src/config.ts`, `src/errors.ts`,
   `src/index.ts`, `src/permissions.ts`, `src/zimaos/appService.ts`, `src/zimaos/client.ts`,
   `tests/client.test.ts`, `tests/config.test.ts`, `tests/permissions.test.ts`; untracked
@@ -270,7 +336,7 @@ This is a historical pause snapshot, superseded by the resumed Phase 2C mileston
   production/test TypeScript checks, production build, Docker build
   (`zimaos-mcp-server:phase2c`), deployment Compose config validation and `git diff --check`
   all passed. No Phase 2C live VM test or GHCR publication verified yet.
-- Branch `main`, base HEAD `e8774f23ce9ecf55050eaac7b0767a3595c72109` before
+- Branch `main`, base HEAD `74c7d6cf7b797a2552e5109c9fbe582da00bf35b` before
   Phase 2C commit. Repo https://github.com/lvgvs/zimaos-mcp-server (private).
   Phase 2D risky approval, Phase 2E uninstall and final live acceptance remain.
 
@@ -297,7 +363,7 @@ This is a historical pause snapshot, superseded by the resumed Phase 2C mileston
   No live Phase 2 VM action has occurred. Client-side human presentation is a
   requirement of the chosen client, not a cryptographic property of MCP;
   automated tests verify wire behavior, not actual human presence.
-- Phase 2D committed/pushed at `e5f5a6ef400a5278c671a5c44562c52c49969664`.
+- Phase 2D committed/pushed at `26a488c5150e42a7535ceaa32b280e68c7c3665e`.
   Next: Phase 2E uninstall, then final live benign acceptance and VM
   cleanup. App Store update semantics remain unverified; `update_app` is absent.
 
@@ -323,7 +389,7 @@ Historical pause snapshot; the completed closing state at the top of this file
 supersedes its dirty-worktree/next-action instructions.
 
 - **Git / delegation:** `main` and `origin/main` both at
-  `b2fb4c05ead8fd8c0f155ba7f0a906dc85de9f1a`. Dirty tracked files:
+  `491e406e851470d4062c71087810cec8d07e6941`. Dirty tracked files:
   `src/zimaos/client.ts`, `tests/client.test.ts`, `docs/RESEARCH.md`, `STATUS.md`.
   No active child; no commit/push for the response-shape correction. Local integration
   credentials remain ignored and unstaged. Preserve this dirty work on resume.
@@ -358,7 +424,7 @@ supersedes its dirty-worktree/next-action instructions.
 
 ## Phase 2A implementation verification (local, mocked)
 
-- Started at `baf1adc4830fb470a1e924c191fcc3f2b1b702b8` with pre-existing
+- Started at `e1ba7b70bdbd8da3202877353d258360127065b1` with pre-existing
   uncommitted split-package manifest/lock changes; reconciled and retained them.
 - `npm test`: 5 files / 55 tests passed (including modern and legacy HTTP paths,
   bearer boundary and 1 MiB rejection); `npm run lint`, `npm run typecheck`,
@@ -402,26 +468,26 @@ supersedes its dirty-worktree/next-action instructions.
 
 ## Committed & pushed milestones (all on `main`, all pushed)
 
-- Core implementation (`a3cd9e8`): strict TypeScript MCP server with typed ZimaOS client (login,
+- Core implementation (`34c8532`): strict TypeScript MCP server with typed ZimaOS client (login,
   bearer session, auto re-login on 401), domain services (apps/system), permission layer (app
   control disabled by default), Phase 1 tool set, authenticated Streamable HTTP transport +
   `/health`.
-- Mocked test milestone (`7396929`): 52 vitest cases across 5 suites with a shared fake-fetch
+- Mocked test milestone (`864730d`): 52 vitest cases across 5 suites with a shared fake-fetch
   harness; covers config validation, client session behavior, permission layer, MCP tools over
   InMemoryTransport, and the HTTP transport (auth rejection, health readiness, authenticated round
   trip). Includes the `probeComposeAppHealth` fix.
-- Docs handoff (`1bd0cf1`, corrected by `0b292e3`).
-- Docker packaging (`acc8051`): multi-stage, non-root, prod-deps-only `Dockerfile` + `.dockerignore`.
+- Docs handoff (`5302d4a`, corrected by `f9b4f3b`).
+- Docker packaging (`bea0dc7`): multi-stage, non-root, prod-deps-only `Dockerfile` + `.dockerignore`.
   Committed only after the production image was built and live-exercised.
-- Deploy Compose (`6bfe1ce`): `deploy/zimaos/docker-compose.yml`, paste-ready for a ZimaOS Custom
+- Deploy Compose (`4cc69d7`): `deploy/zimaos/docker-compose.yml`, paste-ready for a ZimaOS Custom
   App (host-gateway networking, no privileged socket).
-- CI + GHCR workflows (`6da18f6`): `.github/workflows/ci.yml` and `.github/workflows/ghcr-publish.yml`.
+- CI + GHCR workflows (`b1046c9`): `.github/workflows/ci.yml` and `.github/workflows/ghcr-publish.yml`.
   Neither depends on the disposable VM; no VM credentials in Actions.
-- Docs (`a408e0d`): `README.md`, Apache-2.0 `LICENSE`, `.env.example`, host-gateway research note in
+- Docs (`da7c1be`): `README.md`, Apache-2.0 `LICENSE`, `.env.example`, host-gateway research note in
   `docs/RESEARCH.md`.
-- Status progress record (`0797d3e`).
-- Formatting normalization (`e16ba21`) and README tool-list correction (`e612d91`).
-- Phase 1 completion status (`f7698c3`), then manager commit `90385b2` (AGENTS.md tracked-file
+- Status progress record (`b81fa2a`).
+- Formatting normalization (`c889530`) and README tool-list correction (`8ff4dc6`).
+- Phase 1 completion status (`ef4fcb8`), then manager commit `7366883` (AGENTS.md tracked-file
   mutation safety rules) — local checkout fast-forwarded to it before this pass.
 
 ## Automated test status (exact, re-run for the correction pass)
@@ -446,16 +512,16 @@ supersedes its dirty-worktree/next-action instructions.
 ## CI status (GitHub Actions)
 
 - **Workflow:** `.github/workflows/ci.yml` on push to `main`. Steps: install → format check (Prettier) → lint → typecheck → test typecheck (`tsconfig.test.json`) → tests → production build → Docker image build → Compose validation (`docker compose config`). CI now explicitly enforces both Prettier formatting and strict test TypeScript checking, matching the full local Phase 1 gate.
-- **Result for the correction-pass push — success.** Run `36282720203`, head SHA
-  `2573f9e02f016a3106ffd0b9c842b9594597bf0e` (the correction-pass HEAD), conclusion **success**.
+- **Result for the correction-pass push — success.** Run `36282720203`, rewritten-equivalent SHA
+  `572785f3d14b05e9eba6995a5f0721f50ebb1675` (the correction-pass HEAD), conclusion **success**.
   CI does not depend on the disposable VM and contains no VM credentials.
 
 ## GHCR status
 
 - **Workflow:** `.github/workflows/ghcr-publish.yml` on push to `main` (and `v*` tags), using the
   auto-provided `GITHUB_TOKEN`. No VM dependency, no permanent registry credentials or PATs.
-- **Result for the correction-pass push — success.** Run `36282720213`, head SHA
-  `2573f9e02f016a3106ffd0b9c842b9594597bf0e` (the correction-pass HEAD), conclusion **success**.
+- **Result for the correction-pass push — success.** Run `36282720213`, rewritten-equivalent SHA
+  `572785f3d14b05e9eba6995a5f0721f50ebb1675` (the correction-pass HEAD), conclusion **success**.
 - **Tags actually pushed (from the workflow log):** `latest` and immutable
   `sha-2573f9e02f016a3106ffd0b9c842b9594597bf0e`, both digest
   `sha256:f0b084a9…` (identical image — the immutable tag is a reproducible reference to exactly
