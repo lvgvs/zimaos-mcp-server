@@ -4,6 +4,13 @@ import { compareComposeRisk } from "../compose/riskDelta.js";
 import { sourceFingerprint } from "../approval/intent.js";
 import type { ZimaOsClient } from "./client.js";
 import type { PermissionLayer } from "../permissions.js";
+import type { ChallengeLedger } from "../approval/challengeLedger.js";
+import { assertEditIntentsMatch } from "../approval/editIntent.js";
+import {
+  parsePendingEditPayload,
+  type PendingEditPayload,
+} from "../approval/requestState.js";
+import { targetIdentityDigest } from "../approval/intent.js";
 
 const SAFE_APP_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const FINGERPRINT = /^[0-9a-f]{64}$/;
@@ -24,6 +31,22 @@ function withAppEditLock<T>(id: string, task: () => Promise<T>): Promise<T> {
     if (editQueues.get(id) === settled) editQueues.delete(id);
   });
   return started;
+}
+
+function assertDryRunReady(
+  validation: Awaited<ReturnType<ComposeEditService["validate"]>>,
+): void {
+  if (
+    !validation.upstream.accepted ||
+    (validation.upstream.portsInUse ?? []).length > 0
+  ) {
+    throw new AppError(
+      validation.upstream.status === "upstream_error"
+        ? "ZIMAOS_UPSTREAM_ERROR"
+        : "ZIMAOS_BAD_REQUEST",
+      "Existing-app Compose dry-run did not pass.",
+    );
+  }
 }
 
 function assertId(id: string): void {
@@ -164,64 +187,128 @@ export class ComposeEditService {
   ) {
     permissions.assertCanEdit();
     const initial = await this.validate(id, expectedFingerprint, proposedSource);
-    if (!initial.upstream.accepted || (initial.upstream.portsInUse ?? []).length > 0) {
-      throw new AppError(
-        initial.upstream.status === "upstream_error"
-          ? "ZIMAOS_UPSTREAM_ERROR"
-          : "ZIMAOS_BAD_REQUEST",
-        "Existing-app Compose dry-run did not pass.",
-      );
-    }
+    assertDryRunReady(initial);
     if (initial.risks.requiresApproval) {
       return { status: "confirmation_required" as const, risks: initial.risks };
     }
+    return withAppEditLock(id, () =>
+      this.applyLocked(id, expectedFingerprint, proposedSource, permissions),
+    );
+  }
+
+  /** Only verified signed native continuations may call this approval path. */
+  async editApproved(
+    id: string,
+    expectedFingerprint: string,
+    proposedSource: string,
+    permissions: PermissionLayer,
+    verifiedState: PendingEditPayload,
+    target: string,
+    principal: string,
+    ledger: ChallengeLedger,
+  ) {
+    permissions.assertCanEdit();
+    const state = parsePendingEditPayload(verifiedState);
+    if (
+      state.appId !== id ||
+      state.baseFingerprint !== expectedFingerprint ||
+      state.contentSha256 !== sourceFingerprint(proposedSource) ||
+      state.targetDigest !== targetIdentityDigest(target)
+    ) {
+      throw new AppError("INPUT_INVALID", "The approved Compose edit no longer matches.");
+    }
+    if (ledger.inspect(state.challengeId).state !== "pending") {
+      throw new AppError("INPUT_INVALID", "The approval challenge is no longer pending.");
+    }
     return withAppEditLock(id, async () => {
-      const current = await this.read(id);
-      if (current.fingerprint !== expectedFingerprint) {
+      const fresh = await this.validate(id, expectedFingerprint, proposedSource);
+      assertDryRunReady(fresh);
+      if (!fresh.risks.requiresApproval) {
         throw new AppError(
-          "ZIMAOS_BAD_REQUEST",
-          "The application Compose changed; re-read before editing.",
+          "INPUT_INVALID",
+          "The approved risk disclosure is no longer applicable.",
         );
       }
-      const pendingBase = pendingEdits.get(id);
-      if (pendingBase !== undefined && pendingBase !== current.fingerprint) {
-        pendingEdits.delete(id);
-      } else if (pendingBase !== undefined) {
-        throw new AppError(
-          "ZIMAOS_BAD_REQUEST",
-          "An earlier edit outcome is pending; re-read before editing.",
-        );
-      }
-      permissions.assertCanEdit();
-      if (pendingEdits.size >= MAX_PENDING_EDITS) {
-        throw new AppError("INTERNAL", "Pending edit capacity is exhausted.");
-      }
-      // A lagging GET must not allow a second real PUT with the same base.
-      pendingEdits.set(id, expectedFingerprint);
-      let outcome: { status: "accepted" | "rejected" | "upstream_error" };
-      let errorCode: string | undefined;
-      try {
-        outcome = await this.client.applyComposeChangeOnce(id, proposedSource);
-      } catch (error) {
-        if (error instanceof AppError) errorCode = error.code;
-        outcome = { status: "upstream_error" };
-      }
-      if (outcome.status === "rejected") pendingEdits.delete(id);
-      let observation: "changed" | "pending" | "unavailable" = "unavailable";
-      try {
-        const observed = await this.read(id);
-        observation =
-          observed.fingerprint === expectedFingerprint ? "pending" : "changed";
-        if (observation === "changed") pendingEdits.delete(id);
-      } catch {
-        // A read failure must never cause a mutation retry.
-      }
-      return {
-        status: outcome.status,
-        observation,
+      assertEditIntentsMatch(state, {
+        id,
         baseFingerprint: expectedFingerprint,
-        ...(errorCode ? { errorCode } : {}),
-      };
+        source: proposedSource,
+        risks: fresh.risks,
+        target,
+      });
+      return this.applyLocked(
+        id,
+        expectedFingerprint,
+        proposedSource,
+        permissions,
+        () => {
+          ledger.consume(state.challengeId, {
+            tool: "edit_app_compose",
+            contentFingerprint: state.contentSha256,
+            principal,
+          });
+        },
+      );
     });
+  }
+
+  private async applyLocked(
+    id: string,
+    expectedFingerprint: string,
+    proposedSource: string,
+    permissions: PermissionLayer,
+    consume?: () => void,
+  ) {
+    const current = await this.read(id);
+    if (current.fingerprint !== expectedFingerprint) {
+      throw new AppError(
+        "ZIMAOS_BAD_REQUEST",
+        "The application Compose changed; re-read before editing.",
+      );
+    }
+    const pendingBase = pendingEdits.get(id);
+    if (pendingBase !== undefined && pendingBase !== current.fingerprint) {
+      pendingEdits.delete(id);
+    } else if (pendingBase !== undefined) {
+      throw new AppError(
+        "ZIMAOS_BAD_REQUEST",
+        "An earlier edit outcome is pending; re-read before editing.",
+      );
+    }
+    permissions.assertCanEdit();
+    if (pendingEdits.size >= MAX_PENDING_EDITS) {
+      throw new AppError("INTERNAL", "Pending edit capacity is exhausted.");
+    }
+    // A lagging GET must not allow a second real PUT with the same base.
+    pendingEdits.set(id, expectedFingerprint);
+    try {
+      consume?.();
+    } catch (error) {
+      pendingEdits.delete(id);
+      throw error;
+    }
+    let outcome: { status: "accepted" | "rejected" | "upstream_error" };
+    let errorCode: string | undefined;
+    try {
+      outcome = await this.client.applyComposeChangeOnce(id, proposedSource);
+    } catch (error) {
+      if (error instanceof AppError) errorCode = error.code;
+      outcome = { status: "upstream_error" };
+    }
+    if (outcome.status === "rejected") pendingEdits.delete(id);
+    let observation: "changed" | "pending" | "unavailable" = "unavailable";
+    try {
+      const observed = await this.read(id);
+      observation = observed.fingerprint === expectedFingerprint ? "pending" : "changed";
+      if (observation === "changed") pendingEdits.delete(id);
+    } catch {
+      // A read failure must never cause a mutation retry.
+    }
+    return {
+      status: outcome.status,
+      observation,
+      baseFingerprint: expectedFingerprint,
+      ...(errorCode ? { errorCode } : {}),
+    };
   }
 }

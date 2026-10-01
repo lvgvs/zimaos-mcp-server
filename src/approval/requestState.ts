@@ -89,6 +89,33 @@ export const pendingInstallPayloadSchema = z
 
 export type PendingInstallPayload = z.infer<typeof pendingInstallPayloadSchema>;
 
+/** Same signed, short-lived state channel for an exact existing-app edit. */
+export const pendingEditPayloadSchema = z
+  .object({
+    version: z.literal(1),
+    challengeId: z.string().regex(/^[0-9a-f]{48}$/),
+    tool: z.literal("edit_app_compose"),
+    appId: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/),
+    baseFingerprint: sha256HexSchema,
+    contentSha256: sha256HexSchema,
+    targetDigest: sha256HexSchema,
+    optionsDigest: sha256HexSchema,
+    riskDisclosureDigest: sha256HexSchema,
+    expiresAtMs: z.number().int().positive(),
+  })
+  .strict();
+export type PendingEditPayload = z.infer<typeof pendingEditPayloadSchema>;
+export function parsePendingEditPayload(
+  decoded: unknown,
+  nowMs: number = Date.now(),
+): PendingEditPayload {
+  const parsed = pendingEditPayloadSchema.safeParse(decoded);
+  if (!parsed.success || parsed.data.expiresAtMs <= nowMs) {
+    throw new AppError("INPUT_INVALID", INVALID_PAYLOAD_MESSAGE);
+  }
+  return parsed.data;
+}
+
 /**
  * Validate an untrusted decoded request-state payload before authorization.
  *
@@ -135,7 +162,7 @@ export interface PendingInstallRequestStateCodecOptions {
  */
 export function createPendingInstallRequestStateCodec(
   options: PendingInstallRequestStateCodecOptions,
-): RequestStateCodec<PendingInstallPayload> {
+): RequestStateCodec<PendingInstallPayload | PendingEditPayload> {
   if (
     typeof options.principal !== "string" ||
     options.principal.length === 0 ||
@@ -144,7 +171,7 @@ export function createPendingInstallRequestStateCodec(
     throw new RangeError("principal must be a nonempty string of at most 256 characters");
   }
   const key = randomBytes(SIGNING_KEY_BYTES);
-  return createRequestStateCodec<PendingInstallPayload>({
+  return createRequestStateCodec<PendingInstallPayload | PendingEditPayload>({
     key,
     ttlSeconds: REQUEST_STATE_TTL_SECONDS,
     bind: (ctx) => `${ctx.mcpReq.method}\u0000${options.principal}`,

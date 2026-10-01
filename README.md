@@ -99,7 +99,15 @@ Editing (only when `ALLOW_APP_EDIT=true`, independently of install/control/unins
   or uncertain attempt reserves its base against duplicate edits while host
   reads lag. There is no upstream conditional-write/CAS API: other actors can
   still race between the last read and apply. Newly introduced/escalated risk
-  never follows the benign edit path.
+  never follows the benign edit path. Instead, modern MCP 2026-07-28 clients
+  receive native `input_required` disclosure on the first non-mutating round.
+  An accepted `confirm: true` continuation must carry the original signed
+  request state within 300 seconds. The approval binds app id, exact current
+  base and candidate fingerprints, risk delta and PUT options; the server
+  rechecks permission, base, exact source, risk and dry-run before consuming its
+  single-use challenge and sending one PUT. Risky legacy clients fail closed.
+  As with install approval, the client must actually show the disclosure to a
+  human; the protocol cannot cryptographically prove that it did.
 
 Control operations (only when `ALLOW_APP_CONTROL=true`; otherwise a clear permission error):
 

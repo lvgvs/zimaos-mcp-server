@@ -16,10 +16,13 @@ import {
 import { z } from "zod";
 import type { ChallengeLedger } from "../approval/challengeLedger.js";
 import { buildPendingInstallIntents } from "../approval/intent.js";
+import { buildEditIntents } from "../approval/editIntent.js";
 import {
   type createPendingInstallRequestStateCodec,
   parsePendingInstallPayload,
+  parsePendingEditPayload,
   type PendingInstallPayload,
+  type PendingEditPayload,
 } from "../approval/requestState.js";
 import { AppError } from "../errors.js";
 import type { PermissionLayer } from "../permissions.js";
@@ -277,19 +280,100 @@ export function createMcpServer(deps: ToolDeps): McpServer {
         source: composeSourceSchema,
       }),
     },
-    guard(async (args) => {
-      deps.permissions.assertCanEdit();
-      return textResult(
-        JSON.stringify(
-          await deps.apps.editAppCompose(
-            String(args["app_id"]),
-            String(args["expected_fingerprint"]),
-            String(args["source"]),
-            deps.permissions,
-          ),
-        ),
-      );
-    }),
+    async (args, ctx) => {
+      const id = String(args["app_id"]);
+      const base = String(args["expected_fingerprint"]);
+      const source = String(args["source"]);
+      try {
+        deps.permissions.assertCanEdit();
+        const approval = deps.approval;
+        const modern = server.server.getNegotiatedProtocolVersion() === "2026-07-28";
+        const state = ctx.mcpReq.requestState();
+        if (state !== undefined || ctx.mcpReq.inputResponses !== undefined) {
+          if (!approval || !modern || state === undefined) {
+            throw new AppError("INPUT_INVALID", "Invalid approval continuation.");
+          }
+          const payload = parsePendingEditPayload(state);
+          const content = acceptedContent(ctx.mcpReq.inputResponses, "approve_edit");
+          if (!z.object({ confirm: z.literal(true) }).safeParse(content).success) {
+            throw new AppError("INPUT_INVALID", "Approval was not accepted.");
+          }
+          return textResult(
+            JSON.stringify(
+              await deps.apps.editApprovedAppCompose(
+                id,
+                base,
+                source,
+                deps.permissions,
+                payload,
+                approval.target,
+                approval.principal,
+                approval.ledger,
+              ),
+            ),
+          );
+        }
+        const result = await deps.apps.editAppCompose(id, base, source, deps.permissions);
+        if (result.status !== "confirmation_required")
+          return textResult(JSON.stringify(result));
+        if (!approval || !modern) {
+          throw new AppError(
+            "INPUT_INVALID",
+            "Risky editing requires modern MCP elicitation.",
+          );
+        }
+        const intents = buildEditIntents({
+          id,
+          baseFingerprint: base,
+          source,
+          risks: result.risks,
+          target: approval.target,
+        });
+        const challenge = approval.ledger.issue({
+          tool: "edit_app_compose",
+          contentFingerprint: intents.contentSha256,
+          principal: approval.principal,
+        });
+        const pending: PendingEditPayload = {
+          version: 1,
+          challengeId: challenge.id,
+          tool: "edit_app_compose",
+          ...intents,
+          expiresAtMs: challenge.expiresAtMs,
+        };
+        const requestState = await approval.codec.mint(pending, ctx);
+        const disclosure = {
+          introduced: result.risks.introduced,
+          escalated: result.risks.escalated,
+          unchangedCount: result.risks.unchanged.length,
+          removedCount: result.risks.removed.length,
+        };
+        return inputRequired({
+          requestState,
+          inputRequests: {
+            approve_edit: inputRequired.elicit({
+              message: `Risk-increasing existing-app Compose edit requires explicit confirmation. Operation: edit_app_compose. App: ${id}. Base SHA-256: ${base}. Exact proposed UTF-8 SHA-256: ${intents.contentSha256}. Risk delta: ${JSON.stringify(disclosure)}. Approval expires within 300 seconds. Decline to cancel.`,
+              requestedSchema: {
+                type: "object",
+                properties: {
+                  confirm: {
+                    type: "boolean",
+                    title: "Approve this exact existing-app edit",
+                  },
+                },
+                required: ["confirm"],
+              },
+            }),
+          },
+        });
+      } catch (err) {
+        const normalized =
+          err instanceof AppError
+            ? err
+            : new AppError("INTERNAL", "compose edit failed unexpectedly.");
+        return { ...errorResult(normalized), isError: true };
+      }
+    },
   );
 
   // ------------------------------------------------- reversible controls --

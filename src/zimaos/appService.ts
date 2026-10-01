@@ -18,6 +18,7 @@ import { analyzeCompose, type RiskFinding } from "../compose/analyze.js";
 import { parseCompose } from "../compose/parse.js";
 import { preflightInstall } from "./installPreflight.js";
 import { ComposeEditService } from "./composeEdit.js";
+import type { PendingEditPayload } from "../approval/requestState.js";
 import type { ChallengeLedger } from "../approval/challengeLedger.js";
 import {
   assertPendingInstallIntentsMatch,
@@ -210,6 +211,28 @@ export class AppService {
     permissions: PermissionLayer,
   ) {
     return new ComposeEditService(this.client).edit(id, fingerprint, source, permissions);
+  }
+
+  async editApprovedAppCompose(
+    id: string,
+    fingerprint: string,
+    source: string,
+    permissions: PermissionLayer,
+    state: PendingEditPayload,
+    target: string,
+    principal: string,
+    ledger: ChallengeLedger,
+  ) {
+    return new ComposeEditService(this.client).editApproved(
+      id,
+      fingerprint,
+      source,
+      permissions,
+      state,
+      target,
+      principal,
+      ledger,
+    );
   }
 
   /** List all installed compose applications (normalized summaries). */

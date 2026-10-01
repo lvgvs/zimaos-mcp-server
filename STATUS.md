@@ -43,20 +43,31 @@ authoritative.
   return `confirmation_required` without mutation pending Phase 3D modern approval.
   Mocked full suite **418/418** tests, lint, format, production/test typechecks,
   build, Docker image build, deployment Compose validation, and `git diff --check`
-  passed on the Phase 3C worktree. No Phase 3C live MCP mutation yet.
+  passed on the Phase 3C worktree. Committed/pushed at
+  `8b3e054c2f06b54023f16fb0aa1c5387c89c1028`. No Phase 3C live MCP mutation yet.
+- **Phase 3D:** risky edit first round now uses native modern MCP `input_required` form
+  with introduced/escalated risk disclosure; legacy clients fail closed. A short-lived
+  signed payload binds operation, app, exact base/content fingerprints, complete risk
+  delta digest, target and fixed PUT options. The existing process-wide ledger supplies
+  single-use challenges. On approved continuation the service re-reads, reanalyzes,
+  reruns the official dry run, rechecks permission and base under the same per-app lock,
+  consumes the challenge before at most one real PUT, and reconciles read-only. Mocked
+  full suite **426/426** tests, lint, format, production/test typechecks, build, Docker
+  image build, deployment Compose validation, and `git diff --check` passed on the
+  Phase 3D worktree. Live risky edit intentionally not exercised yet.
 - **Core Phase 3 boundary:** keep the supported ZimaOS App Management API abstraction. Do not add
   arbitrary filesystem writes, SSH, shell access, Docker socket access, privileged MCP-server
   mode, or undocumented host-control shortcuts.
 - **Phase 2 limitations carried forward:** `update_app` remains intentionally absent because
   supported App Store update semantics are unverified. ZimaOS Custom App UI paste/install remains
   an optional manual deployment check.
-- **Next action:** finish Phase 3C gates and commit/push; then implement 3D modern
-  single-use risky approval and conservative 3E plus dedicated live acceptance/cleanup.
+- **Next action:** finish Phase 3D full gates and commit/push; then conclude 3E
+  conservatively and run dedicated live acceptance/cleanup.
   The bounded Qwen risk-delta worker timed out without finishing; its partial untracked
   code was replaced and independently tested. No child is active.
-- **Current branch/base HEAD:** `main` at Phase 3B commit
-  `a783f4e74405f1a0144aca6c3c8380a8c1037a69`, matched by `origin/main` before
-  3C edits. GitHub: https://github.com/lvgvs/zimaos-mcp-server. GHCR Phase 3 image
+- **Current branch/base HEAD:** `main` at Phase 3C commit
+  `8b3e054c2f06b54023f16fb0aa1c5387c89c1028`, matched by `origin/main` before
+  3D edits. GitHub: https://github.com/lvgvs/zimaos-mcp-server. GHCR Phase 3 image
   has not been verified. No blocker requiring manager approval; recovery remains
   conservative without an explicit rollback API. No manual action required.
 
