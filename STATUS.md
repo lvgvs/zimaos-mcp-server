@@ -48,7 +48,7 @@ authoritative.
   the manager transition baseline above. Only README, deployment comments, research, and this
   status were changed. This is an audit checkpoint, **not a UAT-ready release candidate**.
   Parent self-review owns the diff; no delegated reviewer was used.
-- **Automated baseline verification:** 429/429 mocked tests across 25 files passed; lint,
+- **Automated checkpoint verification:** 429/429 mocked tests across 25 files passed; lint,
   formatting, production/test TypeScript checks, production build, Docker build
   (`zimaos-mcp-server:phase4-audit`), ZimaOS Compose config validation and `git diff --check`
   passed. Config/auth/modern/legacy HTTP regressions ran as part of the full suite.
@@ -58,8 +58,11 @@ authoritative.
   tracked among environment files. No runtime shell/SSH/socket/privileged control path was added.
 - **Remote baseline verification:** CI `36903520647` and GHCR publish `36903520625` succeeded
   for `3b250aa59be75f1ec1e874196e3bd0c3d1f4fea9`; Phase 3 closing runs also read back as successful.
-  Checkpoint CI/GHCR results must be checked for the containing commit before handoff; do not
-  substitute these baseline runs as evidence for a later SHA.
+  Audit checkpoint `7d3e36b0247795575b317ebe2b961e4565667285` was committed/pushed with clean
+  `main` matching origin; CI `36906056806` and GHCR publish `36906057235` both succeeded.
+  Its image is `ghcr.io/lvgvs/zimaos-mcp-server:sha-7d3e36b0247795575b317ebe2b961e4565667285`.
+  This containing documentation-only follow-up records those results; verify its own exact-SHA
+  workflows after push rather than inferring them from the earlier runs.
 - **Image-access blocker:** source repository freshly verified `PRIVATE`. Current GHCR package
   visibility cannot be queried: token lacks `read:packages` (HTTP 403). Anonymous pull-scoped
   GHCR token request returned HTTP 401. No supported normal-user ZimaOS UI registry-auth flow
