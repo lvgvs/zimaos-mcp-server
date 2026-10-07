@@ -32,13 +32,26 @@ Live ZimaOS integration testing uses local secret material and is intentionally 
 
 ## Pull requests
 
+Do not push normal implementation, documentation or maintenance changes directly to `main`.
+Start a short-lived feature/fix/docs branch from current `main` and open a PR targeting `main`.
+For agent work, commits and branch pushes remain Hermes/local Git / GPT-6.1 Sol owned;
+the ChatGPT technical manager may review/propose content but must not write, commit or push
+directly to the repository.
+
 A pull request should:
 
 - explain the problem and the chosen approach;
 - add or update tests for changed behavior;
 - preserve default-off mutation permissions and secret-redaction behavior;
 - keep public documentation accurate;
-- pass CI before merge.
+- pass all required CI checks on its latest revision before merge;
+- stay up to date with `main` when required and have every review conversation resolved.
+
+Merge using **Squash only**, with no owner/admin bypass. No human-approval count is required
+while there is only one maintainer; CI, conversation resolution and existing manager gates
+still apply. After merging, verify the merged PR, safely fast-forward local `main`, confirm
+`main == origin/main` and a clean worktree, and verify exact-head main CI/GHCR when applicable.
+Remove the merged working branch when appropriate only after confirming no work would be lost.
 
 If either public README changes, update **both** [README.md](README.md) and [README.tr.md](README.tr.md) in the same change and keep their meaning equivalent.
 

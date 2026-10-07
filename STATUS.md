@@ -4,7 +4,30 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 public pre-release source approval (2026-10-07 UTC)
+## Phase 4 protected-main PR contract transition (2026-10-07 UTC)
+
+- **Source / baseline:** https://github.com/lvgvs/zimaos-mcp-server is now PUBLIC, branch `main`.
+  Baseline `19197558581181e2f36c6dd4db99530e3cb67398` has verified exact-head CI `37630251531`
+  and GHCR `37630399683`. Its current-tree cleanup is complete; historical records remain intact.
+- **Operating contract:** AGENTS, contribution and release guidance now require short-lived
+  branches, Hermes/local Git / GPT-6.1 Sol commits/pushes, PRs to `main`, all required CI checks,
+  current branches when required, resolved conversations, Squash-only merging and safe post-merge
+  synchronization/branch cleanup. No owner/admin bypass or single-maintainer approval count.
+  ChatGPT-manager direct repository writes/commits/pushes remain prohibited. Safety, clean-room,
+  README parity, product scope and manager/release gates are unchanged.
+- **One-time transition authorization:** this containing commit is the manager-authorized FINAL
+  direct-main push while protection is inactive. Future normal changes must use PRs even before
+  protection activation. Preflight found an existing `Protect main` draft with enforcement
+  `disabled` and no classic main protection; no repository setting or ruleset is changed here.
+- **Local verification:** format/diff checks, lint, production/test typechecks, 474/474 tests
+  across 28 files, production build, Docker build and Compose validation passed. Parent-only
+  documentation review; runtime, tests, dependencies, workflows, both READMEs and PROJECT are
+  unchanged. No new live VM test; this containing commit needs exact-head CI/GHCR after push.
+- **Next manager action:** activate/configure main protection and Squash-only repository merging.
+  Stop after exact-head CI/GHCR and clean synchronized-main verification. GHCR/package visibility,
+  retained-version exposure, fresh Custom App UAT and the final release remain separate gates.
+
+## Historical Phase 4 public pre-release source approval (2026-10-07 UTC)
 
 The final public-exposure audit passed at `ea558c4bf5f7a8e029a4c103cc15bf9cf3923ec6`.
 No repository/public-corpus secret or private infrastructure leak was found. The canonical source
@@ -28,11 +51,12 @@ GitHub Release remain separate, unapproved gates. Fresh Custom App installation 
 ## Phase 4 pre-UAT candidate — automated hardening / image-access gate (2026-10-07)
 
 - **Source / scope:** https://github.com/lvgvs/zimaos-mcp-server, branch `main`;
-  public pre-release source exposure is approved, with the owner visibility transition pending.
+  canonical source is PUBLIC as a manager-approved pre-release project.
   Previous published artifact-policy commit: `5d59a52f272825ed26c980e16db13086aa777136`;
   runtime hardening is at `b6549cd59b4e93796ef9fd9f469a773278448ff4`. Hermes/local Git owns commits/pushes
   with the repository-local noreply identity. Phase 3 feature freeze is preserved;
-  Product scope, AGENTS and the private/archived historical repository are unchanged.
+  Product scope and the private/archived historical repository are unchanged; current Git rules
+  are in AGENTS.
 - **Digest issue closed:** identical Node 22 base index/base layers, varying project config /
   filesystem timestamps, npm logs and V8 compilation caches; equal TypeScript output bytes.
   Both rebuild non-reproducibility and unsafe tag-overwrite policy existed. Node 24 Actions
@@ -273,7 +297,7 @@ this current document reconciles the reachable repository commit references.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** owner transition to public pre-release source after cleanup verification.
+- **Current next action:** manager activation of main protection after this Git-contract transition.
   The separate image-access/UAT manager gate remains pending; no UAT result was reported.
 
 ## Phase 4 initial audit — image-access manager gate (2026-10-01)

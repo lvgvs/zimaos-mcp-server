@@ -257,17 +257,41 @@ Container package visibility is a separate decision.
 
 Use the available GitHub skill/integration for GitHub operations where appropriate.
 
-Git commits, pushes, and history/ref operations are owned by Hermes using this local
-repository's Git. Manager/parent sessions may review or prepare content, but external
-assistant-side direct GitHub commit/ref writes are not part of the normal workflow.
-Local Qwen workers do not own Git. Explicitly approved repository administration may
-use the GitHub integration/API; it does not transfer commit/push ownership.
+Git commits, branch pushes, and history/ref operations are owned by Hermes
+(GPT-6.1 Sol) using this local repository's Git and its repository-local noreply identity.
+The ChatGPT technical manager may review and propose content, but must not perform direct
+repository writes, commits or pushes. Local Qwen workers do not own Git. Hermes may use the
+GitHub CLI/integration/API to manage pull requests and perform Squash merges; this does not
+authorize direct GitHub contents/commit/ref writes outside the PR merge workflow. Explicitly
+approved repository administration does not transfer commit/push ownership.
 
 `lvgvs/zimaos-mcp-server` is the single active canonical repository. The separate private
 historical repository is preservation-only: no future development, dual-write, mirroring,
 or synchronization back to it.
 
 Work in logical commits.
+
+Normal development follows the protected-main PR contract, even before GitHub protection
+is activated:
+
+1. Never push implementation, documentation or maintenance changes directly to `main`.
+2. Fetch current `origin/main`, safely fast-forward local `main`, and create a short-lived
+   feature/fix/docs branch from that current baseline. Preserve existing work; stop and
+   reconcile divergence rather than resetting or overwriting it.
+3. Run the relevant local gates, then commit and push the working branch through Hermes/local Git.
+4. Open a pull request targeting `main`. Review the diff, wait for all required CI checks on
+   the latest PR revision, and resolve every review conversation. The current CI gates are
+   `lint + typecheck + test + build`, `production image builds`, and `ZimaOS Compose file is valid`.
+5. Keep the PR branch up to date with `main` when required and recheck CI after updates.
+   Do not merge with missing, pending or failed required checks or unresolved conversations.
+6. Merge the PR using **Squash only**; do not use merge-commit or rebase PR merging.
+   No human-approval count is required while there is only one maintainer. This does not
+   waive CI, conversation resolution, self-review or any existing manager gate. Do not
+   expect or use an owner/admin bypass.
+7. Read back the merged PR and exact merge commit. Fetch and safely fast-forward local `main`,
+   confirm `main == origin/main` and a clean worktree, and verify exact-head main CI/GHCR
+   when applicable. Remove the merged working branch locally/remotely when appropriate,
+   only after confirming the merge and that no uncommitted or unique work would be lost.
 
 Before pushing a commit that claims a feature works, run the relevant:
 
@@ -363,9 +387,13 @@ When the assigned phase is complete:
 1. finish all acceptance criteria that can be completed safely;
 2. update documentation;
 3. update `STATUS.md`;
-4. commit;
-5. push;
-6. stop.
+4. commit/push the short-lived working branch through Hermes/local Git;
+5. open the PR to `main`, keep it current as required, wait for all required CI checks,
+   and resolve all review conversations;
+6. Squash merge under the Git workflow above, without bypassing any manager gate;
+7. verify the merged PR, clean synchronized `main` and exact-head CI/GHCR when applicable,
+   and safely remove the merged working branch when appropriate;
+8. stop.
 
 Do not start the next phase.
 

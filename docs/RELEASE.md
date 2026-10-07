@@ -1,7 +1,7 @@
 # Release preparation
 
-No first release is approved or published. The canonical source repository is manager-approved
-for public pre-release exposure; the repository-owner visibility transition is still pending.
+No first release is approved or published. The canonical source repository is PUBLIC as a
+manager-approved pre-release project; normal development uses PRs with Squash-only merging.
 Source approval does not approve GHCR public visibility or exposure of retained package versions,
 and does not satisfy fresh-install UAT. GHCR visibility, retained-version exposure, the final
 version/tag and GitHub Release remain separate, unapproved manager gates. Do not change package
@@ -11,7 +11,9 @@ corresponding explicit manager approval.
 ## Artifact contract
 
 `ghcr-publish` follows successful **push** CI on canonical `main`, never PR CI. It checks out the
-exact CI source commit. All publication/promotion runs share one non-cancelling concurrency group.
+exact CI source commit. In normal development this is the Squash-merged main commit, not the
+pre-merge branch commit; the main push event results from the PR merge and does not authorize
+direct development pushes. All publication/promotion runs share one non-cancelling concurrency group.
 First publication builds one `run-<workflow-id>-<attempt>` artifact with revision/source labels,
 minimum BuildKit provenance and an SBOM. It creates `sha-<full-commit>` from that exact digest.
 Reruns reuse that commit tag and skip building. Auth/network errors during registry inspection fail
