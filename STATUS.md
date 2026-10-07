@@ -4,7 +4,42 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 protected-main PR contract transition (2026-10-07 UTC)
+## Phase 4 bearer-parser CodeQL hardening — PR review gate (2026-10-07 UTC)
+
+- **Source / workflow:** https://github.com/lvgvs/zimaos-mcp-server, PUBLIC;
+  working branch `fix/linear-bearer-auth` from synchronized main
+  `710e95cbbf85a5e51c07d320d4f6cbc45c07ae61`. Main protection is now active with no bypass,
+  Squash-only PR merging, zero required human approvals, resolved conversations and all three
+  up-to-date CI checks. Hermes/local Git retains commit/push ownership; no direct-main push.
+- **Finding / fix:** HIGH CodeQL alert #1, `js/polynomial-redos`, in bearer Authorization parsing.
+  The overlapping whitespace/token regex is replaced with fixed-size scheme checking and
+  linear built-in trim/includes operations, without regex or reliance on the wire-header cap.
+  Existing case-insensitive scheme, separator/trimming, single-line credential syntax and both
+  timing-safe comparison paths are preserved. Other auth/approval behavior is unchanged.
+- **Regression evidence:** the actual HTTP auth boundary failed the new 60,000-space malformed
+  credential test before the fix (about 2.38 seconds against a generous one-second ceiling),
+  then passed. Boundary tests include line terminators and million-character malformed values;
+  real HTTP/MCP tests cover supported syntax, and spies verify both timing-safe mismatch paths.
+- **Executed local gates:** focused HTTP tests 37/37; full tests 500/500 across 28 files;
+  formatting/diff checks, lint, production/test typechecks, production build, Docker build and
+  Compose validation passed. Staged-change and full reachable branch-history Gitleaks scans
+  found zero leaks. No new live VM test.
+- **PR checkpoint:** https://github.com/lvgvs/zimaos-mcp-server/pull/9 is OPEN and unmerged.
+  Fix commit `af8ea7c9a757f253b8afaea60fb687191a69943e` passed all three required checks in
+  CI `37641564270`. This documentation-only checkpoint preserves the same implementation/tests;
+  verify fresh checks against the latest PR revision rather than inferring them from that run.
+- **CodeQL blocker at fix commit:** default-setup run `37641555193` completed with failure before
+  either analyzer executed; both check entries stayed queued, with no logs/annotations or PR
+  analyses uploaded. The rerun API returned HTTP 500. Cause is unverified; repository Actions
+  is enabled, allows all actions and does not require SHA pinning. Do not weaken settings or
+  claim an empty analyses list proves zero findings. A fresh completed PR analysis is required.
+- **Manager review gate:** verify all three required CI checks plus
+  both CodeQL categories against the latest PR revision. Confirm alert #1 is
+  absent and no new alerts are introduced; report the PR/results without merging. The main alert
+  remains open until the fix reaches main; do not dismiss or suppress it. No GHCR publication/
+  visibility/tag/version change, release or child model. Fresh Custom App UAT remains pending.
+
+## Historical Phase 4 protected-main PR contract transition (2026-10-07 UTC)
 
 - **Source / baseline:** https://github.com/lvgvs/zimaos-mcp-server is now PUBLIC, branch `main`.
   Baseline `19197558581181e2f36c6dd4db99530e3cb67398` has verified exact-head CI `37630251531`
@@ -297,7 +332,8 @@ this current document reconciles the reachable repository commit references.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** manager activation of main protection after this Git-contract transition.
+- **Current next action:** manager review of the bearer-parser PR after required CI/CodeQL proof;
+  no merge is authorized for this hardening handoff.
   The separate image-access/UAT manager gate remains pending; no UAT result was reported.
 
 ## Phase 4 initial audit — image-access manager gate (2026-10-01)
@@ -362,7 +398,7 @@ this current document reconciles the reachable repository commit references.
 
 ## Git / repository
 
-- **Branch:** `main`
+- **Branch:** `fix/linear-bearer-auth` (unmerged PR work targeting `main`).
 - **Phase 2 final implementation HEAD:** `7dcb169d29df8b154c4658a689f5b9120db2e4f0`
 - **Phase 3A HEAD:** `3102cdcd5533293c921c99c8f61e313daeed17b1`
 - **Phase 3B HEAD:** `14b8f44180d1e4fb37fafca79c5d86e73fec25f4`
