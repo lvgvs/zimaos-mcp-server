@@ -29,6 +29,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Security
 
+- Regex-free, linear bearer Authorization parsing replaces ambiguous backtracking while
+  preserving case-insensitive scheme handling, existing syntax and timing-safe token comparison.
 - Mutation permissions default to disabled.
 - No SSH control plane, arbitrary shell execution, Docker socket, privileged server mode, or direct ZimaOS internal-file/database mutation.
 - Ambiguous mutation outcomes are not automatically retried.

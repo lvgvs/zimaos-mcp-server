@@ -6,8 +6,9 @@
 
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { logger } from "../src/logging.js";
-import type http from "node:http";
-import type { AddressInfo } from "node:net";
+import http from "node:http";
+import crypto from "node:crypto";
+import { Socket, type AddressInfo } from "node:net";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import type { AppConfig } from "../src/config.js";
 import { createHttpServer } from "../src/http/server.js";
@@ -128,6 +129,115 @@ describe("HTTP transport (mocked services)", () => {
     });
     expect(res.status).toBe(401);
   });
+
+  it.each([
+    ["empty header", ""],
+    ["scheme only", "Bearer"],
+    ["whitespace-only credentials", "Bearer \t "],
+    ["wrong scheme", `Basic ${MCP_TOKEN}`],
+    ["missing separator", `Bearer${MCP_TOKEN}`],
+    ["colon separator", `Bearer: ${MCP_TOKEN}`],
+    ["duplicate credentials", `Bearer ${MCP_TOKEN}, Bearer ${MCP_TOKEN}`],
+    ["embedded carriage return", `Bearer ${MCP_TOKEN}\rx`],
+    ["embedded newline", `Bearer ${MCP_TOKEN}\nx`],
+    ["embedded Unicode line separator", `Bearer ${MCP_TOKEN}\u2028x`],
+    ["embedded Unicode paragraph separator", `Bearer ${MCP_TOKEN}\u2029x`],
+  ])("rejects malformed bearer syntax: %s", (_label, authorization) => {
+    // Direct boundary injection also covers characters rejected by Node's wire parser.
+    const req = new http.IncomingMessage(new Socket());
+    req.method = "POST";
+    req.url = "/mcp";
+    req.headers.authorization = authorization;
+    const res = new http.ServerResponse(req);
+    try {
+      running.server.emit("request", req, res);
+      expect(res.statusCode).toBe(401);
+      expect(res.getHeader("www-authenticate")).toBe('Bearer realm="zimaos-mcp-server"');
+    } finally {
+      req.destroy();
+      res.destroy();
+    }
+  });
+
+  it.each([
+    ["long spaces before malformed credential", `Bearer${" ".repeat(60_000)}x\rx`],
+    ["long tabs before malformed credential", `Bearer${"\t".repeat(60_000)}x\nx`],
+    ["long empty credential", `Bearer${" ".repeat(1_000_000)}`],
+    ["long wrong credential", `Bearer ${"x".repeat(1_000_000)}`],
+    ["long missing separator", `Bearer${"x".repeat(1_000_000)}`],
+  ])("rejects long attacker-controlled Authorization: %s", (_label, authorization) => {
+    // Inject at the auth boundary so Node's wire-header cap/validation cannot hide ReDoS.
+    const req = new http.IncomingMessage(new Socket());
+    req.method = "POST";
+    req.url = "/mcp";
+    req.headers.authorization = authorization;
+    const res = new http.ServerResponse(req);
+    try {
+      const start = performance.now();
+      running.server.emit("request", req, res);
+      expect(res.statusCode).toBe(401);
+      // A generous regression ceiling, not the basis of the linear-complexity claim.
+      expect(performance.now() - start).toBeLessThan(1_000);
+    } finally {
+      req.destroy();
+      res.destroy();
+    }
+  });
+
+  it.each([
+    ["lowercase scheme", `bearer ${MCP_TOKEN}`],
+    ["mixed-case scheme", `bEaReR ${MCP_TOKEN}`],
+    ["multiple spaces", `Bearer   ${MCP_TOKEN}`],
+    ["tab separator", `Bearer\t${MCP_TOKEN}`],
+    ["mixed separator whitespace", `Bearer \t ${MCP_TOKEN}`],
+    ["Latin-1 whitespace separator", `Bearer\u00a0${MCP_TOKEN}`],
+    ["outer whitespace", ` \tBearer ${MCP_TOKEN} \t`],
+    ["long separator", `Bearer${" ".repeat(8_000)}${MCP_TOKEN}`],
+  ])(
+    "authenticates supported bearer syntax over real HTTP: %s",
+    async (_label, authorization) => {
+      const transport = new StreamableHTTPClientTransport(
+        new URL("/mcp", running.baseUrl),
+        {
+          requestInit: { headers: { authorization } },
+        },
+      );
+      const client = new Client({ name: "bearer-syntax-test", version: "0.0.1" });
+      try {
+        await client.connect(transport);
+        expect((await client.listTools()).tools.map((tool) => tool.name)).toContain(
+          "list_apps",
+        );
+      } finally {
+        await transport.close();
+      }
+    },
+  );
+
+  it.each([
+    ["equal length", "x".repeat(MCP_TOKEN.length)],
+    ["different length", "wrong-token"],
+  ])(
+    "retains timing-safe comparison for wrong credentials: %s",
+    async (_label, token) => {
+      const compare = vi.spyOn(crypto, "timingSafeEqual");
+      try {
+        const res = await fetch(`${running.baseUrl}/mcp`, {
+          method: "POST",
+          headers: { authorization: `Bearer ${token}` },
+        });
+        expect(res.status).toBe(401);
+        expect(compare).toHaveBeenCalledExactlyOnceWith(
+          Buffer.from(token, "utf8"),
+          token.length === MCP_TOKEN.length
+            ? Buffer.from(MCP_TOKEN, "utf8")
+            : Buffer.alloc(Buffer.byteLength(token, "utf8")),
+        );
+      } finally {
+        compare.mockRestore();
+      }
+    },
+  );
 
   it("serves /health without authentication and reflects readiness", async () => {
     const res = await fetch(`${running.baseUrl}/health`);
