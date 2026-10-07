@@ -122,6 +122,7 @@ export class ZimaOsClient {
   private readonly fetchImpl: typeof fetch;
   private readonly timeoutMs: number;
   private accessToken: string | null = null;
+  private readinessProbe: Promise<boolean> | null = null;
 
   constructor(options: ZimaOsClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, "");
@@ -137,12 +138,15 @@ export class ZimaOsClient {
    * Log in and cache the access token. Safe to call more than once; a fresh
    * login is performed each time (tokens are short-lived upstream).
    */
-  async login(): Promise<void> {
+  async login(timeoutMs = this.timeoutMs): Promise<void> {
     const body = await this.rawRequest(
       "POST",
       "/v1/users/login",
       { username: this.username, password: this.password },
       false,
+      undefined,
+      undefined,
+      timeoutMs,
     );
 
     if (!isRecord(body)) {
@@ -571,12 +575,14 @@ export class ZimaOsClient {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     let response: Response;
+    let text: string;
     try {
       // Explicit non-destructive default; the id is URL-encoded. No request body.
       response = await this.fetchImpl(
         `${this.baseUrl}/v2/app_management/compose/${encodeURIComponent(id)}?delete_config_folder=false`,
         { method: "DELETE", headers, signal: controller.signal },
       );
+      text = await response.text();
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         throw new AppError(
@@ -604,7 +610,6 @@ export class ZimaOsClient {
       throw fromHttpStatus(403); // PERMISSION_DENIED, safe fixed message.
     }
 
-    const text = await response.text();
     let body: unknown = null;
     if (text.length > 0) {
       try {
@@ -640,12 +645,14 @@ export class ZimaOsClient {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     let response: Response;
+    let text: string;
     try {
       response = await this.fetchImpl(
         `${this.baseUrl}${path}?dry_run=false&check_port_conflict=true`,
         // The exact original UTF-8 string is sent unchanged as the body.
         { method, headers, body: source, signal: controller.signal },
       );
+      text = await response.text();
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         throw new AppError(
@@ -673,7 +680,6 @@ export class ZimaOsClient {
       throw fromHttpStatus(403); // PERMISSION_DENIED, safe fixed message.
     }
 
-    const text = await response.text();
     let body: unknown = null;
     if (text.length > 0) {
       try {
@@ -711,12 +717,14 @@ export class ZimaOsClient {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     let response: Response;
+    let text: string;
     try {
       response = await this.fetchImpl(
         `${this.baseUrl}${path}?dry_run=true&check_port_conflict=true`,
         // The exact original UTF-8 string is sent unchanged as the body.
         { method, headers, body: source, signal: controller.signal },
       );
+      text = await response.text();
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         throw new AppError(
@@ -742,7 +750,6 @@ export class ZimaOsClient {
       throw fromHttpStatus(403); // PERMISSION_DENIED, safe fixed message.
     }
 
-    const text = await response.text();
     let body: unknown = null;
     if (text.length > 0) {
       try {
@@ -758,15 +765,33 @@ export class ZimaOsClient {
   // ------------------------------------------------------------- zimaos --
 
   /** Device info: GET /v2/zimaos/device/info -> bare payload (no envelope). */
-  async getDeviceInfo(): Promise<Record<string, unknown>> {
-    const body = await this.authedRequest("GET", "/v2/zimaos/device/info");
-    if (!isRecord(body)) {
+  async getDeviceInfo(timeoutMs = this.timeoutMs): Promise<Record<string, unknown>> {
+    const body = await this.authedRequest(
+      "GET",
+      "/v2/zimaos/device/info",
+      undefined,
+      timeoutMs,
+    );
+    if (!isRecord(body) || body["success"] === false) {
       throw new AppError(
         "ZIMAOS_UPSTREAM_ERROR",
-        "Unexpected device info response shape.",
+        "Unexpected device info response shape or explicit upstream failure.",
       );
     }
     return body;
+  }
+
+  /** Active read-only readiness; at most four bounded I/O attempts, shared in flight. */
+  checkReadiness(): Promise<boolean> {
+    this.readinessProbe ??= this.getDeviceInfo(Math.min(this.timeoutMs, 1_000))
+      .then(
+        () => true,
+        () => false,
+      )
+      .finally(() => {
+        this.readinessProbe = null;
+      });
+    return this.readinessProbe;
   }
 
   // -------------------------------------------------------------- internals --
@@ -775,20 +800,37 @@ export class ZimaOsClient {
     method: string,
     path: string,
     rawBody?: string,
+    timeoutMs = this.timeoutMs,
   ): Promise<unknown> {
     if (this.accessToken === null) {
-      await this.login();
+      await this.login(timeoutMs);
     }
     const token = this.accessToken as string;
     try {
-      return await this.rawRequest(method, path, undefined, true, token, rawBody);
+      return await this.rawRequest(
+        method,
+        path,
+        undefined,
+        true,
+        token,
+        rawBody,
+        timeoutMs,
+      );
     } catch (err) {
       // A stale/expired token: retry once with a fresh login.
       if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
         this.invalidateSession();
-        await this.login();
+        await this.login(timeoutMs);
         const fresh = this.accessToken as string;
-        return await this.rawRequest(method, path, undefined, true, fresh, rawBody);
+        return await this.rawRequest(
+          method,
+          path,
+          undefined,
+          true,
+          fresh,
+          rawBody,
+          timeoutMs,
+        );
       }
       throw err;
     }
@@ -809,12 +851,10 @@ export class ZimaOsClient {
     }
     const envelope = body as LoginEnvelope;
     if (envelope.success === false) {
-      // `message` is upstream-provided and safe to surface.
+      // Free-form upstream messages may reflect submitted configuration/secrets.
       throw new AppError(
         "ZIMAOS_UPSTREAM_ERROR",
-        typeof envelope.message === "string" && envelope.message.length > 0
-          ? envelope.message
-          : "ZimaOS reported the operation failed.",
+        "ZimaOS reported the operation failed.",
       );
     }
     return envelope.data;
@@ -827,6 +867,7 @@ export class ZimaOsClient {
     authenticated = false,
     tokenOverride?: string,
     rawStringBody?: string,
+    timeoutMs = this.timeoutMs,
   ): Promise<unknown> {
     const headers: Record<string, string> = {
       Accept: "application/json",
@@ -849,8 +890,9 @@ export class ZimaOsClient {
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     let response: Response;
+    let text: string;
     try {
       response = await this.fetchImpl(`${this.baseUrl}${path}`, {
         method,
@@ -858,11 +900,12 @@ export class ZimaOsClient {
         body,
         signal: controller.signal,
       });
+      text = await response.text();
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         throw new AppError(
           "ZIMAOS_UNREACHABLE",
-          `Timed out after ${this.timeoutMs} ms while contacting ZimaOS.`,
+          `Timed out after ${timeoutMs} ms while contacting ZimaOS.`,
         );
       }
       throw new AppError(
@@ -873,9 +916,8 @@ export class ZimaOsClient {
       clearTimeout(timer);
     }
 
-    const text = await response.text();
     if (!response.ok) {
-      throw fromHttpStatus(response.status, extractDetail(text));
+      throw fromHttpStatus(response.status);
     }
 
     // Some endpoints may return an empty body on 200.
@@ -886,20 +928,6 @@ export class ZimaOsClient {
       throw new AppError("ZIMAOS_UPSTREAM_ERROR", "ZimaOS returned a non-JSON response.");
     }
   }
-}
-
-/** Pull a short, safe detail string out of an upstream error body if present. */
-function extractDetail(text: string): string | undefined {
-  try {
-    const parsed: unknown = JSON.parse(text);
-    if (isRecord(parsed)) {
-      const msg = parsed["message"];
-      if (typeof msg === "string" && msg.length > 0) return msg;
-    }
-  } catch {
-    // not JSON — ignore
-  }
-  return undefined;
 }
 
 /** One dry-run attempt: the HTTP status plus the parsed body (null when empty/non-JSON). */

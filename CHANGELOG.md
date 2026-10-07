@@ -17,6 +17,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Existing-app Compose read, validation, optimistic-concurrency editing, and risk-delta approval flow.
 - Docker image and ZimaOS Custom App Compose deployment.
 - English and Turkish public README documentation.
+- CI-gated first-artifact commit images, digest-only version promotion, development `edge`,
+  and prepared stable/prerelease aliases with provenance and SBOM.
+
+### Fixed
+
+- Strict decimal `PORT` validation and origin-only, secret-safe `ZIMAOS_URL` validation.
+- Active ZimaOS readiness: HTTP 503 for degradation, bounded shared probes and configured-port
+  Docker health checks rather than cached-session-only readiness.
+- Normalized startup/listener, response-body and upstream errors without free-form secret reflection.
 
 ### Security
 
@@ -24,6 +33,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - No SSH control plane, arbitrary shell execution, Docker socket, privileged server mode, or direct ZimaOS internal-file/database mutation.
 - Ambiguous mutation outcomes are not automatically retried.
 - Risky modern approval state is signed, short-lived, exact-content-bound, and single-use.
+- Shipped credential/token placeholders and whitespace-bearing MCP tokens are rejected.
+- Supported ESLint 10 and patched test dependencies; runtime and full dependency audits passed
+  at the release-hardening checkpoint (not a permanent vulnerability-free guarantee).
 
 ### Known limitations
 

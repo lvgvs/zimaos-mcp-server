@@ -71,6 +71,10 @@ Read-only tools do not inherit mutation authority from any of these flags.
 - **No shell, SSH control plane, Docker socket, privileged server mode, or direct ZimaOS
   internal storage manipulation.**
 
+The server does not terminate TLS itself. Use it on a trusted LAN/VPN or behind a properly
+configured HTTPS reverse proxy; do not expose the plain HTTP port directly to the internet.
+Bearer authentication is not transport encryption.
+
 ### Risky-operation approval
 
 Risk-increasing Compose install/edit requests use native MCP `input_required` / form
@@ -127,6 +131,13 @@ For UAT, replace the template's development image with the exact reviewed
 See [`.env.example`](.env.example) for a complete example. Never commit real credentials
 or tokens.
 
+`ZIMAOS_URL` must be an HTTP(S) origin (scheme, host and optional port), not a URL with
+credentials, a path prefix, query or fragment. A trailing slash is normalized away.
+`PORT`, when supplied, must be a complete decimal integer from 1 to 65535; empty values,
+numeric prefixes, fractions and exponent notation are rejected. Credential/token values
+must replace shipped `CHANGE_ME` / `REPLACE_ME` placeholders; bearer tokens cannot contain
+whitespace. Validation errors name the setting without reflecting its value.
+
 ## Connect an MCP client
 
 The server exposes Streamable HTTP at:
@@ -142,7 +153,10 @@ Authorization: Bearer <MCP_AUTH_TOKEN>
 ```
 
 `/health` is unauthenticated and intended for container readiness/health checks; it is not
-an MCP endpoint.
+an MCP endpoint. It actively checks the supported, authenticated ZimaOS device-info API:
+HTTP 200 means ready; HTTP 503 means degraded/unreachable/authentication failed. Concurrent
+probes share bounded upstream work. Docker checks the configured internal `PORT` and treats
+degradation as unhealthy; this is not a guarantee that every application API works.
 
 ## Tool reference
 
@@ -203,7 +217,7 @@ docker run --rm \
 
 ## Development
 
-Requires Node.js 22 or newer.
+Use Node.js 22 LTS (22.13.0 or newer) or a supported newer LTS runtime.
 
 ```bash
 npm ci --no-audit --no-fund

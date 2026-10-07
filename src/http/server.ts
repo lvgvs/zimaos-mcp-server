@@ -31,7 +31,7 @@ export interface HttpServerOptions {
   config: AppConfig;
   deps: ToolDeps;
   /** Optional readiness probe (e.g. "is a ZimaOS session active?"). */
-  isReady?: () => boolean;
+  isReady?: () => boolean | Promise<boolean>;
 }
 
 function sendJson(res: http.ServerResponse, status: number, body: unknown): void {
@@ -79,14 +79,14 @@ export function createHttpServer(options: HttpServerOptions): http.Server {
   const mcpHandler = createMcpHandler(() => createMcpServer({ ...deps, approval }), {
     legacy: "stateless",
     maxRequestBodySize: MAX_REQUEST_BODY_SIZE,
-    onerror: (err) => logger.error("mcp_request_failed", { error: err.message }),
+    onerror: () => logger.error("mcp_request_failed", { code: "INTERNAL" }),
   });
 
   // Wrap the web-standard handler once for node:http. The adapter buffers the
   // body under the same bound and answers 413 before anything is parsed.
   const mcpNodeHandler = toNodeHandler(mcpHandler, {
     maxRequestBodySize: MAX_REQUEST_BODY_SIZE,
-    onerror: (err) => logger.error("mcp_request_failed", { error: err.message }),
+    onerror: () => logger.error("mcp_request_failed", { code: "INTERNAL" }),
   });
 
   const server = http.createServer((req, res) => {
@@ -108,8 +108,13 @@ export function createHttpServer(options: HttpServerOptions): http.Server {
 
     // ------------------------------------------------------- health probe --
     if (path === "/health" && req.method === "GET") {
-      const ready = options.isReady?.() ?? true;
-      sendJson(res, 200, {
+      let ready = false;
+      try {
+        ready = (await options.isReady?.()) ?? true;
+      } catch {
+        // Probe errors must fail closed without reflecting upstream/config secrets.
+      }
+      sendJson(res, ready ? 200 : 503, {
         status: ready ? "ok" : "degraded",
         service: "zimaos-mcp-server",
         ready,
@@ -133,10 +138,8 @@ export function createHttpServer(options: HttpServerOptions): http.Server {
 
     try {
       await mcpNodeHandler(req, res);
-    } catch (err) {
-      logger.error("mcp_request_failed", {
-        error: err instanceof Error ? err.message : String(err),
-      });
+    } catch {
+      logger.error("mcp_request_failed", { code: "INTERNAL" });
       if (!res.headersSent) {
         sendJson(res, 502, { error: "upstream_error" });
       } else if (!res.writableEnded) {

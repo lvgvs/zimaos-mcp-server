@@ -4,7 +4,66 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 automated hardening — artifact policy checkpoint (2026-10-07)
+## Phase 4 pre-UAT candidate — automated hardening / image-access gate (2026-10-07)
+
+- **Source / scope:** https://github.com/lvgvs/zimaos-mcp-server, PRIVATE, branch `main`.
+  Previous published artifact-policy commit: `5d59a52f272825ed26c980e16db13086aa777136`;
+  this containing commit carries the runtime hardening. Hermes/local Git owns commits/pushes
+  with the repository-local noreply identity. Phase 3 feature freeze is preserved;
+  AGENTS/PROJECT and the private/archived historical repository are unchanged.
+- **Digest issue closed:** identical Node 22 base index/base layers, varying project config /
+  filesystem timestamps, npm logs and V8 compilation caches; equal TypeScript output bytes.
+  Both rebuild non-reproducibility and unsafe tag-overwrite policy existed. Node 24 Actions
+  runtime was not the app-runtime cause. No byte-for-byte rebuild guarantee is claimed.
+- **Artifact-policy remote proof:** exact-source CI `37608826697` succeeded. GHCR `37608925235`
+  attempts 1/2 succeeded; attempt 2 skipped building and reused the first inspected digest
+  `sha256:bd43342131192cac9dffca5d8cbf8ccc876c22983219294b9f418dfad97aaa05`.
+  Promotion reads each target back and rejects differing digests. Version promotion is prepared,
+  not executed; old-release mutable-alias rollback requires explicit manager approval.
+- **Configuration / error hardening:** complete decimal PORT; normalized origin-only URL;
+  shipped placeholders and whitespace tokens rejected. Static config errors, sanitized startup
+  and transport logs, generic upstream errors, bounded/normalized response-body failures across
+  read, dry-run and one-shot mutation paths. No mutation retry was added.
+- **Readiness / Docker:** supported authenticated device-info GET, shared in-flight bounded
+  probes, exceptions/explicit failures fail closed, HTTP 503 for degradation. Docker uses the
+  normalized configured port and requires HTTP 200 plus `ready:true`; response parsing/errors
+  are silent. Local HTTP tests execute the actual Dockerfile command, including whitespace ports.
+- **Dependencies / docs:** supported ESLint 10 / Node 22.13+ development minimum, patched Vitest
+  and dev MCP client/transitives. Full and production npm audits each reported zero vulnerabilities.
+  License findings recorded in RESEARCH. CHANGELOG remains Unreleased; version promotion / first
+  release notes prepared only. Both public READMEs updated together; GitHub-rendered DOM,
+  equivalent safety notes, section structure and non-prose code examples reviewed for parity.
+  Security/contribution docs reviewed; TLS/trusted-network limitation made explicit.
+- **Local gates actually executed:** clean dependency install, format/check, lint, production
+  and test TypeScript checks, **474/474 tests across 28 files**, production build, production
+  Docker build (`zimaos-mcp-server:phase4-runtime`), Compose config and diff checks all passed.
+  Checksum-verified MIT Gitleaks 8.30.1 found zero leaks in staged changes and canonical-main
+  history; ignored integration credentials were not part of either scan. Parent self-review only.
+  New startup, secret-reflection, readiness and container-command regressions are mocked/local;
+  CI remains VM-independent.
+- **Live evidence:** authorized VM via compiled authenticated MCP: 15 tools discovered, two
+  read tools succeeded, unauthenticated request rejected, default-off control denied; health
+  200 → 503 → 200 under local transport injection. App-list baseline unchanged, zero mutations.
+  Non-root production container on nondefault whitespace-normalized port 3123: actual Docker
+  healthy → unhealthy → healthy after disconnect/reconnect of only the local container's bridge
+  network. No VM OS/network change or app mutation. Temporary test containers removed.
+- **Remote candidate verification:** exact containing-commit CI/GHCR must be read after push;
+  previous-commit remote proof above is not substituted for those checks. Source/revision labels,
+  provenance/SBOM and digest reference are available from the publication workflow.
+- **Stop / manual gate:** anonymous GHCR pull-token request still returns 401; authenticated
+  local manifest access returns 403 without `read:packages`. Package settings/version inventory
+  cannot be independently enumerated. Manager reports private package and canonical-only WRITE
+  linkage. No visibility change, deletion, final tag or GitHub Release; no Qwen/local/child model.
+  Fresh real-user ZimaOS Custom App install has **not** happened; developer live/container checks
+  do not substitute for it. Compose is validated, not yet normal-user UI-install-verified.
+- **Exact next manager action:** approve an image-access path (public GHCR while keeping source
+  private, with retained-version exposure reviewed, or an intended supported UI private-registry
+  flow for verification). Then use the exact candidate digest for FIRST REAL-USER UAT — fresh
+  Custom App install + first start + health + authenticated read-only MCP + default-off denial.
+  Do not use host-shell/PAT-in-YAML rescue or publish a final release. General Phase 3 limitations
+  below, human approval UX and fresh deployment networking remain UAT/release gates.
+
+## Historical Phase 4 artifact policy checkpoint (2026-10-07)
 
 - **Active source:** canonical private repository, `main`; previous verified checkpoint
   `0f61a83186882cf0cf7da1d317311879f312305e`. Historical repository is private/archived,

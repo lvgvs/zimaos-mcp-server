@@ -71,6 +71,10 @@ Salt okunur araçlar bu değişkenlerin hiçbirinden değişiklik yapma yetkisi 
 - **Shell, SSH control plane, Docker socket, privileged sunucu modu veya ZimaOS dahili
   depolamasına doğrudan müdahale yoktur.**
 
+Sunucu TLS'i kendisi sonlandırmaz. Güvenilir bir LAN/VPN'de veya doğru yapılandırılmış bir
+HTTPS reverse proxy arkasında kullanın; düz HTTP portunu doğrudan internete açmayın.
+Bearer kimlik doğrulaması, taşıma katmanı şifrelemesi değildir.
+
 ### Riskli işlem onayı
 
 Riski artıran Compose kurulum/düzenleme istekleri modern istemcilerde yerel MCP
@@ -129,6 +133,13 @@ incelenmiş `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` referansıyla değ
 Tam örnek için [`.env.example`](.env.example) dosyasına bakın. Gerçek kimlik bilgilerini
 veya tokenları commit etmeyin.
 
+`ZIMAOS_URL`, HTTP(S) origin'i (protokol, host ve isteğe bağlı port) olmalıdır; URL içinde
+kimlik bilgisi, yol öneki, query veya fragment kabul edilmez. Sondaki slash kaldırılır.
+`PORT` verilirse 1–65535 arasında tam bir ondalık tamsayı olmalıdır; boş değerler, sayıdan
+sonra eklenen karakterler, kesirler ve üslü gösterim reddedilir. Kimlik bilgisi/token
+değerleri, dağıtılan `CHANGE_ME` / `REPLACE_ME` placeholder'larını değiştirmelidir; bearer
+tokenlarında boşluk olamaz. Doğrulama hataları, değeri yansıtmadan ayarın adını belirtir.
+
 ## MCP istemcisi bağlama
 
 Sunucu Streamable HTTP endpoint'ini şu adreste sunar:
@@ -144,7 +155,11 @@ Authorization: Bearer <MCP_AUTH_TOKEN>
 ```
 
 `/health` kimlik doğrulaması gerektirmez ve container health/readiness kontrolleri
-içindir; MCP endpoint'i değildir.
+içindir; MCP endpoint'i değildir. Desteklenen, kimlik doğrulamalı ZimaOS cihaz bilgisi
+API'sini aktif olarak kontrol eder: HTTP 200 hazır, HTTP 503 degraded/erişilemez/kimlik
+doğrulaması başarısız anlamındadır. Eşzamanlı kontroller sınırlı upstream işlemini paylaşır.
+Docker, yapılandırılan container iç `PORT` değerini kontrol eder ve degraded durumunu
+unhealthy sayar; bu, her uygulama API'sinin çalıştığı garantisi değildir.
 
 ## Araç referansı
 
@@ -209,7 +224,7 @@ docker run --rm \
 
 ## Geliştirme
 
-Node.js 22 veya daha yenisi gerekir.
+Node.js 22 LTS (22.13.0 veya daha yeni) ya da desteklenen daha yeni bir LTS runtime kullanın.
 
 ```bash
 npm ci --no-audit --no-fund

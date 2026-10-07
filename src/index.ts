@@ -6,7 +6,8 @@
  * authenticated Streamable HTTP MCP endpoint plus a /health probe.
  */
 
-import { loadConfig } from "./config.js";
+import { ConfigError, loadConfig } from "./config.js";
+import { AppError } from "./errors.js";
 import { logger, setLogLevel } from "./logging.js";
 import { ZimaOsClient } from "./zimaos/client.js";
 import { AppService } from "./zimaos/appService.js";
@@ -31,7 +32,7 @@ async function main(): Promise<void> {
     await client.login();
   } catch (err) {
     logger.error("zimaos_login_failed", {
-      error: err instanceof Error ? err.message : String(err),
+      code: err instanceof AppError ? err.code : "INTERNAL",
     });
     process.exitCode = 1;
     return;
@@ -51,11 +52,15 @@ async function main(): Promise<void> {
   const server = createHttpServer({
     config,
     deps,
-    isReady: () => client.hasSession(),
+    isReady: () => client.checkReadiness(),
   });
 
-  await new Promise<void>((resolve) => {
-    server.listen(config.port, resolve);
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(config.port, () => {
+      server.removeListener("error", reject);
+      resolve();
+    });
   });
   logger.info("server_listening", { port: config.port });
 
@@ -71,7 +76,11 @@ async function main(): Promise<void> {
 
 main().catch((err) => {
   logger.error("fatal_startup_error", {
-    error: err instanceof Error ? err.message : String(err),
+    code: err instanceof AppError ? err.code : "INTERNAL",
+    error:
+      err instanceof ConfigError
+        ? err.message
+        : "Server startup failed; check port and deployment settings.",
   });
   process.exitCode = 1;
 });

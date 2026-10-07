@@ -4,7 +4,8 @@
  * request/response cycle over real HTTP (mocked ZimaOS services).
  */
 
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { logger } from "../src/logging.js";
 import type http from "node:http";
 import type { AddressInfo } from "node:net";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
@@ -12,6 +13,23 @@ import type { AppConfig } from "../src/config.js";
 import { createHttpServer } from "../src/http/server.js";
 import { PermissionLayer } from "../src/permissions.js";
 import type { ToolDeps } from "../src/mcp/tools.js";
+import type * as McpNode from "@modelcontextprotocol/node";
+
+vi.mock("@modelcontextprotocol/node", async (importOriginal) => {
+  const actual = await importOriginal<typeof McpNode>();
+  return {
+    ...actual,
+    toNodeHandler: (...args: Parameters<typeof actual.toNodeHandler>) => {
+      const handler = actual.toNodeHandler(...args);
+      return async (req: http.IncomingMessage, res: http.ServerResponse) => {
+        if (req.headers["x-test-transport-failure"] === "1") {
+          throw new Error("SYNTHETIC_SECRET");
+        }
+        return handler(req, res);
+      };
+    },
+  };
+});
 
 const MCP_TOKEN = "test-mcp-token-0123456789abcdef0123456789abcdef";
 
@@ -56,12 +74,14 @@ interface RunningServer {
   setReady: (value: boolean) => void;
 }
 
-async function startServer(): Promise<RunningServer> {
+async function startServer(
+  probe?: () => boolean | Promise<boolean>,
+): Promise<RunningServer> {
   const state = { ready: true };
   const server = createHttpServer({
     config: makeConfig(),
     deps: makeDeps(),
-    isReady: () => state.ready,
+    isReady: probe ?? (() => state.ready),
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const { port } = server.address() as AddressInfo;
@@ -119,6 +139,7 @@ describe("HTTP transport (mocked services)", () => {
     // Flip readiness and confirm the probe degrades.
     running.setReady(false);
     const degraded = await fetch(`${running.baseUrl}/health`);
+    expect(degraded.status).toBe(503);
     const body2 = (await degraded.json()) as { status: string; ready: boolean };
     expect(body2.ready).toBe(false);
     expect(body2.status).toBe("degraded");
@@ -128,6 +149,38 @@ describe("HTTP transport (mocked services)", () => {
   it("returns 404 for unknown paths", async () => {
     const res = await fetch(`${running.baseUrl}/nope`);
     expect(res.status).toBe(404);
+  });
+
+  it("does not log secret-bearing unexpected transport errors", async () => {
+    const logged = vi.spyOn(logger, "error").mockImplementation(() => undefined);
+    try {
+      const res = await fetch(`${running.baseUrl}/mcp`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${MCP_TOKEN}`,
+          "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
+          "x-test-transport-failure": "1",
+        },
+        body: "SYNTHETIC_SECRET",
+      });
+      expect(res.ok).toBe(false);
+      expect(logged).toHaveBeenCalled();
+      expect(JSON.stringify(logged.mock.calls)).not.toContain("SYNTHETIC_SECRET");
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
+  it("awaits an asynchronous readiness failure", async () => {
+    const isolated = await startServer(async () => false);
+    try {
+      const res = await fetch(`${isolated.baseUrl}/health`);
+      expect(res.status).toBe(503);
+      expect((await res.json()) as { ready: boolean }).toMatchObject({ ready: false });
+    } finally {
+      await new Promise<void>((resolve) => isolated.server.close(() => resolve()));
+    }
   });
 
   it("completes an authenticated MCP initialize + tools/list over HTTP", async () => {

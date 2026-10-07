@@ -42,7 +42,7 @@ export class AppError extends Error {
 }
 
 /** Map an upstream HTTP status to a normalized error. */
-export function fromHttpStatus(status: number, detail?: string): AppError {
+export function fromHttpStatus(status: number): AppError {
   switch (status) {
     case 401:
       return new AppError(
@@ -52,7 +52,7 @@ export function fromHttpStatus(status: number, detail?: string): AppError {
     case 403:
       return new AppError(
         "PERMISSION_DENIED",
-        detail ?? "The ZimaOS account does not have permission for this operation.",
+        "The ZimaOS account does not have permission for this operation.",
       );
     case 404:
       return new AppError(
@@ -73,7 +73,7 @@ export function fromHttpStatus(status: number, detail?: string): AppError {
       }
       return new AppError(
         "ZIMAOS_BAD_REQUEST",
-        detail ?? `ZimaOS rejected the request (HTTP ${status}).`,
+        `ZimaOS rejected the request (HTTP ${status}).`,
       );
   }
 }

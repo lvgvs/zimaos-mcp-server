@@ -14,7 +14,7 @@ This project is security-sensitive and uses a clean-room implementation policy, 
 
 ## Development setup
 
-Requires Node.js 22 or newer.
+Use Node.js 22 LTS (22.13.0 or newer) or a supported newer LTS runtime.
 
 ```bash
 npm ci --no-audit --no-fund

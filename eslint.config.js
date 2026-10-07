@@ -18,4 +18,9 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": "error",
     },
   },
+  {
+    files: ["tests/**/*.ts"],
+    // Assertion helpers deliberately replace caught failures; payloads are not error causes.
+    rules: { "preserve-caught-error": "off" },
+  },
 );

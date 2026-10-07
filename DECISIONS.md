@@ -303,3 +303,22 @@ pinning reduces input drift but cannot alone make published commit tags immutabl
 and publish standard minimum BuildKit provenance/SBOM using SHA-pinned maintained Docker actions.
 Do not promise byte reproducibility or claim GHCR enforces tag immutability against administrators.
 Avoid a custom rebuild/reproducibility system; retain and promote the known artifact instead.
+
+## 2026-10-07 — Active readiness and origin-only configuration
+
+**Decision:** Supersede the original always-200 readiness contract: HTTP 200 means an
+authenticated, supported device-info read succeeded; false/error is HTTP 503. Production probes
+share one in-flight request sequence, with one-second I/O limits including response consumption
+and at most one existing read-only reauthentication retry. Docker probes the configured port.
+This is dependency readiness, not proof that every app-management operation works.
+
+**Reason:** A cached token and HTTP 200 for `ready:false` made container health lie after an
+upstream outage. Active supported-API reads preserve the product boundary; no OS/socket/shell
+control path or permanent background polling loop is introduced.
+
+**Configuration/error boundary:** Accept only an HTTP(S) origin for ZimaOS, without embedded
+credentials, a path prefix, query or fragment. Normalize through the URL parser. Parse PORT as
+complete decimal digits with range validation. Reject shipped credential/token placeholders.
+Never reflect raw configuration, upstream messages, transport exceptions or response-body
+errors in startup/transport logs; retain static variable-specific config errors and normalized
+codes. Reverse-proxy path prefixes are not supported by this origin-only deployment contract.

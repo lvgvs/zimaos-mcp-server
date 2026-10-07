@@ -789,3 +789,40 @@ rather than an in-place remote rewrite. The original private PR refs remain pres
   Source/revision labels, minimum provenance and SBOM make first publication auditable; attestations
   do not guarantee rebuild reproducibility. Standard Docker actions selected at verified releases:
   setup-buildx v4.4.1 / build-push v7.4.0, pinned to their resolved full commit SHAs.
+
+## Phase 4 dependency/readiness verification (2026-10-07)
+
+- [ESLint version support](https://eslint.org/version-support/) reports v9 EOL on 2026-08-06.
+  [ESLint 10 migration](https://eslint.org/docs/latest/use/migrate-to-10.0.0) requires Node
+  22.13+ on the Node 22 line. Installed ESLint 10.12.0 / direct `@eslint/js` 10.0.1 and
+  typescript-eslint 8.71.1; its registry peers explicitly support ESLint 10. New recommended
+  rules remain enabled for production; assertion helpers intentionally omit caught error causes.
+- Full dependency audit identified dev-only SDK client OAuth, Vitest/mocker, tinypool and
+  source-map-js advisories despite a clean production audit. Sources:
+  [MCP client advisory](https://github.com/advisories/GHSA-6qxp-vccf-f47h),
+  [Vitest mocker advisory](https://github.com/advisories/GHSA-82fw-gwwq-j7x9),
+  [tinypool advisory](https://github.com/advisories/GHSA-5gmw-xhrv-c9v3),
+  [source-map-js advisory](https://github.com/advisories/GHSA-68fv-2mgg-jv7q).
+  SDK client first fixed v2 is 2.2.0 (no 2.1.1 exists). Resolved dev client 2.3.1,
+  Vitest 5.0.3 and patched transitives; runtime server/node remain 2.1.0. Full and production
+  npm audits subsequently reported zero vulnerabilities. This is a dated advisory check.
+- Registry/installed license declarations: ESLint / Vitest / typescript-eslint meta-package MIT,
+  new dev MCP client Apache-2.0, source-map-js BSD-3-Clause, minimatch BlueOak-1.0.0.
+  Vitest's Vite dependency adds unmodified Lightning CSS 1.33.0/native binding (MPL-2.0):
+  development-only, excluded from production install, no code copied/modified/vendored.
+  All installed package manifests declare licenses; retained upstream packages carry notices.
+  Sources: https://registry.npmjs.org/eslint, https://registry.npmjs.org/vitest,
+  https://registry.npmjs.org/@modelcontextprotocol/client, https://registry.npmjs.org/lightningcss.
+- Active readiness reuses the documented device-info GET and login operations recorded above;
+  no new upstream endpoint. Secret-safe live compiled-server verification against the authorized
+  VM passed modern discovery (15 tools), authenticated app-list/system reads, unauthenticated
+  MCP rejection and default-off control denial. Health was 200, then 503 for a locally injected
+  transport failure, then 200 after removing injection. VM application IDs stayed identical;
+  no app mutation or real OS/network outage was induced on the VM.
+- The old production image was HTTP-ready on configured port 3123 but Docker remained unhealthy,
+  reproducing the hardcoded-port bug. A raw shell PORT expansion also failed for accepted surrounding
+  whitespace. The final Node exec-form probe normalizes PORT, requires HTTP 200 and `ready:true`,
+  bounds fetch/body work and suppresses error payloads. Six local HTTP regressions execute that
+  exact Dockerfile command. Final non-root production-image live smoke on whitespace-normalized
+  port 3123 observed actual Docker healthy → unhealthy → healthy by disconnect/reconnect of only
+  the disposable local container's bridge network. No VM OS/network/app mutation; not fresh UI UAT.

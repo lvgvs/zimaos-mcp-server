@@ -43,6 +43,12 @@ export type LogLevel = "debug" | "info" | "warn" | "error";
 
 const LOG_LEVELS: readonly LogLevel[] = ["debug", "info", "warn", "error"];
 
+function rejectPlaceholder(value: string, name: string): void {
+  if (/^(?:change[_ -]?me|replace[_ -]?me)(?:[_ -]|$)/i.test(value.trim())) {
+    throw new ConfigError(`${name} must replace the shipped placeholder.`);
+  }
+}
+
 /** Minimum acceptable length for the MCP bearer token. */
 export const MIN_MCP_TOKEN_LENGTH = 32;
 
@@ -64,8 +70,11 @@ function parseBool(value: string | undefined, name: string): boolean {
 }
 
 function parsePort(value: string | undefined): number {
-  if (value === undefined || value.trim() === "") return 3000;
-  const parsed = Number.parseInt(value, 10);
+  if (value === undefined) return 3000;
+  if (!/^\d+$/.test(value.trim())) {
+    throw new ConfigError("Invalid PORT: expected an integer between 1 and 65535.");
+  }
+  const parsed = Number(value.trim());
   if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) {
     throw new ConfigError(`Invalid PORT: expected an integer between 1 and 65535.`);
   }
@@ -88,23 +97,28 @@ function parseZimaosUrl(value: string | undefined): string {
     );
   }
   let url: URL;
+  const trimmed = value.trim();
+  const invalid =
+    "Invalid ZIMAOS_URL: expected an http(s) origin without credentials, path, query or fragment.";
+  if (!/^https?:\/\//i.test(trimmed) || /[\\\s?#]/u.test(trimmed)) {
+    throw new ConfigError(invalid);
+  }
   try {
-    url = new URL(value);
+    url = new URL(trimmed);
   } catch {
-    throw new ConfigError(`Invalid ZIMAOS_URL: "${value}" is not a valid URL.`);
+    throw new ConfigError(invalid);
   }
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new ConfigError("ZIMAOS_URL must use http or https.");
+  if (url.username || url.password || url.pathname !== "/") {
+    throw new ConfigError(invalid);
   }
-  // Normalize away any trailing slash so callers can append paths safely.
-  return url.toString().replace(/\/+$/, "");
+  return url.origin;
 }
 
 /**
  * Load and validate configuration from an environment map (defaults to process.env).
  *
  * Errors are descriptive but never include secret values: only variable names,
- * expected formats, and (for URL problems) the offending non-secret value.
+ * expected formats. No supplied configuration value is safe to reflect.
  */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const zimaosUrl = parseZimaosUrl(env["ZIMAOS_URL"]);
@@ -131,6 +145,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new ConfigError(
       `MCP_AUTH_TOKEN must be at least ${MIN_MCP_TOKEN_LENGTH} characters long.`,
     );
+  }
+
+  rejectPlaceholder(username, "ZIMAOS_USERNAME");
+  rejectPlaceholder(password, "ZIMAOS_PASSWORD");
+  rejectPlaceholder(mcpAuthToken, "MCP_AUTH_TOKEN");
+  if (/\s/u.test(mcpAuthToken)) {
+    throw new ConfigError("MCP_AUTH_TOKEN must not contain whitespace.");
   }
 
   return {

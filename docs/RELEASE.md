@@ -35,6 +35,10 @@ It does **not** rebuild, create a Git tag, or publish a GitHub Release.
 - Prerelease promotion updates `prerelease` only; it never updates stable/latest.
 - Workflow summaries identify source commit, artifact digest and promoted version.
 
+Mutable release aliases follow the approved promotion, not an automatically computed greatest
+SemVer. Rerunning an older release can roll those aliases back; it requires explicit manager
+rollback approval. The first-install UAT candidate does not execute any version promotion.
+
 Before approval: compare changelog/release notes with implemented features, verify licenses/secrets,
 inspect provenance/SBOM, and record exact-head CI/GHCR plus the UAT result. Update the changelog and
 package version before building the chosen release artifact, not after it is selected.

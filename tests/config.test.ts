@@ -14,6 +14,10 @@ function envWith(overrides: Record<string, string | undefined> = {}): NodeJS.Pro
 }
 
 describe("loadConfig", () => {
+  it.each(["3000oops", "1e3", "3.5", "+3000", "0x1000", "", "   "])(
+    "rejects PORT that is not a complete decimal integer: %s",
+    (PORT) => expect(() => loadConfig(envWith({ PORT }))).toThrowError(ConfigError),
+  );
   it("accepts a fully valid environment with defaults applied", () => {
     const cfg = loadConfig(envWith());
     expect(cfg.zimaosUrl).toBe("http://192.0.2.50");
@@ -29,6 +33,28 @@ describe("loadConfig", () => {
   it("normalizes trailing slashes on ZIMAOS_URL", () => {
     const cfg = loadConfig(envWith({ ZIMAOS_URL: "http://192.0.2.50/" }));
     expect(cfg.zimaosUrl).toBe("http://192.0.2.50");
+  });
+
+  it.each([
+    "http://user:synthetic-sensitive-value@zimaos.test",
+    "http://zimaos.test/?token=synthetic-sensitive-value",
+    "http://zimaos.test/#synthetic-sensitive-value",
+    "http://zimaos.test/api",
+    "http:zimaos.test",
+    "http://zimaos.test\\path",
+  ])("rejects unsafe or non-origin ZIMAOS_URL", (value) => {
+    expect(() => loadConfig(envWith({ ZIMAOS_URL: value }))).toThrowError(ConfigError);
+  });
+
+  it("never reflects a malformed URL into configuration errors", () => {
+    const value = "malformed-synthetic-sensitive-value";
+    try {
+      loadConfig(envWith({ ZIMAOS_URL: value }));
+      throw new Error("expected validation failure");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConfigError);
+      expect((error as Error).message).not.toContain(value);
+    }
   });
 
   it.each([
@@ -59,6 +85,22 @@ describe("loadConfig", () => {
   it("accepts a token at exactly the minimum length", () => {
     const cfg = loadConfig(envWith({ MCP_AUTH_TOKEN: "y".repeat(MIN_MCP_TOKEN_LENGTH) }));
     expect(cfg.mcpAuthToken).toHaveLength(MIN_MCP_TOKEN_LENGTH);
+  });
+
+  it.each(["ZIMAOS_USERNAME", "ZIMAOS_PASSWORD", "MCP_AUTH_TOKEN"])(
+    "rejects the shipped placeholder in %s",
+    (key) =>
+      expect(() =>
+        loadConfig(
+          envWith({ [key]: "CHANGE_ME_at_least_32_characters_long_secret_token" }),
+        ),
+      ).toThrowError(ConfigError),
+  );
+
+  it("rejects whitespace inside a bearer token", () => {
+    expect(() =>
+      loadConfig(envWith({ MCP_AUTH_TOKEN: `${"x".repeat(48)} ` })),
+    ).toThrowError(ConfigError);
   });
 
   it.each([

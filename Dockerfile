@@ -33,8 +33,8 @@ USER node
 
 EXPOSE 3000
 
-# Health check hits the readiness endpoint (no auth required).
+# Normalize PORT like configuration; require HTTP 200 and explicit readiness (no auth).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3000/health || exit 1
+  CMD ["node", "--input-type=module", "--eval", "try { const r = await fetch(`http://127.0.0.1:${Number(process.env.PORT ?? 3000)}/health`, { signal: AbortSignal.timeout(4500) }); process.exit(r.status === 200 && (await r.json()).ready === true ? 0 : 1); } catch { process.exit(1); }"]
 
 CMD ["node", "dist/index.js"]

@@ -26,6 +26,41 @@ function loginOk(fake: FakeZimaOs): void {
 }
 
 describe("ZimaOsClient authentication/session behavior (mocked HTTP)", () => {
+  it("actively detects upstream failure after a cached login and recovers", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.raw("GET", "/v2/zimaos/device/info", { device: "test" });
+    fake.on("GET", "/v2/zimaos/device/info", { status: 503 });
+    fake.raw("GET", "/v2/zimaos/device/info", { device: "test" });
+    const client = makeClient(fake);
+    await client.login();
+    expect(await client.checkReadiness()).toBe(true);
+    expect(await client.checkReadiness()).toBe(false);
+    expect(await client.checkReadiness()).toBe(true);
+  });
+
+  it("shares concurrent readiness probes", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.raw("GET", "/v2/zimaos/device/info", { device: "test" });
+    const client = makeClient(fake);
+    expect(await Promise.all([client.checkReadiness(), client.checkReadiness()])).toEqual(
+      [true, true],
+    );
+    expect(
+      fake.calls.filter((call) => call.path === "/v2/zimaos/device/info"),
+    ).toHaveLength(1);
+  });
+  it("is not ready when device info explicitly reports failure on HTTP 200", async () => {
+    const fake = new FakeZimaOs();
+    loginOk(fake);
+    fake.raw("GET", "/v2/zimaos/device/info", {
+      success: false,
+      message: "SYNTHETIC_SECRET",
+    });
+    expect(await makeClient(fake).checkReadiness()).toBe(false);
+  });
+
   it("logs in and caches the access token from the documented shape", async () => {
     const fake = new FakeZimaOs();
     loginOk(fake);
@@ -124,6 +159,59 @@ describe("ZimaOsClient authentication/session behavior (mocked HTTP)", () => {
 });
 
 describe("ZimaOsClient response normalization (mocked HTTP)", () => {
+  it.each(["raw", "install", "uninstall", "validation"])(
+    "normalizes response-body failures on %s",
+    async (operation) => {
+      const fake = new FakeZimaOs();
+      loginOk(fake);
+      const client = new ZimaOsClient({
+        baseUrl: BASE,
+        username: "admin",
+        password: "pw",
+        fetchImpl: (async (input, init) => {
+          if (String(input).endsWith("/v1/users/login"))
+            return fake.fetchImpl(input, init);
+          const response = new Response("{}");
+          Object.defineProperty(response, "text", {
+            value: async () => {
+              throw new Error("SYNTHETIC_SECRET");
+            },
+          });
+          return response;
+        }) as typeof fetch,
+      });
+      const result =
+        operation === "raw"
+          ? client.listComposeApps()
+          : operation === "install"
+            ? client.installComposeOnce("services: {}")
+            : operation === "uninstall"
+              ? client.uninstallComposeOnce("example")
+              : client.validateCompose("services: {}");
+      await expect(result).rejects.toMatchObject({
+        code: "ZIMAOS_UNREACHABLE",
+        message: expect.not.stringContaining("SYNTHETIC_SECRET"),
+      });
+    },
+  );
+  it.each([200, 400, 403])(
+    "does not reflect free-form error bodies at HTTP %s",
+    async (status) => {
+      const fake = new FakeZimaOs();
+      loginOk(fake);
+      fake.on("GET", "/v2/app_management/compose/example", {
+        status,
+        json: { success: false, message: "syntheticSensitiveMarker" },
+      });
+      try {
+        await makeClient(fake).getComposeApp("example");
+        throw new Error("expected upstream failure");
+      } catch (error) {
+        expect(error).toBeInstanceOf(AppError);
+        expect((error as Error).message).not.toContain("syntheticSensitiveMarker");
+      }
+    },
+  );
   it("unwraps the envelope and returns data for compose list", async () => {
     const fake = new FakeZimaOs();
     loginOk(fake);
@@ -135,7 +223,7 @@ describe("ZimaOsClient response normalization (mocked HTTP)", () => {
     });
   });
 
-  it("maps envelope success=false to ZIMAOS_UPSTREAM_ERROR with the upstream message", async () => {
+  it("maps envelope success=false to ZIMAOS_UPSTREAM_ERROR without its message", async () => {
     const fake = new FakeZimaOs();
     loginOk(fake);
     fake.on("GET", "/v2/app_management/compose/missing", {
