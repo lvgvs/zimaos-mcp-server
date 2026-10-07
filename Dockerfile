@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Build stage: full toolchain, dev dependencies, TypeScript compile.
 # ---------------------------------------------------------------------------
-FROM node:22-alpine AS build
+FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS build
 WORKDIR /app
 
 # Install all deps (incl. dev) so tsc can run.
@@ -16,14 +16,14 @@ RUN npm run build && rm -rf node_modules
 # ---------------------------------------------------------------------------
 # Runtime stage: production dependencies only, non-root user.
 # ---------------------------------------------------------------------------
-FROM node:22-alpine AS runtime
+FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS runtime
 LABEL org.opencontainers.image.source="https://github.com/lvgvs/zimaos-mcp-server"
 ENV NODE_ENV=production
 WORKDIR /app
 
 # Install only production deps (no devDependencies).
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
+RUN NODE_DISABLE_COMPILE_CACHE=1 npm ci --omit=dev --no-audit --no-fund && rm -rf /root/.npm
 
 # Compiled output from the build stage.
 COPY --from=build /app/dist ./dist

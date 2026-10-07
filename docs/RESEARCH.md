@@ -764,3 +764,28 @@ rather than an in-place remote rewrite. The original private PR refs remain pres
   access to the existing package, then verify/relink its canonical source as appropriate. No new
   package name, personal-token workaround, visibility change or package-version deletion is needed.
   Preserve the historical repository unarchived until linkage/access migration is resolved.
+
+## Same-commit image variance and publication policy (2026-10-07)
+
+- Evidence: canonical [GHCR run 36937958392](https://github.com/lvgvs/zimaos-mcp-server/actions/runs/36937958392),
+  attempts 1/2, source `0f61a83186882cf0cf7da1d317311879f312305e`. Both resolved Node 22 index
+  `sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402`.
+  Four base-layer IDs matched; all four project-layer IDs and image config IDs differed.
+  The previously reported manifest digests differed because each attempt rebuilt and overwrote tags.
+- Controlled local evidence: export that exact Git source once, pin both stages to that base,
+  build twice without cache, save and compare image configs/layer archives. Layers 1–5 matched;
+  first difference at layer 6 was directory metadata only. npm layer 7 differed in timestamps,
+  npm log files and Node compile-cache bytes. Compiled-output layer 8 differed in metadata only;
+  all TypeScript-generated file bytes matched. Config creation/history timestamps and rootfs IDs
+  differed. Historical remote configs were not independently retrievable with current package scopes;
+  local comparisons identify a reproduced cause, not a byte-for-byte inspection of those old images.
+- Sources: [Docker reproducible-build guidance](https://docs.docker.com/build/ci/github-actions/reproducible-builds/),
+  [Docker attestations](https://docs.docker.com/build/ci/github-actions/attestations/),
+  [Buildx imagetools create](https://docs.docker.com/reference/cli/docker/buildx/imagetools/create/).
+  `SOURCE_DATE_EPOCH` can normalize creation time, but does not by itself remove generated cache data
+  or enforce tag write policy. `imagetools create --prefer-index=false` preserves a single manifest
+  or copies an existing index instead of needlessly wrapping the artifact in a different index.
+- Implication: pin base inputs, retain the first CI-published commit artifact, and promote its digest.
+  Source/revision labels, minimum provenance and SBOM make first publication auditable; attestations
+  do not guarantee rebuild reproducibility. Standard Docker actions selected at verified releases:
+  setup-buildx v4.4.1 / build-push v7.4.0, pinned to their resolved full commit SHAs.

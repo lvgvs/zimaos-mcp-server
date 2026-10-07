@@ -1,0 +1,48 @@
+# Prepared only: an approved version tag promotes an existing CI artifact, never rebuilds.
+name: release-image
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+  packages: write
+concurrency:
+  group: ghcr-publication
+  cancel-in-progress: false
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/lvgvs/zimaos-mcp-server
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Promote the reviewed main artifact
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]
+          if [[ "$VERSION" = *-* ]]; then
+            IFS='.' read -ra IDS <<< "${VERSION#*-}"
+            for ID in "${IDS[@]}"; do [[ ! "$ID" =~ ^0[0-9]+$ ]]; done
+          fi
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          git merge-base --is-ancestor "$SOURCE_SHA" origin/main
+          DIGEST="$(bash scripts/image-policy.sh inspect "$IMAGE:sha-$SOURCE_SHA")"
+          test -n "$DIGEST" # Fail closed if no successful CI-published artifact exists.
+          bash scripts/image-policy.sh promote "$IMAGE" "$DIGEST" "$VERSION" immutable
+          if [[ "$VERSION" = *-* ]]; then
+            bash scripts/image-policy.sh promote "$IMAGE" "$DIGEST" prerelease mutable
+          else
+            bash scripts/image-policy.sh promote "$IMAGE" "$DIGEST" stable mutable
+            bash scripts/image-policy.sh promote "$IMAGE" "$DIGEST" latest mutable
+          fi
+          printf 'Version: `%s`\nSource: `%s`\nArtifact: `%s@%s`\n' "$VERSION" "$SOURCE_SHA" "$IMAGE" "$DIGEST" >> "$GITHUB_STEP_SUMMARY"

@@ -285,3 +285,21 @@ parallel active repositories that could accidentally reintroduce unsanitized his
 updates, not unique manager/development work. Backup/candidate/PR refs stay out of the new remote.
 Freeze the old repository after canonical CI/privacy verification and once doing so will not
 obstruct GHCR access/linkage migration. Neither source nor package becomes public in this operation.
+
+## 2026-10-07 — First-published commit artifacts; digest-based release promotion
+
+**Decision:** Gate GHCR publication on successful trusted main-push CI. Serialize all publisher
+and promotion workflows. Reuse an existing `sha-<commit>` artifact; publish a distinct run artifact
+only on first publication, then seal the commit tag and promote aliases by that exact digest.
+An existing commit/version tag with a conflicting digest fails closed. Development uses `edge`;
+approved stable versions promote `stable`/`latest`, prereleases promote `prerelease`. Exact UAT
+and deployments use registry digests. Prepared release automation does not create a Git tag or Release.
+
+**Reason:** Same-source uncached builds regenerate filesystem/config timestamps, npm logs and V8
+compile-cache data despite identical base images and identical compiled TypeScript bytes. Base
+pinning reduces input drift but cannot alone make published commit tags immutable.
+
+**Boundary:** Pin the verified Node 22 base digest, remove install caches/logs from runtime,
+and publish standard minimum BuildKit provenance/SBOM using SHA-pinned maintained Docker actions.
+Do not promise byte reproducibility or claim GHCR enforces tag immutability against administrators.
+Avoid a custom rebuild/reproducibility system; retain and promote the known artifact instead.

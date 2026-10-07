@@ -1,23 +1,36 @@
-# Build and push the production image to GitHub Container Registry (GHCR).
-# Uses only the auto-provided GITHUB_TOKEN; never depends on the disposable VM.
+# Publish only trusted main pushes that completed all CI jobs successfully.
 name: ghcr-publish
 
 on:
-  push:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
     branches: [main]
-    tags: ["v*"]
 
 permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: ghcr-publication
+  cancel-in-progress: false
+
 jobs:
   build-and-push:
-    name: build + push to GHCR
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
+    env:
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+      IMAGE: ghcr.io/lvgvs/zimaos-mcp-server
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Log in to GHCR
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
@@ -25,37 +38,39 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build once, then push the required refs.
-      #   - push to main  -> :latest and :sha-<GITHUB_SHA> (immutable)
-      #   - push a v* tag -> :<tag>, :latest, and :sha-<GITHUB_SHA> (immutable)
-      - name: Build image
-        run: |
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
-          docker build -t "${IMAGE}:ci" .
-
-      - name: Push tags
+      - name: Reuse the first published commit artifact
+        id: existing
         run: |
           set -euo pipefail
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
-          TAGS=()
-          if [ -n "${GITHUB_REF_NAME:-}" ] && [[ "${GITHUB_REF_NAME}" == v* ]]; then
-            # Tagged release (e.g. v1.0.0): push the version tag and latest.
-            docker tag "${IMAGE}:ci" "${IMAGE}:${GITHUB_REF_NAME}"
-            TAGS+=("${GITHUB_REF_NAME}")
+          [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          DIGEST="$(bash scripts/image-policy.sh inspect "$IMAGE:sha-$SOURCE_SHA")"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+      - name: Build a distinct run artifact only if the commit is unpublished
+        id: build
+        if: steps.existing.outputs.digest == ''
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/lvgvs/zimaos-mcp-server:run-${{ github.run_id }}-${{ github.run_attempt }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/lvgvs/zimaos-mcp-server
+            org.opencontainers.image.revision=${{ github.event.workflow_run.head_sha }}
+          provenance: mode=min
+          sbom: true
+      - name: Seal commit artifact and advance development alias by digest
+        env:
+          EXISTING_DIGEST: ${{ steps.existing.outputs.digest }}
+          BUILT_DIGEST: ${{ steps.build.outputs.digest }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          DIGEST="${EXISTING_DIGEST:-$BUILT_DIGEST}"
+          bash scripts/image-policy.sh promote "$IMAGE" "$DIGEST" "sha-$SOURCE_SHA" immutable
+          CURRENT_MAIN="$(gh api repos/lvgvs/zimaos-mcp-server/git/ref/heads/main --jq .object.sha)"
+          if [ "$CURRENT_MAIN" = "$SOURCE_SHA" ]; then
+            bash scripts/image-policy.sh promote "$IMAGE" "$DIGEST" edge mutable
           fi
-          if [ "${{ github.ref_type }}" = "branch" ] || [[ "${GITHUB_REF_NAME:-}" == v* ]]; then
-            # main pushes and version tags both publish latest.
-            docker tag "${IMAGE}:ci" "${IMAGE}:latest"
-            TAGS+=("latest")
-          fi
-          # Every published build also gets an immutable commit-based reference,
-          # so a deployed image can always be traced back to its exact source.
-          docker tag "${IMAGE}:ci" "${IMAGE}:sha-${GITHUB_SHA}"
-          TAGS+=("sha-${GITHUB_SHA}")
-          if [ "${#TAGS[@]}" -eq 0 ]; then
-            echo "Nothing to push."
-            exit 0
-          fi
-          for t in "${TAGS[@]}"; do
-            docker push "${IMAGE}:${t}"
-          done
+          printf 'Source: `%s`\nArtifact: `%s@%s`\n' "$SOURCE_SHA" "$IMAGE" "$DIGEST" >> "$GITHUB_STEP_SUMMARY"

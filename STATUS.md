@@ -4,7 +4,32 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 canonical migration — GHCR verified; manager review (2026-10-01 UTC)
+## Phase 4 automated hardening — artifact policy checkpoint (2026-10-07)
+
+- **Active source:** canonical private repository, `main`; previous verified checkpoint
+  `0f61a83186882cf0cf7da1d317311879f312305e`. Historical repository is private/archived,
+  fetch-only locally, never synchronized. Manager reports canonical GHCR source linkage and
+  canonical-only Actions WRITE access; post-relink rerun 36937958392 attempt 2 succeeded.
+- **Image investigation:** both observed builds used the identical Node 22 base index.
+  Matching base layers / differing project layers were verified from both attempt logs.
+  Controlled same-source, fixed-base uncached builds reproduced config/filesystem timestamps,
+  npm logs and V8 compile-cache variation; TypeScript output bytes matched. This is both
+  rebuild non-reproducibility and unsafe overwrite policy, not a Node 24 application change.
+- **Implemented artifact policy:** CI-success-only trusted main publication; SHA-pinned
+  maintained Docker actions, pinned Node 22 base, runtime install-cache cleanup, revision/source
+  labels, minimum provenance/SBOM, first-artifact commit sealing and digest-based promotion.
+  Reruns reuse the existing commit artifact. Conflicts/auth/network failures fail closed;
+  `edge` is development; stable/latest and prerelease promotion are separate, prepared only.
+  Version workflow creates no Git tag/Release. Exact deployment/UAT uses image digests.
+- **Executed gates:** 436 tests / 26 files passed; format, lint, both TypeScript checks,
+  production build, Docker build, Compose config and diff checks passed. Policy tests use
+  a fake Docker registry CLI; no real version tag or release alias was created for testing.
+- **Next:** verify this checkpoint's CI/GHCR and same-head rerun stability, then continue
+  configuration, readiness, secret-reflection and supported ESLint hardening. Fresh UI UAT
+  and anonymous image-access/visibility decisions remain manager gates. No visibility change,
+  old-version deletion, final release/tag, local model or child model used.
+
+## Historical canonical migration — GHCR verified; manager review (2026-10-01 UTC)
 
 - **Canonical source:** https://github.com/lvgvs/zimaos-mcp-server is a new PRIVATE
   repository, GitHub numeric ID `1400704911`, default branch `main`. Normal push imported

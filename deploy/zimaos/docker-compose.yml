@@ -24,8 +24,8 @@ services:
     # Development image reference, NOT an approved release candidate.
     # Fresh UI installation requires manager-approved image access; see README
     # "Image-access gate". Do not rescue installation with host shell commands.
-    # The UAT artifact must pin the exact reviewed sha-<full-commit-sha> image.
-    image: ghcr.io/lvgvs/zimaos-mcp-server:latest
+    # The UAT artifact must pin the exact reviewed image@sha256:<digest>.
+    image: ghcr.io/lvgvs/zimaos-mcp-server:edge
     container_name: zimaos-mcp-server
     restart: unless-stopped
 

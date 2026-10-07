@@ -25,8 +25,9 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 **Ön sürüm.** Phase 1–3 işlevleri tamamlandı; Phase 4 sürüm sağlamlaştırma ve gerçek
 kullanıcı UAT süreci devam ediyor. İlk etiketli sürüm henüz yayınlanmadı.
 
-`latest` şu anda geliştirme dalını takip eder ve kararlı sürüm olarak
-değerlendirilmemelidir. İlk sürümden önce kurulum ayrıntıları ve sürüm çıktıları değişebilir.
+`edge`, CI ile doğrulanmış geliştirme sürümlerini takip eder. `latest` / `stable`, onaylı
+kararlı sürümlere ayrılmıştır; önceki politikadan kalan `latest` imajı onaylı bir sürüm
+değildir. İlk sürümden önce kurulum ayrıntıları ve sürüm çıktıları değişebilir.
 
 Güncel geliştirme durumu için [`STATUS.md`](STATUS.md), onaylı kapsam ve güvenlik
 sınırları için [`PROJECT.md`](PROJECT.md) dosyasına bakın.
@@ -102,6 +103,14 @@ kullanır.
 > doğrulanmaktadır. İlk sürüm yayınlanana kadar `latest` kararlı deployment hedefi olarak
 > değerlendirilmemelidir.
 
+### İmaj erişimi ve ilk kurulum UAT
+
+Kaynak deposu ve GHCR paketi, birbirinden ayrı yönetici onaylarına kadar özel kalır.
+Normal kullanıcı akışıyla sıfırdan Custom App kurulumu için onaylı bir imaj çekme yolu
+gerekir; bu kapıyı aşmak için YAML'a registry kimlik bilgileri eklemeyin veya host shell
+komutları kullanmayın. UAT için şablondaki geliştirme imajını yöneticinin verdiği, tam olarak
+incelenmiş `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` referansıyla değiştirin.
+
 ## Yapılandırma
 
 | Değişken              | Zorunlu | Açıklama                                                              |
@@ -170,6 +179,22 @@ içindir; MCP endpoint'i değildir.
   storage-retention semantiği bağımsız olarak doğrulanmamıştır.
 - Uygulama logları uygulamanın kendisi tarafından üretilen gizli bilgiler içerebilir; log
   çıktısını buna göre değerlendirin.
+
+## İmaj referansları ve sürüm politikası
+
+- `sha-<tam-commit>`, CI'ın ilk yayınladığı çıktıyı korur; yeniden çalıştırmalar imajı
+  yeniden derlemek yerine bu çıktıyı kullanır.
+- `edge`, CI ile doğrulanmış güncel geliştirme çıktısıdır; kararlı sürüm değildir.
+- Onaylı `v<sürüm>` imaj etiketleri o commit'in mevcut digest'ini yeniden derlemeden taşır.
+  Kararlı sürümler `stable` / `latest` etiketlerini de ilerletir; ön sürümler yalnızca
+  `prerelease` etiketini ilerletir.
+- Tam olarak sabit deployment/UAT için `image@sha256:<digest>` kullanın: registry
+  yöneticileri etiketleri değiştirebilir; politika ile korunan etiketler registry'nin
+  zorunlu tuttuğu bir değişmezlik garantisi değildir.
+- Derlemeler Node 22 taban digest'ini sabitler; revision/source etiketleri, asgari provenance
+  ve SBOM yayınlar. Aynı kaynağı yeniden derlemenin aynı baytları üretmesi **garanti edilmez**.
+
+[Sürüm hazırlığına](docs/RELEASE.md) bakın. Henüz onaylı bir ilk sürüm yoktur.
 
 ## Docker ile yerelde çalıştırma
 
