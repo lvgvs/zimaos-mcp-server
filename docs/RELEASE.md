@@ -1,7 +1,12 @@
 # Release preparation
 
-No first release is approved or published. Do not change source/package visibility, create a final
-Git tag/GitHub Release, or delete old registry versions without the separate manager approval.
+No first release is approved or published. The canonical source repository is manager-approved
+for public pre-release exposure; the repository-owner visibility transition is still pending.
+Source approval does not approve GHCR public visibility or exposure of retained package versions,
+and does not satisfy fresh-install UAT. GHCR visibility, retained-version exposure, the final
+version/tag and GitHub Release remain separate, unapproved manager gates. Do not change package
+visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
+corresponding explicit manager approval.
 
 ## Artifact contract
 
@@ -24,7 +29,7 @@ not deleted by this policy. Their cleanup and visibility remain manager decision
 ## Approved release promotion (prepared, not executed)
 
 After automated gates and real-user UAT, the manager chooses/approves the version, source commit,
-visibility and release notes. Hermes/local Git creates/pushes the approved version tag only then.
+package visibility and release notes. Hermes/local Git creates/pushes the approved version tag only then.
 The prepared `release-image` workflow validates `vMAJOR.MINOR.PATCH[-prerelease.identifiers]`
 (no build metadata), checks main ancestry, and requires an already published commit artifact.
 It does **not** rebuild, create a Git tag, or publish a GitHub Release.

@@ -12,9 +12,14 @@ MCP client
 → official ZimaOS APIs
 → ZimaOS services
 
-The project should eventually be suitable for public open-source release.
+The project is pre-release; the first tagged release has not been approved or published.
 
-Initial development remains private until reviewed.
+The final public-exposure review is complete, and the canonical source repository is approved
+for public pre-release exposure. GHCR package visibility, retained-version exposure, and the
+final version/tag/GitHub Release remain separate, unapproved manager gates. Fresh ZimaOS Custom
+App installation UAT is still pending. Initial-development visibility requirements in the
+historical phase specifications below remain unchanged; product scope and safety boundaries
+are not altered by source-publication approval.
 
 # Phase 1
 

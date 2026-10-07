@@ -107,9 +107,11 @@ ZimaOS API without host networking, Docker socket access, privileged mode, or ho
 
 ### Image access and first-install UAT
 
-The source repository and GHCR package remain private until separate manager approvals.
-A fresh normal-user Custom App installation requires an approved pull-access path; do not
-embed registry credentials in the YAML or use host shell commands to bypass this gate.
+The canonical source repository is approved for public pre-release exposure. GHCR package
+visibility remains a separate manager decision; publishing the source does not make the
+container images anonymously pullable. Fresh normal-user Custom App installation UAT is
+still pending and requires an approved pull-access path. Do not embed registry credentials
+in the YAML or use host shell commands to bypass this gate.
 For UAT, replace the template's development image with the exact reviewed
 `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` reference supplied by the manager.
 

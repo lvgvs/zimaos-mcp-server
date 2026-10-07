@@ -109,11 +109,13 @@ kullanır.
 
 ### İmaj erişimi ve ilk kurulum UAT
 
-Kaynak deposu ve GHCR paketi, birbirinden ayrı yönetici onaylarına kadar özel kalır.
-Normal kullanıcı akışıyla sıfırdan Custom App kurulumu için onaylı bir imaj çekme yolu
-gerekir; bu kapıyı aşmak için YAML'a registry kimlik bilgileri eklemeyin veya host shell
-komutları kullanmayın. UAT için şablondaki geliştirme imajını yöneticinin verdiği, tam olarak
-incelenmiş `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` referansıyla değiştirin.
+Kanonik kaynak deposunun ön sürüm olarak herkese açılması onaylanmıştır. GHCR paketinin
+görünürlüğü ayrı bir yönetici kararıdır; kaynağın yayınlanması container imajlarını anonim
+olarak çekilebilir hâle getirmez. Normal kullanıcı akışıyla sıfırdan Custom App kurulum UAT'si
+henüz yapılmamıştır ve onaylı bir imaj çekme yolu gerektirir. Bu kapıyı aşmak için YAML'a
+registry kimlik bilgileri eklemeyin veya host shell komutları kullanmayın. UAT için şablondaki
+geliştirme imajını yöneticinin verdiği, tam olarak incelenmiş
+`ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` referansıyla değiştirin.
 
 ## Yapılandırma
 

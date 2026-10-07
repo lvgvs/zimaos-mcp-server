@@ -4,37 +4,35 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 public-source audit — visibility manager gate (2026-10-07 UTC)
+## Phase 4 public pre-release source approval (2026-10-07 UTC)
 
-- **Verdict:** PASS for source exposure at `b6549cd59b4e93796ef9fd9f469a773278448ff4`;
-  no stable-release, fresh UI UAT or GHCR-public approval. Full inventory, informational
-  disclosures, settings recommendations and scope limits: `docs/PUBLIC_EXPOSURE_AUDIT.md`.
-- **Scope:** independent canonical bare clone, all five branches and twelve PR head/merge refs;
-  64 commits / 283 blobs, all eight PRs, 34 Actions runs / 37 log attempts, one retained build
-  artifact unpacked/decoded. Fresh all-ref Gitleaks and exposed-content scans found zero leaks;
-  independent actual integration-secret comparisons found no match. No private VM endpoint found.
-- **Disclosures:** historical author name matches public GitHub profile; all commit emails are
-  noreply. Archive existence, sanitized engineering history and ephemeral CI tracing addresses
-  remain visible intentionally. No history rewrite or deletion is indicated.
-- **Minimal correction:** record verified runtime-candidate CI/GHCR instead of pending text below.
-  Only STATUS and the audit document changed; no AGENTS/PROJECT/README/runtime/workflow edit.
-  The audit-record containing commit needs exact-head CI/GHCR and a refreshed exposure scan.
-- **Audit-record local gates:** format, lint, production/test typechecks, 474/474 tests,
-  production build, Docker build, Compose validation, full npm audit (zero vulnerabilities)
-  and diff checks passed. No new live integration test; this change is documentation-only.
-- **Owner gate:** approve PUBLIC for canonical source only; immediately configure security,
-  branch/tag protection and outside-contributor Actions approval. Package metadata still requires
-  unavailable `read:packages`; GHCR exposure/version inventory is not cleared. Archive freshly
-  verified PRIVATE + archived. No visibility change, tag/Release, package deletion, child/local
-  model or new VM test. Stop for manager approval after publication verification.
+The final public-exposure audit passed at `ea558c4bf5f7a8e029a4c103cc15bf9cf3923ec6`.
+No repository/public-corpus secret or private infrastructure leak was found. The canonical source
+repository is manager-approved for public pre-release exposure; it remains PRIVATE pending the
+owner's visibility transition. GHCR visibility/retained-version exposure and the final version/tag/
+GitHub Release remain separate, unapproved gates. Fresh Custom App installation UAT is still pending.
+
+- **Current-tree cleanup:** the one-off audit report was removed without rewriting history.
+  Both READMEs, PROJECT and release guidance distinguish approved source exposure from package/
+  release gates. No other disposable publication artifact was identified; durable engineering
+  files and historical checkpoints are retained. Runtime, tests and workflows are unchanged.
+- **Previous checkpoint verification:** exact-head CI `37626797366` and GHCR `37626888867`
+  succeeded at the audited commit above. This cleanup commit requires its own CI/GHCR verification.
+- **Cleanup verification:** format/diff checks, lint, production/test typechecks, 474/474 tests,
+  production build, Docker build and Compose validation passed. Both GitHub-rendered README DOMs
+  and translation parity were reviewed; phase specifications and fresh-install UAT requirements
+  are unchanged. No new live integration test was needed for this documentation-only cleanup.
+- **Next action:** complete cleanup verification, then stop for the owner visibility transition.
+  Keep the historical repository PRIVATE + archived and leave GHCR visibility unchanged.
 
 ## Phase 4 pre-UAT candidate — automated hardening / image-access gate (2026-10-07)
 
-- **Source / scope:** https://github.com/lvgvs/zimaos-mcp-server, PRIVATE, branch `main`.
+- **Source / scope:** https://github.com/lvgvs/zimaos-mcp-server, branch `main`;
+  public pre-release source exposure is approved, with the owner visibility transition pending.
   Previous published artifact-policy commit: `5d59a52f272825ed26c980e16db13086aa777136`;
-  this containing commit carries the runtime hardening. Hermes/local Git owns commits/pushes
+  runtime hardening is at `b6549cd59b4e93796ef9fd9f469a773278448ff4`. Hermes/local Git owns commits/pushes
   with the repository-local noreply identity. Phase 3 feature freeze is preserved;
-  AGENTS/PROJECT and the private/archived historical repository are unchanged.
+  Product scope, AGENTS and the private/archived historical repository are unchanged.
 - **Digest issue closed:** identical Node 22 base index/base layers, varying project config /
   filesystem timestamps, npm logs and V8 compilation caches; equal TypeScript output bytes.
   Both rebuild non-reproducibility and unsafe tag-overwrite policy existed. Node 24 Actions
@@ -82,8 +80,8 @@ authoritative.
   linkage. No visibility change, deletion, final tag or GitHub Release; no Qwen/local/child model.
   Fresh real-user ZimaOS Custom App install has **not** happened; developer live/container checks
   do not substitute for it. Compose is validated, not yet normal-user UI-install-verified.
-- **Exact next manager action:** approve an image-access path (public GHCR while keeping source
-  private, with retained-version exposure reviewed, or an intended supported UI private-registry
+- **Exact next manager action:** approve an image-access path (public GHCR with retained-version
+  exposure reviewed, or an intended supported UI private-registry
   flow for verification). Then use the exact candidate digest for FIRST REAL-USER UAT — fresh
   Custom App install + first start + health + authenticated read-only MCP + default-off denial.
   Do not use host-shell/PAT-in-YAML rescue or publish a final release. General Phase 3 limitations
@@ -275,7 +273,7 @@ this current document reconciles the reachable repository commit references.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** manager review of successful canonical CI/GHCR and archive freeze above.
+- **Current next action:** owner transition to public pre-release source after cleanup verification.
   The separate image-access/UAT manager gate remains pending; no UAT result was reported.
 
 ## Phase 4 initial audit — image-access manager gate (2026-10-01)
