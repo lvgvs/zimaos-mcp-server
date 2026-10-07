@@ -9,8 +9,8 @@
 #   5. Fill in the values marked CONFIGURE BELOW (replace every placeholder).
 #   6. Install.
 #
-# This is standard Docker Compose plus a top-level `name`. It uses no ZimaOS
-# store metadata, no Docker socket, no privileged mode, and no host mounts.
+# This is standard Docker Compose with Custom App title/Web URL metadata, not
+# App Store packaging. No Docker socket, privileged mode, or host mounts are used.
 #
 # SECURITY: replace every placeholder before installing. The server fails to
 # start if MCP_AUTH_TOKEN is missing or shorter than 32 characters, so an
@@ -18,6 +18,14 @@
 # =============================================================================
 
 name: zimaos-mcp-server
+
+x-casaos:
+  main: zimaos-mcp-server
+  index: /health
+  port_map: "3900"
+  scheme: http
+  title:
+    custom: ZimaOS MCP Server
 
 services:
   zimaos-mcp-server:
@@ -79,6 +87,6 @@ services:
 
     # The container always listens on internal port 3000 (matches the image's
     # EXPOSE and health check). Only the published host port is configurable;
-    # change the left side if 3900 conflicts with something else on this host.
+    # If 3900 conflicts, change the left side and x-casaos.port_map together.
     ports:
       - "3900:3000"
