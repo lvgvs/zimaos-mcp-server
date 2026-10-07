@@ -10,7 +10,7 @@ After tagged releases begin, this section will be updated to state which release
 
 Please do **not** publish exploit details, credentials, tokens, private Compose contents, or other sensitive material in a public issue.
 
-When the repository is public, use GitHub's private vulnerability reporting flow from the repository **Security** tab if it is available.
+Use GitHub's private vulnerability reporting flow from the public repository's **Security** tab if it is available.
 
 If private vulnerability reporting is not available, open a minimal public issue asking the maintainer for a private reporting channel. Do not include exploit details in that issue.
 
