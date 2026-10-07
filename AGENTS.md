@@ -251,7 +251,7 @@ Canonical repository name:
 
 During Phase 1 development the GitHub source repository must remain PRIVATE.
 
-The project may become public later after review. Do not change repository visibility without explicit manager/user approval.
+The canonical source repository is PUBLIC after manager review. Do not change repository visibility without explicit manager/user approval.
 
 Container package visibility is a separate decision.
 
