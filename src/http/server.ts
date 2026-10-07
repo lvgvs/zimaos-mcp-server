@@ -49,9 +49,23 @@ function bearerMatches(
   expectedToken: string,
 ): boolean {
   if (!authorizationHeader) return false;
-  const match = /^Bearer\s+(.+)$/i.exec(authorizationHeader.trim());
-  if (!match || !match[1]) return false;
-  const provided = Buffer.from(match[1].trim(), "utf8");
+  const header = authorizationHeader.trim();
+  // Fixed-size scheme check, then linear built-in trimming; no overlapping regex scans.
+  if (header.slice(0, 6).toLowerCase() !== "bearer" || header[6]?.trim() !== "") {
+    return false;
+  }
+  const token = header.slice(6).trim();
+  // Preserve the previous single-line credential syntax (including JS whitespace trimming).
+  if (
+    !token ||
+    token.includes("\r") ||
+    token.includes("\n") ||
+    token.includes("\u2028") ||
+    token.includes("\u2029")
+  ) {
+    return false;
+  }
+  const provided = Buffer.from(token, "utf8");
   const expected = Buffer.from(expectedToken, "utf8");
   if (provided.length !== expected.length) {
     // Still compare a fixed-size buffer to keep timing uniform.
