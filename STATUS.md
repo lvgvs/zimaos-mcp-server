@@ -4,7 +4,53 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 bearer-parser CodeQL hardening — PR review gate (2026-10-07 UTC)
+## Phase 4 public image access complete — fresh-install UAT next (2026-10-07 UTC)
+
+- **Source / baseline:** https://github.com/lvgvs/zimaos-mcp-server is PUBLIC. Clean `main`
+  was synchronized at `86bb176589a9f577e9019ad810da5722900c21fc` before this documentation
+  update. Working branch: `docs/phase4-public-image-checkpoint`; Hermes/local Git retains
+  commit/push ownership. This STATUS-only change follows the protected-main, Squash-only PR
+  workflow; no direct-main push or child/subagent delegation.
+- **Security detour closed:** PR #10 was Squash-merged at that baseline. CodeQL alert #1,
+  `js/polynomial-redos`, is fixed, not dismissed/suppressed. Post-merge CI `37664511798`
+  passed all three required checks; CodeQL `37664511789` completed successfully. The PR #9 /
+  failed-analysis checkpoint below is historical and no longer a blocker. Do not redo the fix.
+- **Owner-reported GHCR review / cleanup:** before public exposure, the owner reviewed retained
+  versions, removed pre-migration/private-history tagged artifacts and the stale pre-release
+  `latest` tag, and retained seven canonical tagged versions plus sixteen untagged provenance/
+  SBOM-related versions. These are the owner's pre-update inventory counts, not an independent
+  API enumeration or a promise that publication of this update leaves the counts unchanged.
+  Package visibility is now PUBLIC; the private-registry UAT path is not being pursued.
+- **Pre-update artifact / publication:** GHCR `37664593471` succeeded for the baseline above;
+  its immutable `sha-86bb176589a9f577e9019ad810da5722900c21fc` tag and `edge` identified
+  `ghcr.io/lvgvs/zimaos-mcp-server@sha256:bd67e42542a3fe82604a3d51419d2863d5bfbc084d6489633381c94b9471b2f3`.
+  This is development content, not an approved stable release.
+- **Anonymous access verified:** without GitHub credentials, pull-token and exact-digest manifest
+  requests returned HTTP 200. The registry digest and independently computed manifest SHA-256
+  matched. Docker pull with an isolated empty credential configuration succeeded, and image
+  `RepoDigests` matched exactly. Existing base-layer cache was reused; authentication was clean,
+  not the entire layer cache. Package-settings API access still lacks `read:packages`, but that
+  does not block the independently verified intended anonymous distribution path.
+- **Optional external scan:** OpenVuln/GLM was attempted only as an optional extra review.
+  The manager reports its GitHub OAuth/sign-in flow is broken. No scan completed and no findings
+  exist; it is neither a completed audit nor a release blocker.
+- **Executed reconciliation gates:** format/diff checks, lint, production/test TypeScript checks,
+  500/500 mocked tests across 28 files, production build, Docker build
+  (`zimaos-mcp-server:phase4-status`) and Compose validation passed. No new live VM test or UI
+  installation was performed. Only STATUS changes; runtime, tests and deployment remain unchanged.
+- **This checkpoint / candidate selection:** only STATUS is reconciled; earlier engineering
+  evidence and limitations remain below. After this PR's checks and Squash merge, verify clean
+  synchronized `main`, exact-head CI/GHCR, and anonymous readback of the new main's immutable
+  SHA tag/digest. Use that artifact for upcoming UAT; do not assume the pre-update `bd67...`
+  digest is still the candidate. Record exact post-merge identifiers in the verified PR handoff
+  rather than creating an endless chain of status-only publication commits.
+- **Next real release gate:** fresh normal-user ZimaOS Custom App YAML installation and first
+  start/health, performed by the manager/user with a digest-pinned image and mutation permissions
+  off. No fresh UI UAT has started; developer live/container tests are not a substitute. Stop
+  after this documentation PR and artifact verification, before starting UI UAT. No final
+  version/tag/GitHub Release is approved or created; Phase 3 remains the feature cutoff.
+
+## Historical Phase 4 bearer-parser CodeQL hardening — superseded PR review gate (2026-10-07 UTC)
 
 - **Source / workflow:** https://github.com/lvgvs/zimaos-mcp-server, PUBLIC;
   working branch `fix/linear-bearer-auth` from synchronized main
@@ -83,7 +129,7 @@ GitHub Release remain separate, unapproved gates. Fresh Custom App installation 
 - **Next action:** complete cleanup verification, then stop for the owner visibility transition.
   Keep the historical repository PRIVATE + archived and leave GHCR visibility unchanged.
 
-## Phase 4 pre-UAT candidate — automated hardening / image-access gate (2026-10-07)
+## Historical Phase 4 pre-UAT candidate — automated hardening / image-access gate (2026-10-07)
 
 - **Source / scope:** https://github.com/lvgvs/zimaos-mcp-server, branch `main`;
   canonical source is PUBLIC as a manager-approved pre-release project.
@@ -332,9 +378,9 @@ this current document reconciles the reachable repository commit references.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** manager review of the bearer-parser PR after required CI/CodeQL proof;
-  no merge is authorized for this hardening handoff.
-  The separate image-access/UAT manager gate remains pending; no UAT result was reported.
+- **Current next action:** complete the STATUS-only reconciliation PR and verify its new main
+  CI/GHCR artifact, then stop before fresh normal-user Custom App UAT. Security and public image
+  access are resolved; no fresh UI UAT result has been reported. See the newest checkpoint above.
 
 ## Phase 4 initial audit — image-access manager gate (2026-10-01)
 
@@ -398,7 +444,9 @@ this current document reconciles the reachable repository commit references.
 
 ## Git / repository
 
-- **Branch:** `fix/linear-bearer-auth` (unmerged PR work targeting `main`).
+- **Branch:** `docs/phase4-public-image-checkpoint` for this STATUS-only PR; return to clean,
+  synchronized `main` after Squash merge. Baseline main:
+  `86bb176589a9f577e9019ad810da5722900c21fc`; exact containing commit is available from Git.
 - **Phase 2 final implementation HEAD:** `7dcb169d29df8b154c4658a689f5b9120db2e4f0`
 - **Phase 3A HEAD:** `3102cdcd5533293c921c99c8f61e313daeed17b1`
 - **Phase 3B HEAD:** `14b8f44180d1e4fb37fafca79c5d86e73fec25f4`
@@ -407,10 +455,9 @@ this current document reconciles the reachable repository commit references.
 - **Phase 3 final implementation HEAD:** `febdcf5c061edb9f21f80dc5115f30e51149de0b`
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server
 - **Repository visibility at Phase 4 authorization:** private.
-- **GHCR:** `ghcr.io/lvgvs/zimaos-mcp-server:sha-a20a35efd9dea08fbfc3c69f0661b03217934ff6`;
-  final Phase 3 publish workflow succeeded. Package visibility could not be independently queried
-  with the available token because it lacks `read:packages`; visibility changes remain a separate
-  explicit manager decision.
+- **GHCR:** PUBLIC after owner-reviewed retained-version cleanup; anonymous access verified.
+  The newest checkpoint identifies the pre-update artifact and the required post-merge candidate
+  selection. Historical Phase 3/older publication references below are not current install targets.
 
 ## Pause checkpoint — Phase 2B (2026-09-28)
 
