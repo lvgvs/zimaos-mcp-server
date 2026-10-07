@@ -4,6 +4,30 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
+## Phase 4 public-source audit — visibility manager gate (2026-10-07 UTC)
+
+- **Verdict:** PASS for source exposure at `b6549cd59b4e93796ef9fd9f469a773278448ff4`;
+  no stable-release, fresh UI UAT or GHCR-public approval. Full inventory, informational
+  disclosures, settings recommendations and scope limits: `docs/PUBLIC_EXPOSURE_AUDIT.md`.
+- **Scope:** independent canonical bare clone, all five branches and twelve PR head/merge refs;
+  64 commits / 283 blobs, all eight PRs, 34 Actions runs / 37 log attempts, one retained build
+  artifact unpacked/decoded. Fresh all-ref Gitleaks and exposed-content scans found zero leaks;
+  independent actual integration-secret comparisons found no match. No private VM endpoint found.
+- **Disclosures:** historical author name matches public GitHub profile; all commit emails are
+  noreply. Archive existence, sanitized engineering history and ephemeral CI tracing addresses
+  remain visible intentionally. No history rewrite or deletion is indicated.
+- **Minimal correction:** record verified runtime-candidate CI/GHCR instead of pending text below.
+  Only STATUS and the audit document changed; no AGENTS/PROJECT/README/runtime/workflow edit.
+  The audit-record containing commit needs exact-head CI/GHCR and a refreshed exposure scan.
+- **Audit-record local gates:** format, lint, production/test typechecks, 474/474 tests,
+  production build, Docker build, Compose validation, full npm audit (zero vulnerabilities)
+  and diff checks passed. No new live integration test; this change is documentation-only.
+- **Owner gate:** approve PUBLIC for canonical source only; immediately configure security,
+  branch/tag protection and outside-contributor Actions approval. Package metadata still requires
+  unavailable `read:packages`; GHCR exposure/version inventory is not cleared. Archive freshly
+  verified PRIVATE + archived. No visibility change, tag/Release, package deletion, child/local
+  model or new VM test. Stop for manager approval after publication verification.
+
 ## Phase 4 pre-UAT candidate — automated hardening / image-access gate (2026-10-07)
 
 - **Source / scope:** https://github.com/lvgvs/zimaos-mcp-server, PRIVATE, branch `main`.
@@ -47,9 +71,11 @@ authoritative.
   Non-root production container on nondefault whitespace-normalized port 3123: actual Docker
   healthy → unhealthy → healthy after disconnect/reconnect of only the local container's bridge
   network. No VM OS/network change or app mutation. Temporary test containers removed.
-- **Remote candidate verification:** exact containing-commit CI/GHCR must be read after push;
-  previous-commit remote proof above is not substituted for those checks. Source/revision labels,
-  provenance/SBOM and digest reference are available from the publication workflow.
+- **Remote candidate verification:** runtime candidate `b6549cd59b4e93796ef9fd9f469a773278448ff4`
+  exact-head CI `37617954220` and GHCR `37618074495` read back successful. Publication log and
+  retained build record identify `sha256:e5109107428e522b7097ff6835f32c424371962a5a2d682334807e1b3ec94364`.
+  Source/revision labels, provenance/SBOM and digest reference are available from the workflow;
+  package-settings API access remains unavailable, as distinguished below.
 - **Stop / manual gate:** anonymous GHCR pull-token request still returns 401; authenticated
   local manifest access returns 403 without `read:packages`. Package settings/version inventory
   cannot be independently enumerated. Manager reports private package and canonical-only WRITE
