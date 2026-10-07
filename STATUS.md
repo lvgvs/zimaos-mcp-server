@@ -22,9 +22,19 @@ authoritative.
   real HTTP/MCP tests cover supported syntax, and spies verify both timing-safe mismatch paths.
 - **Executed local gates:** focused HTTP tests 37/37; full tests 500/500 across 28 files;
   formatting/diff checks, lint, production/test typechecks, production build, Docker build and
-  Compose validation passed. Gitleaks is required before branch push. No new live VM test.
-- **Manager review gate:** open the PR to `main` and verify all three required CI checks plus
-  both CodeQL categories against the latest PR revision/test-merge commit. Confirm alert #1 is
+  Compose validation passed. Staged-change and full reachable branch-history Gitleaks scans
+  found zero leaks. No new live VM test.
+- **PR checkpoint:** https://github.com/lvgvs/zimaos-mcp-server/pull/9 is OPEN and unmerged.
+  Fix commit `af8ea7c9a757f253b8afaea60fb687191a69943e` passed all three required checks in
+  CI `37641564270`. This documentation-only checkpoint preserves the same implementation/tests;
+  verify fresh checks against the latest PR revision rather than inferring them from that run.
+- **CodeQL blocker at fix commit:** default-setup run `37641555193` completed with failure before
+  either analyzer executed; both check entries stayed queued, with no logs/annotations or PR
+  analyses uploaded. The rerun API returned HTTP 500. Cause is unverified; repository Actions
+  is enabled, allows all actions and does not require SHA pinning. Do not weaken settings or
+  claim an empty analyses list proves zero findings. A fresh completed PR analysis is required.
+- **Manager review gate:** verify all three required CI checks plus
+  both CodeQL categories against the latest PR revision. Confirm alert #1 is
   absent and no new alerts are introduced; report the PR/results without merging. The main alert
   remains open until the fix reaches main; do not dismiss or suppress it. No GHCR publication/
   visibility/tag/version change, release or child model. Fresh Custom App UAT remains pending.
