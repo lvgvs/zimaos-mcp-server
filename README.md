@@ -21,11 +21,11 @@ ZimaOS internal-file/database manipulation.
 
 ## Project status
 
-**Pre-release.** Phase 1–3 functionality is implemented and Phase 4 release hardening /
+**Public pre-release.** Phase 1–3 functionality is implemented and Phase 4 release hardening /
 real-user UAT is in progress. The first tagged release has not been published yet.
 
-`edge` tracks CI-verified development. `latest` / `stable` are reserved for approved stable
-releases; the legacy pre-policy `latest` image is not an approved release.
+`edge` tracks CI-verified development only. `latest` / `stable` are reserved for a future
+explicitly approved stable release; the old pre-policy `latest` tag has been deleted.
 Installation details and release artifacts may still change before the first release.
 
 For implementation state and engineering history, see [`STATUS.md`](STATUS.md). For
@@ -107,12 +107,11 @@ ZimaOS API without host networking, Docker socket access, privileged mode, or ho
 
 ### Image access and first-install UAT
 
-The canonical source repository is approved for public pre-release exposure. GHCR package
-visibility remains a separate manager decision; publishing the source does not make the
-container images anonymously pullable. Fresh normal-user Custom App installation UAT is
-still pending and requires an approved pull-access path. Do not embed registry credentials
-in the YAML or use host shell commands to bypass this gate.
-For UAT, replace the template's development image with the exact reviewed
+The canonical source repository and GHCR package are public. Retained-version review/cleanup
+is complete, and anonymous image pull access is verified; no registry credentials are required
+for this approved path. Fresh normal-user Custom App installation UAT is still pending.
+Do not embed registry credentials in the YAML or use host shell commands to bypass UAT.
+For exact UAT/deployment, replace the template's development image with the manager-reviewed
 `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` reference supplied by the manager.
 
 ## Configuration

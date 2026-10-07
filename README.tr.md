@@ -22,12 +22,12 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
 ## Proje durumu
 
-**Ön sürüm.** Phase 1–3 işlevleri tamamlandı; Phase 4 sürüm sağlamlaştırma ve gerçek
+**Herkese açık ön sürüm.** Phase 1–3 işlevleri tamamlandı; Phase 4 sürüm sağlamlaştırma ve gerçek
 kullanıcı UAT süreci devam ediyor. İlk etiketli sürüm henüz yayınlanmadı.
 
-`edge`, CI ile doğrulanmış geliştirme sürümlerini takip eder. `latest` / `stable`, onaylı
-kararlı sürümlere ayrılmıştır; önceki politikadan kalan `latest` imajı onaylı bir sürüm
-değildir. İlk sürümden önce kurulum ayrıntıları ve sürüm çıktıları değişebilir.
+`edge`, yalnızca CI ile doğrulanmış geliştirme sürümlerini takip eder. `latest` / `stable`,
+gelecekte açıkça onaylanacak kararlı bir sürüme ayrılmıştır; önceki politikadan kalan `latest`
+etiketi silinmiştir. İlk sürümden önce kurulum ayrıntıları ve sürüm çıktıları değişebilir.
 
 Güncel geliştirme durumu için [`STATUS.md`](STATUS.md), onaylı kapsam ve güvenlik
 sınırları için [`PROJECT.md`](PROJECT.md) dosyasına bakın.
@@ -109,12 +109,11 @@ kullanır.
 
 ### İmaj erişimi ve ilk kurulum UAT
 
-Kanonik kaynak deposunun ön sürüm olarak herkese açılması onaylanmıştır. GHCR paketinin
-görünürlüğü ayrı bir yönetici kararıdır; kaynağın yayınlanması container imajlarını anonim
-olarak çekilebilir hâle getirmez. Normal kullanıcı akışıyla sıfırdan Custom App kurulum UAT'si
-henüz yapılmamıştır ve onaylı bir imaj çekme yolu gerektirir. Bu kapıyı aşmak için YAML'a
-registry kimlik bilgileri eklemeyin veya host shell komutları kullanmayın. UAT için şablondaki
-geliştirme imajını yöneticinin verdiği, tam olarak incelenmiş
+Kanonik kaynak deposu ve GHCR paketi herkese açıktır. Saklanan sürümlerin inceleme/temizliği
+tamamlanmış ve anonim imaj çekme erişimi doğrulanmıştır; bu onaylı yol için registry kimlik
+bilgileri gerekmez. Normal kullanıcı akışıyla sıfırdan Custom App kurulum UAT'si henüz yapılmamıştır.
+YAML'a registry kimlik bilgileri eklemeyin veya UAT'yi atlamak için host shell komutları kullanmayın.
+Tam olarak sabit UAT/deployment için şablondaki geliştirme imajını yöneticinin inceleyip verdiği
 `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` referansıyla değiştirin.
 
 ## Yapılandırma
