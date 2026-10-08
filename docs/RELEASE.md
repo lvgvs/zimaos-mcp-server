@@ -4,8 +4,11 @@ No first release is approved or published. The canonical source repository is PU
 manager-approved pre-release project; normal development uses PRs with Squash-only merging.
 The GHCR package is also PUBLIC after retained-version exposure review/cleanup; anonymous pull
 access is verified. Phase 4 external runtime UAT, including fresh normal-user Custom App installation
-and clean reinstall, is complete on the candidate below. The final version/tag and GitHub Release
-remain unapproved. Do not change package
+and clean reinstall, is complete on the candidate below. The manager-selected first release
+version is `v0.1.0`, dated 2026-10-08 in the changelog; package and lockfile versions already match
+`0.1.0`. Tag creation, promotion to `v0.1.0` / `stable` / `latest`, and the first GitHub Release
+remain unapproved and unexecuted. Proposed public notes are in [release notes](RELEASE-NOTES-v0.1.0.md).
+Do not change package
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
 corresponding explicit manager approval.
 
@@ -125,7 +128,7 @@ Modern `2026-07-28` clients support native `input_required` / `requestState` MRT
 Legacy clients retain read-only and permitted non-risky operations; risk-increasing install/edit
 fails closed, without legacy approval shims or text-confirmation bypasses.
 
-The runtime UAT gate is closed. Manager approval of the first version/source artifact/release notes,
+The runtime UAT gate is closed. The first version is selected; manager approval of the source artifact/release notes,
 tag, and GitHub Release remains required. A docs-only checkpoint may publish a new exact-head
 image under normal CI; unchanged runtime code is not a claim that external UAT was rerun on that
 new digest. Keep the runtime-tested identity above distinct from the publication handoff.

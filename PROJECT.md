@@ -18,7 +18,8 @@ The canonical source repository and GHCR package are PUBLIC after manager review
 exposure review/cleanup is complete, and anonymous image pull access is verified. Phase 4 external
 runtime UAT is complete, including fresh normal-user ZimaOS Custom App installation and clean
 reinstall on commit `8c2f4e7785002a67cb3d59c8b7758f8b533d0897` and the exact image recorded in
-`docs/RELEASE.md`. The final version/tag/GitHub Release remain unapproved; runtime UAT completion
+`docs/RELEASE.md`. The manager-selected first release version is `v0.1.0`; tag, artifact promotion,
+and GitHub Release publication remain unapproved. Runtime UAT completion
 does not authorize publication. Initial-development visibility requirements in the
 historical phase specifications below remain unchanged; product scope and safety boundaries
 are not altered by publication approval.
