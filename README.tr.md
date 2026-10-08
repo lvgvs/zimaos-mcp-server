@@ -155,6 +155,23 @@ MCP istemcisini şu başlığı gönderecek şekilde yapılandırın:
 Authorization: Bearer <MCP_AUTH_TOKEN>
 ```
 
+Endpoint, modern MCP `2026-07-28` ve stateless legacy istemcileri destekler. Legacy
+istemciler salt okunur araçları ve izin verilen risksiz işlemleri kullanabilir; riskli
+kurulum/düzenleme istekleri ise fail-closed davranır. Riskli işlem onayı, form elicitation
+ve yerel `input_required` / `requestState` çok turlu istek akışını destekleyen modern bir
+istemci gerektirir; legacy onay shim'i veya metinle onaylama bypass'ı yoktur.
+
+**Inspector Web arayüzü:** Inspector sayfasını tarayıcının çalıştığı makinedeki
+`http://localhost` / loopback adresinden veya güvenilir HTTPS üzerinden açın. LAN IP'si
+üzerindeki düz HTTP, tarayıcı için güvenli bağlam değildir. Inspector 2.9.0, istek takibi
+için `crypto.randomUUID()` gerektirir; bu API kullanılamadığında modern discovery, bu
+sunucuya hiçbir istek ulaşmadan başarısız olup "the server did not offer pinned protocol
+version" hatasını gösterebilir. Bu gereksinim uzak MCP endpoint'ine değil, Inspector
+sayfasının origin'ine aittir. Tarayıcı konsolunda `window.isSecureContext` ve
+`typeof crypto.randomUUID` değerlerini kontrol edin; tarayıcı güvenliğini devre dışı
+bırakmayın. Modern Inspector bağlantıları için `--protocol-era modern` seçeneğini açıkça
+belirtin.
+
 `/health` kimlik doğrulaması gerektirmez ve container health/readiness kontrolleri
 içindir; MCP endpoint'i değildir. Desteklenen, kimlik doğrulamalı ZimaOS cihaz bilgisi
 API'sini aktif olarak kontrol eder: HTTP 200 hazır, HTTP 503 degraded/erişilemez/kimlik

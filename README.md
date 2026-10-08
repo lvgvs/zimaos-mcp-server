@@ -153,6 +153,21 @@ Configure your MCP client to send:
 Authorization: Bearer <MCP_AUTH_TOKEN>
 ```
 
+The endpoint supports modern MCP `2026-07-28` and stateless legacy clients. Legacy clients
+can use read tools and permitted non-risky operations, but risky install/edit requests fail
+closed. Risky approval requires a modern client with form elicitation and the native
+`input_required` / `requestState` multi-round-trip flow; there is no legacy approval shim
+or text-confirmation bypass.
+
+**Inspector Web UI:** open the Inspector page from `http://localhost` / loopback on the
+browser's own machine, or from trusted HTTPS. Plain HTTP on a LAN IP is not a browser
+secure context. Inspector 2.9.0 requires `crypto.randomUUID()` for request tracking; when
+that API is unavailable, modern discovery can fail before any request reaches this server
+and report "the server did not offer pinned protocol version". This requirement concerns
+the Inspector page origin, not the remote MCP endpoint. Check `window.isSecureContext`
+and `typeof crypto.randomUUID` in the browser console; do not disable browser security.
+For modern Inspector connections, select `--protocol-era modern` explicitly.
+
 `/health` is unauthenticated and intended for container readiness/health checks; it is not
 an MCP endpoint. It actively checks the supported, authenticated ZimaOS device-info API:
 HTTP 200 means ready; HTTP 503 means degraded/unreachable/authentication failed. Concurrent
