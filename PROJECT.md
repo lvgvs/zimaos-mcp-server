@@ -15,9 +15,11 @@ MCP client
 The project is pre-release; the first tagged release has not been approved or published.
 
 The canonical source repository and GHCR package are PUBLIC after manager review. Retained-version
-exposure review/cleanup is complete, and anonymous image pull access is verified. Fresh normal-user
-ZimaOS Custom App installation UAT is still pending and is the next real release gate. The final
-version/tag/GitHub Release remain unapproved. Initial-development visibility requirements in the
+exposure review/cleanup is complete, and anonymous image pull access is verified. Phase 4 external
+runtime UAT is complete, including fresh normal-user ZimaOS Custom App installation and clean
+reinstall on commit `8c2f4e7785002a67cb3d59c8b7758f8b533d0897` and the exact image recorded in
+`docs/RELEASE.md`. The final version/tag/GitHub Release remain unapproved; runtime UAT completion
+does not authorize publication. Initial-development visibility requirements in the
 historical phase specifications below remain unchanged; product scope and safety boundaries
 are not altered by publication approval.
 

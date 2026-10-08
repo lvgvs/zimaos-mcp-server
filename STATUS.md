@@ -1,6 +1,55 @@
 # Status
 
-## Phase 4 Inspector Web negotiation diagnosis (2026-10-08 UTC)
+## Phase 4 final external runtime-UAT checkpoint (2026-10-08 UTC)
+
+- **Current milestone:** external runtime UAT is complete, based on manager/user-reported
+  normal-user results. Phase 4 still awaits explicit first version/tag/GitHub Release approval;
+  Phase 3 remains the feature cutoff. No later-phase work or release publication is authorized.
+- **Runtime-tested commit:** `8c2f4e7785002a67cb3d59c8b7758f8b533d0897`.
+- **Runtime-tested image:**
+  `ghcr.io/lvgvs/zimaos-mcp-server@sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
+- **Completed runtime gates:** fresh normal-user Custom App installation / first start / health;
+  modern `2026-07-28` discovery/tools list and reads; independent default-off permissions;
+  enabled start/stop/restart, benign Compose install/uninstall and read/validate/edit;
+  modern risky approval + positive MRTR continuation + risk-removing repair; wrong MCP token,
+  wrong ZimaOS credentials and unreachable URL failure modes; app restart and full VM reboot
+  persistence; release-candidate upgrade; MCP server uninstall and clean canonical-YAML reinstall.
+  Clean reinstall used the exact digest, not generated old `x-casaos` / `store_app_id` metadata,
+  and constitutes the passed fresh normal-user runtime installation UAT.
+- **Risky-flow evidence:** only `cap_add: [CHOWN]` was introduced on `mcp-test-nginx`.
+  Inspector disclosed operation/target/base/exact UTF-8 proposal hashes, introduced risk delta,
+  expiry within 300 seconds, and a boolean control; explicit user approval led to
+  `accepted` / `changed` and confirmed CHOWN readback. Removing only `cap_add` validated with
+  `requiresApproval=false`, applied with `accepted` / `changed`, preserved the benign marker,
+  and left app health healthy / nginx running. Exact readback hashes and all reported gates
+  are recorded in `docs/RELEASE.md`; this is targeted repair, not a general rollback guarantee.
+- **Failure semantics:** initial upstream login failure exits before MCP/health listening,
+  so bad credentials/URL can produce connection refused, not `/health` 503. Repeated bad-login
+  restarts triggered ZimaOS rate limiting. Correcting credentials/URL restored 200 / `ready:true`.
+  A running server's authenticated readiness probe may return 503 for degraded readiness.
+- **Recovery / scope:** found clean synchronized `main` at the runtime-tested SHA, with no
+  staged/unstaged/untracked docs work, stashes or existing final-UAT branch. A transient DNS
+  fetch failure cleared on retry. Working branch `docs/phase4-final-runtime-uat`; canonical
+  https://github.com/lvgvs/zimaos-mcp-server. Primary-only reconciliation, no delegation,
+  new external runtime tests/mutations, runtime changes, dependency changes or architecture decisions.
+- **Verification / publication:** local format, lint, source/test TypeScript checks,
+  500/500 mocked tests (28 files), production build, Docker build
+  (`zimaos-mcp-server:phase4-final-uat-docs`), Compose config validation and diff checks passed.
+  Exact-head CI/GHCR must also be verified. Record final merge SHA/digest in the PR handoff, not another
+  STATUS-only publication commit. A newly published docs-only image is distinct from the
+  runtime-tested digest above; external UAT was not rerun on it.
+- **Preserved boundaries / next manager action:** Inspector Web must use browser-local loopback
+  or trusted HTTPS with browser security enabled. The LAN-origin failure was Inspector-side,
+  not a modern server defect. Modern native approval remains required for risky install/edit;
+  legacy read/permitted benign operations remain available, with risky calls fail-closed and no
+  shim/text bypass. Existing AI disclosures remain unchanged. Public source/GHCR access is approved;
+  no fresh-install/UAT blocker remains. Review the checkpoint and approve the first version,
+  source artifact and release notes when ready; do not create a tag/release before approval.
+
+Earlier dated checkpoints below are historical evidence, not outstanding UAT instructions;
+this final runtime-UAT checkpoint supersedes their pending installation / approval UX gates.
+
+## Historical Phase 4 Inspector Web negotiation diagnosis (2026-10-08 UTC)
 
 - **Baseline / recovery:** canonical https://github.com/lvgvs/zimaos-mcp-server;
   branch `fix/modern-protocol-discovery`, baseline
@@ -30,7 +79,7 @@
   Local format, lint, source/test typechecks, 500/500 tests (28 files), and build passed;
   the 43 HTTP/approval tests prove modern input-required and legacy fail-closed behavior
   with mocked ZimaOS services. No new automated tests or architecture decisions.
-- **Remaining gate:** manager reruns the affected Web connection and risky-approval UX
+- **Remaining gate at diagnosis (now passed above):** manager reruns the affected Web connection and risky-approval UX
   from browser-local loopback or trusted HTTPS. Remote localhost must not be confused
   with the browser's own localhost. Do not disable browser security, add a legacy shim,
   or change server authentication/CORS to work around this client-side failure.
@@ -40,7 +89,7 @@ ZimaOS MCP Server. This file is written so a fresh implementation chat can resum
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
 
-## Phase 4 public image access complete — fresh-install UAT next (2026-10-07 UTC)
+## Historical Phase 4 public image access complete — then awaiting fresh-install UAT (2026-10-07 UTC)
 
 - **Source / baseline:** https://github.com/lvgvs/zimaos-mcp-server is PUBLIC. Clean `main`
   was synchronized at `86bb176589a9f577e9019ad810da5722900c21fc` before this documentation
@@ -407,18 +456,17 @@ this current document reconciles the reachable repository commit references.
   product provides bounded read-only reconciliation rather than automatic rollback. External-writer
   race remains because upstream exposes no atomic compare-and-swap. `update_app` remains absent
   because App Store update/version-transition semantics are still unverified.
-- **Phase 4:** **Release Hardening + First Release is now explicitly manager-authorized** in
-  `PROJECT.md`. Phase 3 is the feature cutoff. Phase 4 should harden deployment/config/auth/docs/
-  release engineering, run bounded real-user UAT gates with the manager, fix concrete release
-  defects, and prepare the first tagged release.
+- **Phase 4:** release hardening and manager-run external runtime UAT are complete at the
+  runtime-tested identity in the newest checkpoint. Phase 3 remains the feature cutoff;
+  the first version/tag/GitHub Release still requires explicit manager approval.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** complete the STATUS-only reconciliation PR and verify its new main
-  CI/GHCR artifact, then stop before fresh normal-user Custom App UAT. Security and public image
-  access are resolved; no fresh UI UAT result has been reported. See the newest checkpoint above.
+- **Current next action:** finish this docs-only UAT reconciliation PR and exact-head CI/GHCR
+  verification, then hand off for first-release approval. Fresh normal-user installation and all
+  reported runtime UAT gates passed; do not repeat external UAT solely for this checkpoint.
 
-## Phase 4 initial audit — image-access manager gate (2026-10-01)
+## Historical Phase 4 initial audit — then-blocked image-access gate (2026-10-01)
 
 - **Reconciliation:** clean `main` at Phase 3 implementation HEAD was safely fast-forwarded
   through the single manager transition commit to `5e31b3dfe47bc2f6c7a1bcc4d446379b1d3d710c`;
@@ -480,9 +528,9 @@ this current document reconciles the reachable repository commit references.
 
 ## Git / repository
 
-- **Branch:** `docs/phase4-public-image-checkpoint` for this STATUS-only PR; return to clean,
-  synchronized `main` after Squash merge. Baseline main:
-  `86bb176589a9f577e9019ad810da5722900c21fc`; exact containing commit is available from Git.
+- **Branch:** `docs/phase4-final-runtime-uat` for this docs-only checkpoint; return to clean,
+  synchronized `main` after Squash merge. Baseline / runtime-tested main:
+  `8c2f4e7785002a67cb3d59c8b7758f8b533d0897`; exact containing commit is available from Git.
 - **Phase 2 final implementation HEAD:** `7dcb169d29df8b154c4658a689f5b9120db2e4f0`
 - **Phase 3A HEAD:** `3102cdcd5533293c921c99c8f61e313daeed17b1`
 - **Phase 3B HEAD:** `14b8f44180d1e4fb37fafca79c5d86e73fec25f4`
@@ -492,8 +540,8 @@ this current document reconciles the reachable repository commit references.
 - **Repository URL:** https://github.com/lvgvs/zimaos-mcp-server
 - **Repository visibility at Phase 4 authorization:** private.
 - **GHCR:** PUBLIC after owner-reviewed retained-version cleanup; anonymous access verified.
-  The newest checkpoint identifies the pre-update artifact and the required post-merge candidate
-  selection. Historical Phase 3/older publication references below are not current install targets.
+  The newest checkpoint identifies the completed runtime-tested artifact, separately from
+  docs-only post-merge publication. Historical Phase 3/older images are not current install targets.
 
 ## Pause checkpoint — Phase 2B (2026-09-28)
 
