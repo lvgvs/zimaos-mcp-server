@@ -826,3 +826,33 @@ rather than an in-place remote rewrite. The original private PR refs remain pres
   exact Dockerfile command. Final non-root production-image live smoke on whitespace-normalized
   port 3123 observed actual Docker healthy → unhealthy → healthy by disconnect/reconnect of only
   the disposable local container's bridge network. No VM OS/network/app mutation; not fresh UI UAT.
+
+## Inspector 2.9.0 Web secure-origin negotiation failure (2026-10-08)
+
+- Browser API authority: [Crypto.randomUUID](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)
+  is secure-context-only; [Secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts)
+  distinguishes trustworthy localhost/HTTPS from ordinary HTTP origins.
+- Published upstream artifacts inspected: [official Inspector 2.9.0](https://www.npmjs.com/package/@modelcontextprotocol/inspector/v/2.9.0),
+  `clients/web/dist/assets/index-DgXruQhz.js`, `createMessageTrackingCallbacks().trackRequest`,
+  calls `crypto.randomUUID()` before forwarding to the remote transport. Its client SDK
+  [2.2.0](https://www.npmjs.com/package/@modelcontextprotocol/client/v/2.2.0),
+  `dist/index.mjs` (`classifyNetworkError`, `negotiateEra`), classifies an opaque browser
+  TypeError as legacy/no modern evidence; pin mode then emits the misleading server
+  discovery error. Ordinary Node network errors, HTTP 401/403/5xx, and HTTP probe
+  timeouts follow different error branches. Do not infer lack of modern server support
+  from the pin-mode error alone or from SDK legacy-version constants.
+- Controlled external diagnostic comparison: plain-HTTP LAN Inspector page had
+  `isSecureContext === false` and unavailable `crypto.randomUUID`. Getter stack tracing
+  located its access in request tracking during the discovery probe. Backend connect
+  returned 200 JSON and events 200 SSE; there was no send/discovery HTTP exchange.
+  The exact reported pin error was captured from the UI. Browser-local loopback with
+  the same remote endpoint and resolved configured credential had a secure context and
+  native randomUUID. Discovery POST returned 200 JSON with
+  `Mcp-Protocol-Version: 2026-07-28`, `Mcp-Method: server/discover`, and a complete result
+  offering `supportedVersions: ["2026-07-28"]`; Web Inspector showed the negotiated
+  version and subsequent tools/list succeeded. Saved diagnostic evidence is sanitized
+  and outside the repository; no VM address, credential or private config is copied here.
+- Implementation implication: no production SDK/wiring/CORS/approval change. Open
+  Inspector on the browser machine's loopback or trusted HTTPS; do not disable browser
+  security. Preserve modern-only risky elicitation and legacy fail-closed behavior.
+  This connection-only diagnosis does not accept the external risky-approval UI UAT.
