@@ -1,5 +1,34 @@
 # Status
 
+## Phase 4 final release-metadata checkpoint (2026-10-08)
+
+- **Current milestone:** manager-selected first release version `v0.1.0`; dated changelog
+  and proposed public release notes prepared, not published. Phase 3 remains the feature cutoff.
+  Tag creation, `v0.1.0` / `stable` / `latest` promotion and GitHub Release require final manager approval.
+- **Recovery / Git:** fetched origin; clean synchronized `main` at
+  `86db08c2d2f9a565c54d4a680e346a3f3dc5a782`, no staged/unstaged/untracked work or stashes,
+  and no interrupted release-metadata branch. Unrelated bearer-fix branch preserved.
+  Working branch `docs/v0.1.0-release-metadata`; repository https://github.com/lvgvs/zimaos-mcp-server.
+  Exact containing commit is available from Git; final merged SHA/digest belongs in the PR handoff.
+- **Changed components:** changelog first-release facts moved unchanged below an empty
+  `[Unreleased]` into `[0.1.0] - 2026-10-08`; release guidance/scope/status distinguish version
+  selection from publication approval. Proposed notes: `docs/RELEASE-NOTES-v0.1.0.md`.
+  Package/root lock versions all verified as `0.1.0`, with no edits needed. Accurate README
+  pre-release wording and EN/TR parity remain unchanged, including AI disclosures.
+- **UAT identity / scope:** external runtime acceptance remains tied to
+  `8c2f4e7785002a67cb3d59c8b7758f8b533d0897` and
+  `sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
+  No external UAT repeated, runtime/dependency/Docker/deployment/workflow/security changes,
+  child/subagent delegation, release tag, GitHub Release or stable/latest promotion.
+- **Verification:** local format check, lint, source/test TypeScript checks, 500/500 mocked tests
+  (28 files), production build, Docker build (`zimaos-mcp-server:release-metadata`), Compose
+  config validation and diff checks passed. Exact-head CI/CodeQL/trusted-main GHCR still require
+  verification before handoff. The new metadata-only main artifact is the intended promotion source candidate,
+  subject to manager approval, not a newly externally runtime-tested artifact.
+- **Blockers / next manager action:** no new factual runtime blocker found; existing limitations
+  remain documented below. Review the exact source/digest and proposed notes, then explicitly
+  authorize actual release actions. No new architecture decision requires review.
+
 ## Phase 4 final external runtime-UAT checkpoint (2026-10-08 UTC)
 
 - **Current milestone:** external runtime UAT is complete, based on manager/user-reported
@@ -462,8 +491,8 @@ this current document reconciles the reachable repository commit references.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** finish this docs-only UAT reconciliation PR and exact-head CI/GHCR
-  verification, then hand off for first-release approval. Fresh normal-user installation and all
+- **Current next action:** finish the release-metadata checkpoint and exact-head CI/GHCR
+  verification, then hand off for final source/artifact/notes and publication approval. Fresh normal-user installation and all
   reported runtime UAT gates passed; do not repeat external UAT solely for this checkpoint.
 
 ## Historical Phase 4 initial audit — then-blocked image-access gate (2026-10-01)
@@ -528,9 +557,10 @@ this current document reconciles the reachable repository commit references.
 
 ## Git / repository
 
-- **Branch:** `docs/phase4-final-runtime-uat` for this docs-only checkpoint; return to clean,
-  synchronized `main` after Squash merge. Baseline / runtime-tested main:
-  `8c2f4e7785002a67cb3d59c8b7758f8b533d0897`; exact containing commit is available from Git.
+- **Branch:** `docs/v0.1.0-release-metadata` for this metadata-only checkpoint; return to clean,
+  synchronized `main` after Squash merge. Baseline main:
+  `86db08c2d2f9a565c54d4a680e346a3f3dc5a782`; runtime-tested identity remains separate above.
+  Exact containing commit is available from Git.
 - **Phase 2 final implementation HEAD:** `7dcb169d29df8b154c4658a689f5b9120db2e4f0`
 - **Phase 3A HEAD:** `3102cdcd5533293c921c99c8f61e313daeed17b1`
 - **Phase 3B HEAD:** `14b8f44180d1e4fb37fafca79c5d86e73fec25f4`
