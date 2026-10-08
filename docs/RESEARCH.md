@@ -855,4 +855,38 @@ rather than an in-place remote rewrite. The original private PR refs remain pres
 - Implementation implication: no production SDK/wiring/CORS/approval change. Open
   Inspector on the browser machine's loopback or trusted HTTPS; do not disable browser
   security. Preserve modern-only risky elicitation and legacy fail-closed behavior.
-  This connection-only diagnosis does not accept the external risky-approval UI UAT.
+  This connection-only diagnosis did not accept external risky-approval UI UAT; the later
+  manager-run runtime acceptance is recorded separately below.
+
+## Phase 4 final external runtime-UAT evidence (checkpoint 2026-10-08)
+
+Source: manager/user-supplied normal-user UAT report, not new agent-run live probes.
+Runtime-tested main is `8c2f4e7785002a67cb3d59c8b7758f8b533d0897`; runtime-tested image is
+`ghcr.io/lvgvs/zimaos-mcp-server@sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
+Full gate-by-gate observations and exact approval/repair readback hashes are in `docs/RELEASE.md`.
+
+- Fresh canonical-YAML Custom App installation and clean uninstall/reinstall passed without
+  reusing generated old metadata. Candidate upgrade, app/container restart and full disposable
+  VM reboot all preserved ready health and modern discovery/tools list.
+- Official Inspector Web on browser-local loopback negotiated `2026-07-28`. Native risky-edit
+  elicitation visibly disclosed target/operation/base/exact UTF-8 proposal hashes, introduced
+  `cap_add` risk delta, expiry within 300 seconds, and boolean approval. After explicit user
+  approval, MRTR returned accepted/changed and readback confirmed CHOWN; risk-removing repair
+  required no approval, removed only cap_add, preserved the benign marker, and retained health.
+  This closes the real-client disclosure/positive-continuation/repair UAT gap, not the
+  documented general rollback or cryptographic human-presence limitations.
+- Read-only, independent default-off gates, enabled controls, benign provisioning/removal,
+  and existing-app read/validate/edit all passed. Wrong MCP bearer returned 401 with the
+  documented challenge and fixed unauthorized JSON; no authentication boundary changed.
+- Initial bad credentials or an unreachable configured URL failed before HTTP listening,
+  with `zimaos_login_failed` (unreachable case: `ZIMAOS_UNREACHABLE`); repeated wrong-password
+  restarts triggered upstream rate limiting. Corrected settings restored 200 / ready:true.
+  Implementation cross-check: [entrypoint at tested source](https://github.com/lvgvs/zimaos-mcp-server/blob/8c2f4e7785002a67cb3d59c8b7758f8b533d0897/src/index.ts)
+  awaits login and exits on failure before creating/listening on the HTTP server;
+  [running health handler](https://github.com/lvgvs/zimaos-mcp-server/blob/8c2f4e7785002a67cb3d59c8b7758f8b533d0897/src/http/server.ts)
+  separately returns 200/503 from authenticated readiness. Connection refused at startup is
+  consistent, not a missing guaranteed 503 response.
+- No runtime defect or new API operation was discovered. Preserve the Inspector page-origin
+  requirement and modern-only risky approval / legacy fail-closed boundary. This docs-only
+  reconciliation does not repeat external UAT; later documentation-image publication is not
+  evidence of runtime acceptance on that new digest. Final release approval remains separate.

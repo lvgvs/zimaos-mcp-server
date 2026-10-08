@@ -39,6 +39,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Supported ESLint 10 and patched test dependencies; runtime and full dependency audits passed
   at the release-hardening checkpoint (not a permanent vulnerability-free guarantee).
 
+### Verification checkpoint
+
+- Phase 4 manager-run external runtime UAT completed on commit
+  `8c2f4e7785002a67cb3d59c8b7758f8b533d0897` and the exact digest in `docs/RELEASE.md`:
+  fresh Custom App install/clean reinstall, modern discovery/read/control/install/uninstall,
+  benign edit, risky modern approval/MRTR continuation and repair, authentication/network
+  failure modes, candidate upgrade, and app/VM restart persistence passed.
+- Initial ZimaOS login failures occur before HTTP listening (connection refused); HTTP 503
+  readiness applies to an already-running server. Inspector Web requires a secure page origin
+  (browser-local loopback or trusted HTTPS), not a server-side protocol workaround.
+- This records runtime acceptance, not approval of the first tag/GitHub Release; a docs-only
+  follow-up image is not claimed to have undergone repeated external runtime UAT.
+
 ### Known limitations
 
 - `update_app` is intentionally not implemented because supported App Store update/version-transition semantics remain unverified.
