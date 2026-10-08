@@ -22,8 +22,10 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
 ## Proje durumu
 
-**Herkese açık ön sürüm.** Phase 1–3 işlevleri tamamlandı; Phase 4 sürüm sağlamlaştırma ve gerçek
-kullanıcı UAT süreci devam ediyor. İlk etiketli sürüm henüz yayınlanmadı.
+**Herkese açık ön sürüm.** Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
+sıfırdan Custom App kurulumu, modern riskli işlem onayı ve onarımı, hata durumları,
+yükseltme, yeniden başlatma/VM reboot kalıcılığı ve temiz yeniden kurulum dahil tamamlandı.
+İlk sürüm/etiket ve GitHub Release hâlâ açık yönetici onayı gerektirir ve henüz yayınlanmadı.
 
 `edge`, yalnızca CI ile doğrulanmış geliştirme sürümlerini takip eder. `latest` / `stable`,
 gelecekte açıkça onaylanacak kararlı bir sürüme ayrılmıştır; önceki politikadan kalan `latest`
@@ -103,15 +105,17 @@ Compose dosyası, container'ın ZimaOS API'sine host networking, Docker socket, 
 mode veya host mount kullanmadan ulaşabilmesi için `host.docker.internal:host-gateway`
 kullanır.
 
-> **Ön sürüm notu:** ZimaOS arayüzünden sıfırdan kurulum akışı ilk sürüm UAT sürecinde
-> doğrulanmaktadır. İlk sürüm yayınlanana kadar `latest` kararlı deployment hedefi olarak
-> değerlendirilmemelidir.
+> **Ön sürüm notu:** normal kullanıcı akışıyla sıfırdan ZimaOS Custom App kurulumu ve temiz
+> yeniden kurulum, [sürüm hazırlığında](docs/RELEASE.md) kaydedilen tam aday üzerinde runtime
+> UAT'sini geçti. İlk sürüm onaylanıp yayınlanana kadar `latest` kararlı hedef sayılmamalıdır.
 
 ### İmaj erişimi ve ilk kurulum UAT
 
 Kanonik kaynak deposu ve GHCR paketi herkese açıktır. Saklanan sürümlerin inceleme/temizliği
 tamamlanmış ve anonim imaj çekme erişimi doğrulanmıştır; bu onaylı yol için registry kimlik
-bilgileri gerekmez. Normal kullanıcı akışıyla sıfırdan Custom App kurulum UAT'si henüz yapılmamıştır.
+bilgileri gerekmez. Normal kullanıcı akışıyla sıfırdan Custom App kurulum UAT'si, kanonik
+deployment YAML'ı ve tam olarak sabit aday digest'i kullanılarak geçti; temiz yeniden
+kurulumda üretilmiş eski `x-casaos` / `store_app_id` metadata'sı yeniden kullanılmadı.
 YAML'a registry kimlik bilgileri eklemeyin veya UAT'yi atlamak için host shell komutları kullanmayın.
 Tam olarak sabit UAT/deployment için şablondaki geliştirme imajını yöneticinin inceleyip verdiği
 `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` referansıyla değiştirin.
@@ -174,10 +178,17 @@ belirtin.
 
 `/health` kimlik doğrulaması gerektirmez ve container health/readiness kontrolleri
 içindir; MCP endpoint'i değildir. Desteklenen, kimlik doğrulamalı ZimaOS cihaz bilgisi
-API'sini aktif olarak kontrol eder: HTTP 200 hazır, HTTP 503 degraded/erişilemez/kimlik
-doğrulaması başarısız anlamındadır. Eşzamanlı kontroller sınırlı upstream işlemini paylaşır.
+API'sini aktif olarak kontrol eder. Zaten çalışan sunucuda HTTP 200 hazır, HTTP 503 ise
+upstream erişilemezliği veya kimlik doğrulama hatası dahil degraded readiness anlamındadır.
+Eşzamanlı kontroller sınırlı upstream işlemini paylaşır.
 Docker, yapılandırılan container iç `PORT` değerini kontrol eder ve degraded durumunu
 unhealthy sayar; bu, her uygulama API'sinin çalıştığı garantisi değildir.
+
+İlk başlatmada hatalı ZimaOS kimlik bilgileri veya erişilemeyen `ZIMAOS_URL`, MCP/health
+HTTP listener açılmadan fail-fast davranışına neden olur. Bu başlangıç hatalarında
+`/health` 503 yerine connection refused görülmesi beklenir. Gizli bilgi içermeyen
+`zimaos_login_failed` log kodunu kontrol edip yapılandırmayı düzeltin; hatalı parolayla
+tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
 
 ## Araç referansı
 

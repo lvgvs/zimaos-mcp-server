@@ -3,8 +3,9 @@
 No first release is approved or published. The canonical source repository is PUBLIC as a
 manager-approved pre-release project; normal development uses PRs with Squash-only merging.
 The GHCR package is also PUBLIC after retained-version exposure review/cleanup; anonymous pull
-access is verified. Fresh normal-user Custom App installation UAT is the next release gate and
-has not started. The final version/tag and GitHub Release remain unapproved. Do not change package
+access is verified. Phase 4 external runtime UAT, including fresh normal-user Custom App installation
+and clean reinstall, is complete on the candidate below. The final version/tag and GitHub Release
+remain unapproved. Do not change package
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
 corresponding explicit manager approval.
 
@@ -53,13 +54,90 @@ Before approval: compare changelog/release notes with implemented features, veri
 inspect provenance/SBOM, and record exact-head CI/GHCR plus the UAT result. Update the changelog and
 package version before building the chosen release artifact, not after it is selected.
 
-## First real-user UAT gate
+## Completed external runtime UAT checkpoint (2026-10-08)
+
+Source: manager/user-reported external UAT results, not new agent-run runtime tests.
+
+- **Runtime-tested main:** `8c2f4e7785002a67cb3d59c8b7758f8b533d0897`.
+- **Runtime-tested image:**
+  `ghcr.io/lvgvs/zimaos-mcp-server@sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
+
+All reported runtime gates passed:
+
+1. Fresh normal-user Custom App install / first start using canonical deployment YAML and
+   the exact digest: `/health` 200, `{"status":"ok","service":"zimaos-mcp-server","ready":true}`.
+2. Official Inspector Web from browser-local loopback negotiated MCP `2026-07-28`;
+   `server/discover` and `tools/list` succeeded.
+3. Read-only use passed.
+4. `ALLOW_APP_CONTROL=false` denied stop; enabling only that flag allowed stop/start/restart
+   of a disposable app.
+5. Install/uninstall default-off gates passed; enabled benign nginx Compose install was
+   accepted and observed, then uninstall was accepted and disappearance observed.
+6. Compose read/validate and default-off edit denial passed; benign edit preserved health
+   and readback confirmed `MCP_UAT_MARKER=phase4-benign-edit`.
+7. Risky modern approval, positive MRTR continuation, and repair fully passed (details below).
+8. Wrong MCP token returned 401, `WWW-Authenticate: Bearer realm="zimaos-mcp-server"`,
+   and `{"error":"unauthorized"}`.
+9. Wrong ZimaOS credentials failed startup before port 3900 opened; connection refused and
+   `zimaos_login_failed` were observed. Repeated restart/login attempts triggered upstream
+   rate limiting. Restoring correct credentials restored `/health` 200 / `ready:true`.
+10. Unreachable `ZIMAOS_URL=http://127.0.0.1:9` failed startup before the listener opened,
+    with `zimaos_login_failed` / `ZIMAOS_UNREACHABLE`; restoring
+    `http://host.docker.internal` restored `/health` 200 / `ready:true`.
+11. MCP app/container restart preserved readiness and successful modern discovery/tools list.
+12. Full disposable ZimaOS VM reboot preserved readiness and modern connection/discovery/tools list.
+13. Release-candidate upgrade to the exact digest above passed; later critical approval,
+    failure-mode, persistence, and clean-reinstall UAT ran on that final digest.
+14. MCP server uninstall followed by clean Custom App → Docker Compose/YAML reinstall passed:
+    canonical structure, exact digest, no reuse of generated old `x-casaos` / `store_app_id`
+    metadata; readiness, modern connection, discovery, and tools list all succeeded.
+    This is the completed fresh normal-user runtime installation UAT, not a developer substitute.
+
+### Risky approval and repair evidence
+
+The bounded edit added only `cap_add: [CHOWN]` to `mcp-test-nginx`. Official Inspector's native
+`input_required` form visibly disclosed `edit_app_compose`, target app id, base SHA-256,
+exact proposed UTF-8 SHA-256, introduced `cap_add` risk delta, expiry within 300 seconds,
+and an explicit boolean approval control. The user explicitly approved. MRTR continuation
+returned `status=accepted`, `observation=changed`; readback confirmed `cap_add: CHOWN` and
+fingerprint `812406cf5d40c9c74e1a3f9a97b2f98cde345c1aea66e9f953fc267bb1a14341`.
+The app stayed healthy with nginx running.
+
+Repair removed only `cap_add`: validation returned `accepted=true`, `requiresApproval=false`;
+edit returned `status=accepted`, `observation=changed`. Final readback confirmed `cap_add`
+absent, the benign marker preserved, and fingerprint
+`a18be89590ff082705fba21569678e2d3399eccd770dbb2487fb5590c89059ef`.
+Final app health remained healthy and nginx remained running. This targeted repair does not
+establish a general rollback guarantee or cryptographic proof of human presence.
+
+### Startup versus running readiness
+
+`src/index.ts` authenticates before opening the HTTP listener. Invalid ZimaOS credentials or
+an unreachable URL at initial startup can therefore produce connection refused, not `/health` 503. Once running, `/health` performs the supported authenticated readiness probe and can
+return 503 for degraded readiness. Both behaviors are fail-closed; do not promise a startup 503.
+
+### Preserved client boundary and remaining release gate
+
+Inspector Web requires browser-local localhost/loopback or trusted HTTPS; do not disable browser
+security. The plain-HTTP LAN failure was Inspector request tracking's missing
+`crypto.randomUUID()`, before discovery was sent, not a server protocol defect.
+Modern `2026-07-28` clients support native `input_required` / `requestState` MRTR approval.
+Legacy clients retain read-only and permitted non-risky operations; risk-increasing install/edit
+fails closed, without legacy approval shims or text-confirmation bypasses.
+
+The runtime UAT gate is closed. Manager approval of the first version/source artifact/release notes,
+tag, and GitHub Release remains required. A docs-only checkpoint may publish a new exact-head
+image under normal CI; unchanged runtime code is not a claim that external UAT was rerun on that
+new digest. Keep the runtime-tested identity above distinct from the publication handoff.
+
+## Normal-user installation procedure (verified by UAT)
 
 Use the verified public anonymous-pull path with a manager-reviewed digest-pinned candidate;
 no registry credentials are required or belong in the Compose template. No host SSH,
 Docker CLI, privileged workaround or on-host rebuild is an acceptable substitute for fresh UI UAT.
 
-Supply the manager one digest-pinned Compose candidate with mutation permissions off. The manager
-uses ZimaOS **Custom App → Docker Compose/YAML import**, fills the four required variables,
-installs, and reports first-start/health behavior without sharing passwords/tokens. Stop after
-this fresh-install gate; client connection and mutation UAT are subsequent bounded gates.
+Use ZimaOS **Custom App → Docker Compose/YAML import**, fill the four required variables,
+review the default-off mutation permissions, and install the digest-pinned canonical Compose.
+Do not reuse generated metadata from an old installation. This flow and subsequent connection /
+permission / mutation / repair / persistence gates passed the manager's UAT recorded above;
+do not repeat external UAT solely for this documentation checkpoint.

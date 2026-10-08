@@ -21,8 +21,10 @@ ZimaOS internal-file/database manipulation.
 
 ## Project status
 
-**Public pre-release.** Phase 1–3 functionality is implemented and Phase 4 release hardening /
-real-user UAT is in progress. The first tagged release has not been published yet.
+**Public pre-release.** Phase 1–3 functionality is implemented and Phase 4 external runtime
+UAT is complete, including fresh Custom App installation, modern risky approval and repair,
+failure modes, upgrade, restart/reboot persistence, and clean reinstall. The first version/tag
+and GitHub Release still require explicit manager approval and have not been published.
 
 `edge` tracks CI-verified development only. `latest` / `stable` are reserved for a future
 explicitly approved stable release; the old pre-policy `latest` tag has been deleted.
@@ -101,15 +103,17 @@ The intended installation flow is ZimaOS's normal Custom App UI:
 The Compose file uses `host.docker.internal:host-gateway` so the container can reach the
 ZimaOS API without host networking, Docker socket access, privileged mode, or host mounts.
 
-> **Pre-release note:** the fresh ZimaOS UI installation path is still being validated as
-> part of first-release UAT. Until the first release is published, do not treat `latest`
-> as a stable deployment target.
+> **Pre-release note:** fresh normal-user ZimaOS Custom App installation and clean reinstall
+> passed runtime UAT on the exact candidate recorded in [release preparation](docs/RELEASE.md).
+> Until the first release is approved and published, do not treat `latest` as a stable target.
 
 ### Image access and first-install UAT
 
 The canonical source repository and GHCR package are public. Retained-version review/cleanup
 is complete, and anonymous image pull access is verified; no registry credentials are required
-for this approved path. Fresh normal-user Custom App installation UAT is still pending.
+for this approved path. Fresh normal-user Custom App installation UAT passed using canonical
+deployment YAML and the exact immutable candidate digest; generated old `x-casaos` /
+`store_app_id` metadata was not reused during clean reinstall.
 Do not embed registry credentials in the YAML or use host shell commands to bypass UAT.
 For exact UAT/deployment, replace the template's development image with the manager-reviewed
 `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` reference supplied by the manager.
@@ -169,10 +173,17 @@ and `typeof crypto.randomUUID` in the browser console; do not disable browser se
 For modern Inspector connections, select `--protocol-era modern` explicitly.
 
 `/health` is unauthenticated and intended for container readiness/health checks; it is not
-an MCP endpoint. It actively checks the supported, authenticated ZimaOS device-info API:
-HTTP 200 means ready; HTTP 503 means degraded/unreachable/authentication failed. Concurrent
+an MCP endpoint. It actively checks the supported, authenticated ZimaOS device-info API.
+For an already-running server, HTTP 200 means ready; HTTP 503 means degraded readiness,
+including upstream unreachability or authentication failure. Concurrent
 probes share bounded upstream work. Docker checks the configured internal `PORT` and treats
 degradation as unhealthy; this is not a guarantee that every application API works.
+
+During initial startup, invalid ZimaOS credentials or an unreachable `ZIMAOS_URL` fail fast
+before the MCP/health HTTP listener opens. Connection refused, rather than `/health` 503,
+is therefore expected for those startup failures. Check the non-secret `zimaos_login_failed`
+log code and correct the configuration; repeated bad-password restart attempts can trigger
+ZimaOS-side rate limiting.
 
 ## Tool reference
 
