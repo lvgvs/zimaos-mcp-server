@@ -1,5 +1,41 @@
 # Status
 
+## Phase 4 Inspector Web negotiation diagnosis (2026-10-08 UTC)
+
+- **Baseline / recovery:** canonical https://github.com/lvgvs/zimaos-mcp-server;
+  branch `fix/modern-protocol-discovery`, baseline
+  `d4f9e02c35fe93b1c20f813e4f7f223e037c9db2`, equal to `origin/main` before edits.
+  Repeated interruptions left no source changes, commits, pushes or defect PR.
+  Interrupted Qwen research produced no usable edits; replacement read-only research's
+  claimed missing SDK discovery support was independently disproved and rejected.
+- **Root cause:** official Inspector 2.9.0 Web request tracking calls
+  `crypto.randomUUID()` on a non-secure, plain-HTTP LAN page origin. Chromium exposes
+  no such function there. The client throws before `/api/mcp/send`; its browser probe
+  classifier masks that TypeError as no modern evidence and emits the reported pinned
+  version error. This is not a server negotiation defect. No runtime/dependency,
+  legacy, approval, permission or security-policy change is justified.
+- **External diagnostics, not UAT acceptance:** reproduced the exact Web error using
+  the configured MCP credential; backend connect/events returned 200, but discovery
+  was never sent. The same remote endpoint through loopback Web Inspector negotiated
+  `2026-07-28`: discovery POST 200 JSON, matching protocol/method headers,
+  `supportedVersions: ["2026-07-28"]`, followed by successful tools/list. No application
+  tool mutation or risky approval was attempted externally. The manager's external TUI
+  success and earlier local Web success remain consistent with this origin dependency.
+- **Candidate unchanged:** manager-reported deployment is
+  `ghcr.io/lvgvs/zimaos-mcp-server@sha256:5ee845a9d8cc99cfb8d808168c5a1f141064e5314a8adc6ea10bbc35f4e07495`.
+  No new runtime artifact is needed for this diagnosis; public GHCR access remains the
+  previously verified release checkpoint, not a new visibility audit.
+- **Documentation / verification:** README EN/TR explain client compatibility and the
+  Inspector secure-origin requirement; existing AI disclosures remain unchanged.
+  Local format, lint, source/test typechecks, 500/500 tests (28 files), and build passed;
+  the 43 HTTP/approval tests prove modern input-required and legacy fail-closed behavior
+  with mocked ZimaOS services. No new automated tests or architecture decisions.
+- **Remaining gate:** manager reruns the affected Web connection and risky-approval UX
+  from browser-local loopback or trusted HTTPS. Remote localhost must not be confused
+  with the browser's own localhost. Do not disable browser security, add a legacy shim,
+  or change server authentication/CORS to work around this client-side failure.
+  Real-user UAT and final tag/release approval remain manager-owned.
+
 ZimaOS MCP Server. This file is written so a fresh implementation chat can resume
 without prior conversation context. Read `AGENTS.md` and `PROJECT.md` first; they are
 authoritative.
