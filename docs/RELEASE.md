@@ -1,14 +1,16 @@
-# Release preparation
+# Release process and evidence
 
-No first release is approved or published. The canonical source repository is PUBLIC as a
-manager-approved pre-release project; normal development uses PRs with Squash-only merging.
+`v0.1.0` is the selected first stable release, dated 2026-10-08 in the changelog; package and
+lockfile versions are `0.1.0`. Publication state is authoritative in Git tags, GitHub Releases
+and GHCR version/alias readback, not in this source document. This is a release-process contract
+and evidence record, not an assertion that a tag, Release or alias exists.
+
+The canonical source repository is PUBLIC after manager approval; normal development uses PRs
+with Squash-only merging.
 The GHCR package is also PUBLIC after retained-version exposure review/cleanup; anonymous pull
 access is verified. Phase 4 external runtime UAT, including fresh normal-user Custom App installation
-and clean reinstall, is complete on the candidate below. The manager-selected first release
-version is `v0.1.0`, dated 2026-10-08 in the changelog; package and lockfile versions already match
-`0.1.0`. Tag creation, promotion to `v0.1.0` / `stable` / `latest`, and the first GitHub Release
-remain unapproved and unexecuted. Proposed public notes are in [release notes](RELEASE-NOTES-v0.1.0.md).
-Do not change package
+and clean reinstall, is complete on the separately recorded runtime-tested digest below.
+Public notes are in [release notes](RELEASE-NOTES-v0.1.0.md). Do not change package
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
 corresponding explicit manager approval.
 
@@ -30,16 +32,16 @@ product guarantee. Administrators can still alter/delete GHCR tags. For exact UA
 
 The stale pre-policy `latest` tag and pre-migration/private-history tagged artifacts were removed
 during owner-reviewed cleanup. Canonical artifacts and provenance/SBOM-related untagged versions
-were preserved. `stable` / `latest` are reserved for a future explicitly approved stable release;
-neither currently represents an approved stable release. The artifact policy does not delete old
+were preserved. `stable` / `latest` are managed only by explicitly approved stable-version promotion;
+their live targets must be verified against the release record. The artifact policy does not delete old
 versions/tags automatically; further cleanup or visibility changes require manager approval.
 
-## Approved release promotion (prepared, not executed)
+## Release promotion contract
 
 After automated gates and real-user UAT, the manager chooses/approves the version, source commit
 and release notes. Public package visibility is already approved; any later visibility change
 requires separate approval. Hermes/local Git creates/pushes the approved version tag only then.
-The prepared `release-image` workflow validates `vMAJOR.MINOR.PATCH[-prerelease.identifiers]`
+The tag-driven `release-image` workflow validates `vMAJOR.MINOR.PATCH[-prerelease.identifiers]`
 (no build metadata), checks main ancestry, and requires an already published commit artifact.
 It does **not** rebuild, create a Git tag, or publish a GitHub Release.
 
@@ -51,7 +53,7 @@ It does **not** rebuild, create a Git tag, or publish a GitHub Release.
 
 Mutable release aliases follow the approved promotion, not an automatically computed greatest
 SemVer. Rerunning an older release can roll those aliases back; it requires explicit manager
-rollback approval. The first-install UAT candidate does not execute any version promotion.
+rollback approval. Runtime-UAT verification is not a version-promotion operation.
 
 Before approval: compare changelog/release notes with implemented features, verify licenses/secrets,
 inspect provenance/SBOM, and record exact-head CI/GHCR plus the UAT result. Update the changelog and
@@ -124,7 +126,7 @@ establish a general rollback guarantee or cryptographic proof of human presence.
 an unreachable URL at initial startup can therefore produce connection refused, not `/health` 503. Once running, `/health` performs the supported authenticated readiness probe and can
 return 503 for degraded readiness. Both behaviors are fail-closed; do not promise a startup 503.
 
-### Preserved client boundary and remaining release gate
+### Preserved client boundary and release-source identity
 
 Inspector Web requires browser-local localhost/loopback or trusted HTTPS; do not disable browser
 security. The plain-HTTP LAN failure was Inspector request tracking's missing
@@ -133,15 +135,17 @@ Modern `2026-07-28` clients support native `input_required` / `requestState` MRT
 Legacy clients retain read-only and permitted non-risky operations; risk-increasing install/edit
 fails closed, without legacy approval shims or text-confirmation bypasses.
 
-The runtime UAT gate is closed. The first version is selected; manager approval of the source artifact/release notes,
-tag, and GitHub Release remains required. A docs-only checkpoint may publish a new exact-head
+The runtime UAT evidence is complete. Publication of the source artifact, version tag and GitHub
+Release follows the explicit manager approval contract above. A docs-only checkpoint may publish a new exact-head
 image under normal CI; unchanged runtime code is not a claim that external UAT was rerun on that
 new digest. Keep the runtime-tested identity above distinct from the publication handoff.
 
-The final protected-main documentation-reconciliation merge commit becomes the release-source
-candidate, subject to manager approval. Verify its exact SHA, trusted-main image digest and checks
-in the PR/release handoff; do not make another status-only commit just to record those identifiers.
-The pre-PR rewrite artifact is a reconciliation baseline, not the final release source.
+The protected-main squash merge containing the final durable-documentation checkpoint is the
+intended `v0.1.0` release source. Its exact SHA, trusted-main artifact digest and successful checks
+are verified in the release handoff before approved tag creation. Promotion reuses that existing
+artifact without rebuilding. Neither the earlier reconciliation baseline nor its image is the
+final release identity. Publication requires no follow-up source-content/status commit to record
+identifiers or switch pending-state prose to published-state prose; consult Git/Release/GHCR records.
 
 ## Normal-user installation procedure (verified by UAT)
 

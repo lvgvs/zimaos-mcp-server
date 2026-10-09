@@ -21,14 +21,14 @@ ZimaOS internal-file/database manipulation.
 
 ## Project status
 
-**Public pre-release.** Phase 1–3 functionality is implemented and Phase 4 external runtime
+**Selected first stable release: `v0.1.0`.** Phase 1–3 functionality is implemented and Phase 4 external runtime
 UAT is complete, including fresh Custom App installation, modern risky approval and repair,
-failure modes, upgrade, restart/reboot persistence, and clean reinstall. The first version/tag
-and GitHub Release still require explicit manager approval and have not been published.
+failure modes, upgrade, restart/reboot persistence, and clean reinstall. Publication state is
+authoritative in Git tags, GitHub Releases and GHCR aliases, not this source document.
 
-`edge` tracks CI-verified development only. `latest` / `stable` are reserved for a future
-explicitly approved stable release; the old pre-policy `latest` tag has been deleted.
-Installation details and release artifacts may still change before the first release.
+`edge` tracks CI-verified development only. Approved stable-version promotion manages `latest` /
+`stable`; verify their targets against the release record and pin a digest for exact deployments.
+Runtime-UAT evidence is distinct from later documentation-only release-source artifacts.
 
 For implementation state and engineering history, see [`STATUS.md`](STATUS.md). For
 approved scope and safety boundaries, see [`PROJECT.md`](PROJECT.md).
@@ -103,9 +103,9 @@ The intended installation flow is ZimaOS's normal Custom App UI:
 The Compose file uses `host.docker.internal:host-gateway` so the container can reach the
 ZimaOS API without host networking, Docker socket access, privileged mode, or host mounts.
 
-> **Pre-release note:** fresh normal-user ZimaOS Custom App installation and clean reinstall
-> passed runtime UAT on the exact candidate recorded in [release preparation](docs/RELEASE.md).
-> Until the first release is approved and published, do not treat `latest` as a stable target.
+> **Runtime-UAT evidence:** fresh normal-user ZimaOS Custom App installation and clean reinstall
+> passed on the exact digest recorded in [release process and evidence](docs/RELEASE.md).
+> Release aliases follow approved version promotion; verify publication records and pin a digest.
 
 ### Image access and first-install UAT
 
@@ -229,7 +229,7 @@ ZimaOS-side rate limiting.
 - Builds pin the Node 22 base digest and publish revision/source labels, minimum provenance
   and an SBOM. Rebuilding the same source is **not** promised to reproduce identical bytes.
 
-See [release preparation](docs/RELEASE.md). No approved first release exists yet.
+See [release process and evidence](docs/RELEASE.md) for the publication contract and recorded UAT.
 
 ## Run locally with Docker
 
