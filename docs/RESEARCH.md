@@ -1208,3 +1208,59 @@ No unrelated app or additional persistent path was deleted. The earlier custom f
 cleaned up separately. Native catalog installation remains a future logical capability requiring
 trusted catalog selection/association; no distinct store-ID mutation was verified for the tested
 entries and no universal equivalence with arbitrary Compose import is claimed.
+
+### Post-PR24 retained native fixtures and Phase 5 hold state
+
+**Lifecycle correction:** PR #24 was a valid, accepted research/documentation milestone,
+squash-merged at `8cd3c2e87638716deea9c178450695ebca6f251a`. Outcome B / DEFER remains the
+current implementation decision; Phase 5 itself remains active and **ON HOLD**, not completed.
+The earlier temporary-fixture cleanup and all preceding evidence remain historical facts.
+After that merge, the manager authorized long-lived genuine native App Store fixtures in the
+authorized disposable VM. They are intentionally retained specifically for future natural native
+update UAT. None currently has a naturally available update; supported upgradable discovery was
+empty. No update mutation or manufactured older version was used to create transition evidence.
+Fixture identities, versions, images, ports and configuration remain in the existing local scratch
+checkpoint only; no App Store application YAML is vendored here.
+
+**Observed UI/API behavior, secondary to update scope:** the additional tested native
+Compose-class installation flows corroborated and strengthened the earlier observations:
+
+1. Trusted catalog/detail GET through
+   `/v3/app_store/hub/repo/{repo_id}/app/{catalog_id}`.
+2. Architecture-appropriate catalog Compose GET through the registered-repository proxy
+   `/v3/app_store/repo/proxy/{repo_id}/apps/{catalog_id}/{compose_file}`. Do not assume a
+   single generic filename or image representation: an architecture-specific catalog document
+   may pin a digest while management catalog Compose returns the corresponding tag.
+3. Catalog YAML plus canonical association metadata, including `x-casaos.id` and
+   `x-casaos.repo_id`, submitted by the ordinary Install control.
+4. Exactly one supported mutation per installation:
+   `POST /v2/app_management/compose?dry_run=false&check_port_conflict=true&uncontrolled=false`.
+   Both returned HTTP 200 with `app is being installed asynchronously`; subsequent installed-app,
+   container and application-health reads established completion, not the acceptance response.
+   Installed association metadata and catalog retrieval remained observable afterward.
+
+No distinct native store-install mutation API was observed for these Compose-class flows.
+Mutable association metadata remains insufficient by itself to prove native origin; the observed
+ordinary UI installation history establishes origin for these tests.
+
+**Architectural implication, not product authorization:** current
+`install_app_from_compose` shares the fundamental supported Compose POST and preserves supplied
+YAML (`src/zimaos/client.ts`, `installComposeOnce` / `installOnce`). It does not currently resolve
+trusted catalog sources/association and omits the UI's explicit `uncontrolled=false` option.
+Omitted-option equivalence was not established, and no duplicate MCP installation was made to
+test equivalence. For the tested Compose-class apps, native installation appears to need only a
+bounded extension/thin store-aware frontend over the existing install path: trusted catalog and
+architecture selection, canonical association preservation and explicit native request options,
+while retaining permission, preflight, duplicate prevention, meaningful risk approval and one-shot
+asynchronous-install boundaries. A future `install_app_from_store(app_id)` is plausible, but is
+not authorized for implementation here. This does not imply universal native equivalence for
+arbitrary user-provided Compose or support for untested App Store classes.
+
+**Resume, not reopen:** Phase 5 resumes from preserved evidence when a genuine naturally
+available native App Store update appears on a retained fixture, or new version-applicable
+authoritative upstream evidence sufficiently closes the remaining contract gaps. Current exact
+native update target/effects/class/result semantics still need verification and genuine transition
+evidence before shipping. Keep `update_app` and `ALLOW_APP_UPDATE` unshipped meanwhile; do not
+expose `force=true`, substitute edit/reinstall, infer success from async acceptance or automatically
+retry an ambiguous mutation. No new App Store capability or later phase is authorized by these
+secondary installation observations.

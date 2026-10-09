@@ -1,6 +1,56 @@
 # Status
 
-## Phase 5 closure — Outcome B / defer update_app (2026-10-09)
+## Phase 5 — ON HOLD / Outcome B defer update_app
+
+**Current milestone:** Phase 5 remains the active update phase, ON HOLD, not closed or completed.
+Outcome B is the current implementation decision: defer `update_app` until the remaining native
+target/effects/class/result contract gaps are resolved. No `update_app` or `ALLOW_APP_UPDATE`
+implementation/configuration is shipped. The accepted safety decisions and technical evidence
+are unchanged; force, Compose edit or reinstall is not a substitute for verified native update.
+
+**Merged research milestone:** [PR #24](https://github.com/lvgvs/zimaos-mcp-server/pull/24) is
+MERGED. Historical squash merge: `8cd3c2e87638716deea9c178450695ebca6f251a`. It was a valid
+research/documentation milestone, not completion of Phase 5. Canonical repository:
+<https://github.com/lvgvs/zimaos-mcp-server>. This lifecycle correction uses
+`docs/phase5-on-hold` from that clean synchronized main baseline; the containing commit and
+exact-head checks are recorded in Git and the correction PR handoff.
+
+**Retained native update fixtures:** genuine native App Store fixtures are intentionally retained
+in the authorized disposable VM specifically for future genuine native update UAT. None currently
+has a naturally available update. Their identities, versions, images, configuration and detailed
+baselines remain in the existing local scratch checkpoint only, not tracked documentation.
+No genuine native update transition UAT has been performed.
+
+**Resume trigger:** a genuine naturally available native App Store update on a retained fixture,
+or new version-applicable authoritative upstream evidence sufficient to close the remaining
+contract gaps. Resume Phase 5 from preserved evidence, not as a brand-new phase. Implementation
+still requires the verified update contract, meaningful risk boundaries, independent default-off
+permission, one mutation attempt, no ambiguous retry and completion observations distinct from
+asynchronous acceptance.
+
+**Secondary install finding:** for the tested Compose-class entries, the normal UI used trusted
+catalog/detail lookup, architecture-appropriate Compose and canonical association metadata with
+the supported Compose POST and explicit `uncontrolled=false`; no distinct store-install mutation
+API was observed. A bounded extension/thin store-aware frontend appears sufficient, but current
+`install_app_from_compose` does not implement the complete native-store contract. This is an
+observation, not authorization for a new store tool or universal equivalence with arbitrary Compose.
+
+**Correction scope/validation:** documentation only; PROJECT, STATUS and RESEARCH change.
+DECISIONS remains valid and unchanged. Local formatting, lint, production/test TypeScript checks,
+mocked tests (500/500 in 28 files), production build, Docker build and deployment Compose validation
+passed. Diff/scope, secret/privacy and whitespace review precede commit; exact-head protected-main
+CI results belong in the correction PR handoff. No runtime, tests, configuration, workflow,
+deployment, release/version/tag, v0.1.0, stable/latest or existing Release/Compose asset changes;
+no new live VM operations are authorized or performed by this correction.
+
+**Blockers/manual action:** no user/manual runtime action is currently required except waiting
+for a genuine update/evidence trigger. Manager review of this documentation-only PR is separate
+from Phase 5 resumption. Leave the correction PR OPEN and UNMERGED; do not implement an App Store
+installer, perform update UAT or begin another phase.
+
+The following sections are historical checkpoints, not current authorization/state.
+
+## Historical Phase 5 Outcome B research delivery checkpoint (2026-10-09)
 
 **Current milestone:** Outcome B research/native-store closure published in
 [PR #24](https://github.com/lvgvs/zimaos-mcp-server/pull/24), OPEN and UNMERGED on
