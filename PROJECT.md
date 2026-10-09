@@ -1362,7 +1362,10 @@ Compose validation, diff and credential-ignore/secret checks. For A, verify a sa
 update scenario and permission isolation without exposing credentials or fabricating UAT.
 
 Deliver one protected-main PR with all required CI/CodeQL checks passing; stop OPEN and UNMERGED
-for manager review. Do not modify AGENTS.md, publish a version, change the immutable v0.1.0
+for manager review. Do not modify AGENTS.md in ordinary Phase 5 work; the already-completed,
+separately manager-authorized one-time parent-model quota guard is the sole exception included
+in this Phase 5 PR. No further AGENTS.md edits are authorized without new explicit manager
+instruction. Do not publish a version, change the immutable v0.1.0
 tag/source/Release/aliases/Compose asset, or begin another phase.
 
 ## Current outcome
