@@ -5,7 +5,7 @@ ZimaOS MCP Server lets MCP-capable assistants inspect and manage ZimaOS Compose 
 ## Highlights
 
 - Authenticated Streamable HTTP MCP access with a required operator-supplied bearer token; ZimaOS credentials stay on the server.
-- Read-only inspection of apps, containers/services, app/container health, bounded recent logs, existing-app Compose and basic system information, plus non-mutating Compose validation.
+- Inspection of apps, containers/services, app/container health, bounded recent logs, existing-app Compose and basic system information, plus non-mutating Compose validation.
 - Independent, default-off permissions for start/stop/restart, Compose installation, exact-id uninstall and existing-app Compose editing.
 - Existing-app edits use base fingerprints and optimistic-concurrency checks. Risk-increasing install/edit operations require modern MCP native approval, bound to the exact content, short-lived and single-use; risky legacy requests fail closed.
 - Docker packaging with a non-root runtime user and ZimaOS Custom App Docker Compose/YAML deployment, with publicly accessible GHCR images and English/Turkish setup documentation.
