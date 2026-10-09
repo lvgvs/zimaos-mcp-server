@@ -17,6 +17,49 @@ When an implementation detail is unspecified:
 
 Routine engineering choices do not require manager approval.
 
+## Parent-model quota safety
+
+Hermes / GPT-6.1 Sol is this repository's parent/orchestrator. Qwen/local children may perform
+bounded delegated work, but must never become the parent because Codex quota is low or exhausted.
+
+When using an OpenAI Codex-backed parent, proactively read reliable live active-account usage
+with `hermes usage --json` (or the available equivalent). Check:
+
+1. before each substantial parent work package;
+2. before launching a child that will require later parent review;
+3. after a substantial child result returns, before synthesis/review;
+4. before architecture/product decisions;
+5. before live mutation/UAT interpretation;
+6. before large implementation/documentation/review passes;
+7. before PR finalization or merge/release-sensitive work;
+8. whenever a step consumed materially more parent work than expected.
+
+Let REMAINING be the lowest remaining percentage across relevant active Codex quota windows:
+
+- **Above 15%:** continue normally.
+- **Above 10% through 15% — CAUTION:** prefer finishing the current bounded atomic step;
+  avoid unnecessary large parent packages and broad children requiring substantial later review.
+  Recheck usage at the next safe checkpoint.
+- **10% or below — HARD STOP:** no new substantive parent work: architecture/product decisions,
+  implementation, live mutation/UAT, child launches, or large review/documentation passes.
+  Do not try to finish quickly. Only perform minimum mechanical actions needed to avoid unsafe
+  half-written files, interrupted mutations or corrupted state; preserve a resumable checkpoint
+  and stop. Never transfer parent responsibility to Qwen/local or another fallback model.
+
+Already-running bounded children may safely finish and preserve evidence; do not kill them merely
+for the threshold. At hard stop, do not substantively review, accept, act on, commit based on or
+decide from their results until Hermes/Sol resumes with sufficient quota.
+
+If live quota cannot reliably be read/interpreted, fail closed for new substantial parent work
+and reach the nearest safe resumable checkpoint; never assume sufficient quota. Low quota does
+not authorize automatic quota/reset redemption, provider/model switching or threshold bypass
+because work is nearly finished. Any reset or parent-model change needs explicit user/manager
+approval. On resumption, reread current Git/worktree/project state, recheck usage and continue
+from preserved evidence without unnecessarily repeating completed child work.
+
+Install this section once for Phase 5. Later checkpoints only read/verify it; do not duplicate,
+rewrite, refresh or reformat AGENTS.md again during Phase 5 without new explicit manager authority.
+
 ## Project workspace
 
 The supported project root is:
