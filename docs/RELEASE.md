@@ -61,9 +61,14 @@ package version before building the chosen release artifact, not after it is sel
 
 Source: manager/user-reported external UAT results, not new agent-run runtime tests.
 
-- **Runtime-tested main:** `8c2f4e7785002a67cb3d59c8b7758f8b533d0897`.
+- **Reachable tree-equivalent runtime-tested source:** `c66254b218afd9436e5931e66518ece88ff58c5e`.
 - **Runtime-tested image:**
   `ghcr.io/lvgvs/zimaos-mcp-server@sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
+
+The tested image predates the metadata-only author-email history rewrite; its OCI revision
+identifies the superseded pre-rewrite source commit. The reachable commit above has the identical
+source tree. External runtime UAT was not repeated because of the rewrite, and the tested digest
+has not changed. Historical images/tags are not relabeled as artifacts of rewritten commits.
 
 All reported runtime gates passed:
 
@@ -132,6 +137,11 @@ The runtime UAT gate is closed. The first version is selected; manager approval 
 tag, and GitHub Release remains required. A docs-only checkpoint may publish a new exact-head
 image under normal CI; unchanged runtime code is not a claim that external UAT was rerun on that
 new digest. Keep the runtime-tested identity above distinct from the publication handoff.
+
+The final protected-main documentation-reconciliation merge commit becomes the release-source
+candidate, subject to manager approval. Verify its exact SHA, trusted-main image digest and checks
+in the PR/release handoff; do not make another status-only commit just to record those identifiers.
+The pre-PR rewrite artifact is a reconciliation baseline, not the final release source.
 
 ## Normal-user installation procedure (verified by UAT)
 

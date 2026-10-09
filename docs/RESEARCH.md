@@ -861,9 +861,13 @@ rather than an in-place remote rewrite. The original private PR refs remain pres
 ## Phase 4 final external runtime-UAT evidence (checkpoint 2026-10-08)
 
 Source: manager/user-supplied normal-user UAT report, not new agent-run live probes.
-Runtime-tested main is `8c2f4e7785002a67cb3d59c8b7758f8b533d0897`; runtime-tested image is
+The runtime-tested source tree is now reachable as `c66254b218afd9436e5931e66518ece88ff58c5e`; runtime-tested image is
 `ghcr.io/lvgvs/zimaos-mcp-server@sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
 Full gate-by-gate observations and exact approval/repair readback hashes are in `docs/RELEASE.md`.
+
+The image predates the metadata-only author-email history rewrite; its OCI revision retains the
+superseded pre-rewrite identity. The reachable source above has the identical tree. No external
+runtime UAT was repeated because of the rewrite; the tested digest and reported results are unchanged.
 
 - Fresh canonical-YAML Custom App installation and clean uninstall/reinstall passed without
   reusing generated old metadata. Candidate upgrade, app/container restart and full disposable
@@ -881,9 +885,9 @@ Full gate-by-gate observations and exact approval/repair readback hashes are in 
 - Initial bad credentials or an unreachable configured URL failed before HTTP listening,
   with `zimaos_login_failed` (unreachable case: `ZIMAOS_UNREACHABLE`); repeated wrong-password
   restarts triggered upstream rate limiting. Corrected settings restored 200 / ready:true.
-  Implementation cross-check: [entrypoint at tested source](https://github.com/lvgvs/zimaos-mcp-server/blob/8c2f4e7785002a67cb3d59c8b7758f8b533d0897/src/index.ts)
+  Implementation cross-check: [entrypoint at tree-equivalent source](https://github.com/lvgvs/zimaos-mcp-server/blob/c66254b218afd9436e5931e66518ece88ff58c5e/src/index.ts)
   awaits login and exits on failure before creating/listening on the HTTP server;
-  [running health handler](https://github.com/lvgvs/zimaos-mcp-server/blob/8c2f4e7785002a67cb3d59c8b7758f8b533d0897/src/http/server.ts)
+  [running health handler](https://github.com/lvgvs/zimaos-mcp-server/blob/c66254b218afd9436e5931e66518ece88ff58c5e/src/http/server.ts)
   separately returns 200/503 from authenticated readiness. Connection refused at startup is
   consistent, not a missing guaranteed 503 response.
 - No runtime defect or new API operation was discovered. Preserve the Inspector page-origin

@@ -45,8 +45,8 @@ Manager-selected first release version; tag and GitHub Release are not yet publi
 
 ### Verification checkpoint
 
-- Phase 4 manager-run external runtime UAT completed on commit
-  `8c2f4e7785002a67cb3d59c8b7758f8b533d0897` and the exact digest in `docs/RELEASE.md`:
+- Phase 4 manager-run external runtime UAT completed on the source tree now reachable as
+  `c66254b218afd9436e5931e66518ece88ff58c5e` and the unchanged tested digest in `docs/RELEASE.md`:
   fresh Custom App install/clean reinstall, modern discovery/read/control/install/uninstall,
   benign edit, risky modern approval/MRTR continuation and repair, authentication/network
   failure modes, candidate upgrade, and app/VM restart persistence passed.
