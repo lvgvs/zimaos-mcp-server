@@ -1307,21 +1307,24 @@ Phase 4 is complete only when all applicable items below are satisfied:
 
 Do not begin a later phase automatically.
 
-# Phase 5 — update_app closure
+# Phase 5 — update_app (ON HOLD)
 
 ## Objective and authorization
 
-Resolve the deferred Phase 2 `update_app` question conclusively, without rewriting historical
-phases or broadening into unrelated capabilities. This post-v0.1.0 phase authorizes research,
-supported implementation when justified, testing, documentation and one fully checked OPEN,
-UNMERGED PR. No intermediate research approval is required; the parent owns the decision.
+Resolve the deferred Phase 2 `update_app` question without rewriting historical phases or
+broadening into unrelated capabilities. Phase 5 remains the active update phase, **ON HOLD**, not
+closed or completed. The current implementation decision is **Outcome B / DEFER**. PR #24 was a
+valid research/documentation milestone and is merged; its technical findings and safety decisions
+remain accepted. Resume from preserved evidence when the trigger below is met, not as a new phase.
+Supported implementation still requires sufficient verified semantics, testing, documentation and
+a fully checked OPEN, UNMERGED PR for manager review; the parent owns the implementation decision.
 
 Accept exactly one outcome:
 
 - **A — IMPLEMENTED:** the smallest safe, tested and documented `update_app` based only on
   verified current supported ZimaOS semantics, with explicit support/unsupported app classes.
 - **B — NO-GO / DEFER:** durable evidence that no sufficiently clean supported update path can
-  currently be verified, including specific upstream evidence needed to reopen the question.
+  currently be verified, including specific evidence needed to resume Phase 5.
 - **C — MANAGER DECISION REQUIRED:** authoritative technical evidence is clear but a genuine
   unresolved product choice remains; document alternatives, implications and the exact decision.
 
@@ -1364,16 +1367,17 @@ update scenario and permission isolation without exposing credentials or fabrica
 Deliver one protected-main PR with all required CI/CodeQL checks passing; stop OPEN and UNMERGED
 for manager review. Do not modify AGENTS.md in ordinary Phase 5 work; the already-completed,
 separately manager-authorized one-time parent-model quota guard is the sole exception included
-in this Phase 5 PR. No further AGENTS.md edits are authorized without new explicit manager
+in PR #24. No further AGENTS.md edits are authorized without new explicit manager
 instruction. Do not publish a version, change the immutable v0.1.0
 tag/source/Release/aliases/Compose asset, or begin another phase.
 
-## Current outcome
+## Current state — ON HOLD / Outcome B defer update_app
 
-**Outcome B — NO-GO / DEFER (2026-10-09).** No `update_app` or update permission/configuration
-is shipped. This is a verification boundary, not a claim that ZimaOS lacks updates.
+**Current implementation decision: Outcome B — NO-GO / DEFER (2026-10-09).** No `update_app` or
+`ALLOW_APP_UPDATE` implementation/configuration is shipped. This is a verification boundary, not
+a claim that ZimaOS lacks updates or that Phase 5 is complete.
 
-Two genuine native App Store fixtures (community IT Tools and official BentoPDF) were installed
+Earlier genuine native App Store fixtures were installed
 through the ordinary UI and successfully managed by all existing MCP read/control tools. Their
 installed and catalog Compose reads worked; both were current, and the upgradable list was empty.
 The baseline Custom Compose fixtures' catalog 404s are fixture-specific, not evidence against
@@ -1387,19 +1391,30 @@ exclude update override/OpenAPI/runtime semantics; the ordinary native transitio
 boundary and response/failure observability remain unverified. Lack of a candidate is a live-UAT
 limitation, not by itself the reason to reject an otherwise verified contract.
 
-Reopen when upstream publishes a version-applicable supported update contract or implementation
-mapping covering installed identity, eligible classes, target resolution, configuration/storage
-effects and response/failure observation. Then establish a genuine supported disposable version
-transition to validate those facts, bounded ambiguous-outcome reads and one mutation attempt.
+**Resume trigger:** a genuine naturally available native App Store update on an intentionally
+retained fixture in the authorized disposable VM, or new version-applicable authoritative upstream
+evidence sufficient to close the remaining contract gaps. None of the retained fixtures currently
+has a naturally available update. They are retained specifically for genuine native update UAT;
+their identities and VM-specific baselines remain local-only. Resume from the preserved evidence
+and verify installed identity, eligible classes, target resolution, configuration/storage effects
+and response/failure observation before shipping. A genuine supported disposable version transition
+must validate those facts, bounded ambiguous-outcome reads and one mutation attempt.
 Guaranteed rollback is not required, but its actual limitations must be disclosed. Preserve the
 independent default-off update gate if subsequently implemented; do not expose force as a workaround.
 
-Native catalog installation is future work only: the tested Compose entries used catalog retrieval
-and the existing Compose POST with repository association, not a verified distinct native-ID
-mutation API. An eventual store installer needs trusted selection/association and risk boundaries;
-arbitrary Compose import is not declared universally equivalent. No such tool is added here.
+Native catalog installation remains separate future scope. The tested Compose-class entries used
+trusted catalog/detail lookup, architecture-appropriate catalog Compose and canonical association
+metadata with the supported Compose POST, including explicit `uncontrolled=false`; no distinct
+store-install mutation API was observed. A bounded extension/thin store-aware frontend over the
+existing installer appears sufficient for these entries, but the current MCP installer does not
+perform trusted catalog resolution/association and omits that explicit option. Arbitrary supplied
+Compose is not universally equivalent to native installation. A future `install_app_from_store`
+capability is plausible, not authorized for implementation by this correction.
 
-Both disposable native fixtures were removed through the existing supported uninstall path with
-`delete_config_folder=false`; readback verified only the original two applications remain.
-Detailed evidence and remaining verification requirements are in `docs/RESEARCH.md`. Deliver this
-research/decision and the previously installed quota guard in one checked OPEN, UNMERGED PR.
+The earlier temporary native fixtures were removed through the supported uninstall path with
+`delete_config_folder=false`; that historical cleanup remains valid. After PR #24, the manager
+authorized long-lived genuine native fixtures, which are intentionally retained rather than
+cleaned up. PR #24 was squash-merged at `8cd3c2e87638716deea9c178450695ebca6f251a`; it did not
+complete Phase 5. Detailed preserved evidence and remaining verification requirements are in
+`docs/RESEARCH.md`. No update UAT, store-installer implementation or later phase starts while
+waiting for the resume trigger.
