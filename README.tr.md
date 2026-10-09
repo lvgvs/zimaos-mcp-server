@@ -22,14 +22,15 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
 ## Proje durumu
 
-**Herkese açık ön sürüm.** Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
+**Seçilen ilk kararlı sürüm: `v0.1.0`.** Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
 sıfırdan Custom App kurulumu, modern riskli işlem onayı ve onarımı, hata durumları,
 yükseltme, yeniden başlatma/VM reboot kalıcılığı ve temiz yeniden kurulum dahil tamamlandı.
-İlk sürüm/etiket ve GitHub Release hâlâ açık yönetici onayı gerektirir ve henüz yayınlanmadı.
+Yayın durumunun kaynağı bu belge değil, Git etiketleri, GitHub Releases ve GHCR alias kayıtlarıdır.
 
-`edge`, yalnızca CI ile doğrulanmış geliştirme sürümlerini takip eder. `latest` / `stable`,
-gelecekte açıkça onaylanacak kararlı bir sürüme ayrılmıştır; önceki politikadan kalan `latest`
-etiketi silinmiştir. İlk sürümden önce kurulum ayrıntıları ve sürüm çıktıları değişebilir.
+`edge`, yalnızca CI ile doğrulanmış geliştirme sürümlerini takip eder. `latest` / `stable`, onaylı
+kararlı sürüm promotion işlemiyle yönetilir; hedeflerini sürüm kaydıyla doğrulayın ve tam olarak
+sabit deployment için digest kullanın. Runtime UAT kanıtı, sonraki yalnızca dokümantasyon
+değişikliği içeren sürüm kaynağı çıktılarından ayrıdır.
 
 Güncel geliştirme durumu için [`STATUS.md`](STATUS.md), onaylı kapsam ve güvenlik
 sınırları için [`PROJECT.md`](PROJECT.md) dosyasına bakın.
@@ -105,9 +106,9 @@ Compose dosyası, container'ın ZimaOS API'sine host networking, Docker socket, 
 mode veya host mount kullanmadan ulaşabilmesi için `host.docker.internal:host-gateway`
 kullanır.
 
-> **Ön sürüm notu:** normal kullanıcı akışıyla sıfırdan ZimaOS Custom App kurulumu ve temiz
-> yeniden kurulum, [sürüm hazırlığında](docs/RELEASE.md) kaydedilen tam aday üzerinde runtime
-> UAT'sini geçti. İlk sürüm onaylanıp yayınlanana kadar `latest` kararlı hedef sayılmamalıdır.
+> **Runtime UAT kanıtı:** normal kullanıcı akışıyla sıfırdan ZimaOS Custom App kurulumu ve temiz
+> yeniden kurulum, [sürüm süreci ve kanıtlarında](docs/RELEASE.md) kaydedilen tam digest üzerinde geçti.
+> Sürüm alias'ları onaylı sürüm promotion işlemini izler; yayın kayıtlarını doğrulayın ve digest kullanın.
 
 ### İmaj erişimi ve ilk kurulum UAT
 
@@ -238,7 +239,7 @@ tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
 - Derlemeler Node 22 taban digest'ini sabitler; revision/source etiketleri, asgari provenance
   ve SBOM yayınlar. Aynı kaynağı yeniden derlemenin aynı baytları üretmesi **garanti edilmez**.
 
-[Sürüm hazırlığına](docs/RELEASE.md) bakın. Henüz onaylı bir ilk sürüm yoktur.
+Yayın sözleşmesi ve kaydedilen UAT için [sürüm süreci ve kanıtlarına](docs/RELEASE.md) bakın.
 
 ## Docker ile yerelde çalıştırma
 

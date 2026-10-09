@@ -8,8 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.1.0] - 2026-10-08
 
-Manager-selected first release version; tag and GitHub Release are not yet published.
-
 ### Added
 
 - Authenticated Streamable HTTP MCP server for supported ZimaOS APIs.
@@ -22,7 +20,7 @@ Manager-selected first release version; tag and GitHub Release are not yet publi
 - Docker image and ZimaOS Custom App Compose deployment.
 - English and Turkish public README documentation.
 - CI-gated first-artifact commit images, digest-only version promotion, development `edge`,
-  and prepared stable/prerelease aliases with provenance and SBOM.
+  and policy-managed stable/prerelease aliases with provenance and SBOM.
 
 ### Fixed
 
@@ -53,7 +51,7 @@ Manager-selected first release version; tag and GitHub Release are not yet publi
 - Initial ZimaOS login failures occur before HTTP listening (connection refused); HTTP 503
   readiness applies to an already-running server. Inspector Web requires a secure page origin
   (browser-local loopback or trusted HTTPS), not a server-side protocol workaround.
-- This records runtime acceptance, not approval of the first tag/GitHub Release; a docs-only
+- Runtime acceptance and release publication identify separate evidence; a docs-only
   follow-up image is not claimed to have undergone repeated external runtime UAT.
 
 ### Known limitations
@@ -63,5 +61,3 @@ Manager-selected first release version; tag and GitHub Release are not yet publi
 - ZimaOS does not expose an atomic compare-and-swap for Compose edits, so external writers can race with this server.
 - Risky approval state and locks are process-local.
 - Exact uninstall storage-retention semantics are not independently verified.
-
-The first tagged release has not yet been published.

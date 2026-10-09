@@ -12,15 +12,16 @@ MCP client
 → official ZimaOS APIs
 → ZimaOS services
 
-The project is pre-release; the first tagged release has not been approved or published.
+`v0.1.0` is the selected first stable release line. Git tags, GitHub Releases and GHCR aliases
+are authoritative for publication state; this source document defines scope, not live release status.
 
 The canonical source repository and GHCR package are PUBLIC after manager review. Retained-version
 exposure review/cleanup is complete, and anonymous image pull access is verified. Phase 4 external
 runtime UAT is complete, including fresh normal-user ZimaOS Custom App installation and clean
 reinstall on the source tree now reachable as `c66254b218afd9436e5931e66518ece88ff58c5e` and the exact image recorded in
-`docs/RELEASE.md`. The manager-selected first release version is `v0.1.0`; tag, artifact promotion,
-and GitHub Release publication remain unapproved. Runtime UAT completion
-does not authorize publication. Initial-development visibility requirements in the
+`docs/RELEASE.md`. Runtime UAT evidence remains separate from publication identity. Release
+publication follows the manager-approved tag-driven promotion contract in that document.
+Initial-development visibility requirements in the
 historical phase specifications below remain unchanged; product scope and safety boundaries
 are not altered by publication approval.
 

@@ -2,9 +2,10 @@
 
 ## Supported versions
 
-This project is currently pre-release. Until the first tagged release is published, security fixes target the current development line on `main` and the current release-candidate image.
+Security fixes target the current development line on `main` and its CI-verified images.
 
-After tagged releases begin, this section will be updated to state which release lines receive security fixes.
+Use GitHub Releases and their Git tags to identify published fixes. Publication of `v0.1.0`
+does not itself promise maintenance or backports for additional release lines.
 
 ## Reporting a vulnerability
 

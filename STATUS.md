@@ -1,6 +1,36 @@
 # Status
 
-## Phase 4 protected-main history-rewrite reconciliation (2026-10-09)
+## Phase 4 final durable-documentation checkpoint (2026-10-09)
+
+- **Release line / publication record:** `v0.1.0` is the selected first stable release;
+  package/lockfile version is `0.1.0`, changelog date 2026-10-08. Publication state is authoritative
+  in Git tags, GitHub Releases and GHCR aliases rather than this source document.
+- **Completed history/privacy reconciliation:** PR #20 was Squash merged, its author used the
+  approved GitHub noreply identity, GitHub signing verified, exact-head CI/CodeQL/GHCR passed,
+  and tracked superseded SHA/private-email occurrences were zero. Old directly resolvable
+  GitHub objects are accepted; no Support/purge work is requested. The local-only rewrite
+  safety ref remains retained until separately authorized cleanup.
+- **Runtime evidence:** external runtime UAT is complete on the source tree now reachable as
+  `c66254b218afd9436e5931e66518ece88ff58c5e` and unchanged tested image digest
+  `sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
+  Its OCI revision predates the metadata-only history rewrite. No external UAT was repeated
+  for that rewrite, reconciliation, or this documentation checkpoint.
+- **Intended release source:** the protected-main squash merge containing this final durable
+  checkpoint, not an earlier reconciliation artifact. Its exact SHA/digest/checks are validated
+  in the external release handoff and Git/workflow records. Approved tag-driven promotion reuses
+  the existing exact-main artifact; publication needs no follow-up source-content/status commit.
+- **Scope / verification:** documentation only; publication-state prose is valid on both sides
+  of release. Historical checkpoints below retain period-correct statements, not current gates.
+  Release notes and AI disclosures are unchanged; runtime, dependency, deployment, workflow,
+  permission and security behavior are unchanged. No local model/child/delegation or live tests.
+  Formatting, lint, production/test TypeScript checks, all 500 mocked tests across 28 files,
+  production build, Docker build, Compose validation and whitespace checks passed locally.
+- **Preparation record:** branch `docs/v0.1.0-durable-release-state`;
+  canonical https://github.com/lvgvs/zimaos-mcp-server. Exact containing SHA is available from Git.
+  Manager review governs the PR; explicit release authorization governs tag/Release/promotion.
+  Known limitations remain below; no new runtime blocker or architecture decision was found.
+
+## Historical Phase 4 protected-main history-rewrite reconciliation (2026-10-09)
 
 - **Recovery / current milestone:** clean local `main == origin/main` at
   `d05283357e42780e02484de6727b97ce53e5c325` before this PR; tree
@@ -36,7 +66,7 @@
   handoff, without another status-only publication. No tag/Release/promotion is authorized.
   Existing limitations remain; no new architecture decision or factual runtime blocker found.
 
-## Phase 4 final release-metadata checkpoint (2026-10-08)
+## Historical Phase 4 final release-metadata checkpoint (2026-10-08)
 
 - **Current milestone:** manager-selected first release version `v0.1.0`; dated changelog
   and proposed public release notes prepared, not published. Phase 3 remains the feature cutoff.
@@ -65,7 +95,7 @@
   remain documented below. Review the exact source/digest and proposed notes, then explicitly
   authorize actual release actions. No new architecture decision requires review.
 
-## Phase 4 final external runtime-UAT checkpoint (2026-10-08 UTC)
+## Historical Phase 4 final external runtime-UAT checkpoint (2026-10-08 UTC)
 
 - **Current milestone:** external runtime UAT is complete, based on manager/user-reported
   normal-user results. Phase 4 still awaits explicit first version/tag/GitHub Release approval;
@@ -528,13 +558,14 @@ this current document reconciles the reachable repository commit references.
   because App Store update/version-transition semantics are still unverified.
 - **Phase 4:** release hardening and manager-run external runtime UAT are complete at the
   runtime-tested identity in the newest checkpoint. Phase 3 remains the feature cutoff;
-  the first version/tag/GitHub Release still requires explicit manager approval.
+  `v0.1.0` is the selected first stable release line, with publication governed by the release contract.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** open the protected-main rewrite-reconciliation PR and stop unmerged
-  for manager review; final source/artifact/notes and publication approval remain separate. Fresh normal-user installation and all
-  reported runtime UAT gates passed; do not repeat external UAT solely for this checkpoint.
+- **Publication evidence:** use the exact final checkpoint merge/artifact/checks from the
+  release handoff, with live state in Git tags/GitHub Releases/GHCR; no publication-wording commit
+  is needed. Fresh normal-user installation and all reported runtime UAT gates passed;
+  that tested digest remains distinct from documentation-only release-source artifacts.
 
 ## Historical Phase 4 initial audit — then-blocked image-access gate (2026-10-01)
 
@@ -598,10 +629,10 @@ this current document reconciles the reachable repository commit references.
 
 ## Git / repository
 
-- **Branch:** `docs/history-rewrite-reconciliation`; stop with the PR open and unmerged.
-  Pre-PR baseline main: `d05283357e42780e02484de6727b97ce53e5c325`;
-  runtime-tested tree-equivalent source and unchanged tested digest remain separate above.
-  Exact containing commit is available from Git.
+- **Release-source identity:** protected-main merge containing the final durable checkpoint;
+  its exact SHA/digest is in the release handoff and Git/workflow records. The runtime-tested
+  tree-equivalent source and unchanged tested digest remain separate above. Source publication
+  state is not inferred from a working branch name or a historical baseline SHA.
 - **Phase 2 final implementation HEAD:** `7dcb169d29df8b154c4658a689f5b9120db2e4f0`
 - **Phase 3A HEAD:** `3102cdcd5533293c921c99c8f61e313daeed17b1`
 - **Phase 3B HEAD:** `14b8f44180d1e4fb37fafca79c5d86e73fec25f4`
