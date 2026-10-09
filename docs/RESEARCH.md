@@ -10,9 +10,11 @@ summaries are preferred.
 1. **ZimaSpace OpenAPI developer guide** — official documentation.
    - https://www.zimaspace.com/docs/zimaos/openapi-developer-guide
    - https://www.zimaspace.com/docs/developer/openapi-developer-guide
-2. **IceWhale-OpenAPI** — official OpenAPI specifications (YAML). The canonical repo path
-   `github.com/IceWhaleTech/IceWhale-OpenAPI` returned 404 at research time, so the specs
-   were retrieved from a verified fork/mirror of that repository:
+2. **IceWhale-OpenAPI community specifications** — historical supplementary YAML sources,
+   not independently verified official mirrors. On 2026-10-09 the GitHub API reported
+   `DeniskaAbr/IceWhale-OpenAPI` as a fork of `SociOS-Linux/IceWhale-OpenAPI`, not an
+   IceWhaleTech repository; `IceWhaleTech/IceWhale-OpenAPI` returned 404. App-management
+   operations are independently corroborated by the official source/package below:
    - https://raw.githubusercontent.com/DeniskaAbr/IceWhale-OpenAPI/main/zimaos-app-management/app_management/openapi.yaml
    - https://raw.githubusercontent.com/DeniskaAbr/IceWhale-OpenAPI/main/zimaos-user-service/users/openapi_v1.yaml
    - https://raw.githubusercontent.com/DeniskaAbr/IceWhale-OpenAPI/main/zimaos/zimaos/openapi.yaml
@@ -894,3 +896,315 @@ runtime UAT was repeated because of the rewrite; the tested digest and reported 
   requirement and modern-only risky approval / legacy fail-closed boundary. This docs-only
   reconciliation does not repeat external UAT; later documentation-image publication is not
   evidence of runtime acceptance on that new digest. Final release approval remains separate.
+
+## Phase 5 primary-source review checkpoint (2026-10-09)
+
+Qwen completed bounded discovery and a scratch evidence/test report. Hermes independently
+retrieved the decisive Apache-2.0 first-party spec and implementation at
+[`debfa317f0f996b91b43210e8d57799461388704`](https://github.com/IceWhaleTech/CasaOS-AppManagement/tree/debfa317f0f996b91b43210e8d57799461388704).
+These are CasaOS-AppManagement source facts, not proof of the exact current ZimaOS VM binary.
+No live Phase 5 update or runtime implementation has occurred at this checkpoint.
+
+- [OpenAPI](https://github.com/IceWhaleTech/CasaOS-AppManagement/blob/debfa317f0f996b91b43210e8d57799461388704/api/app_management/openapi.yaml#L499-L516)
+  documents `PATCH /v2/app_management/compose/{id}`, optional boolean `force`, no body,
+  no dry-run, and a message-only BaseResponse. It targets the App Store update path,
+  not arbitrary Compose editing or custom image/channel/version selection.
+- [Handler](https://github.com/IceWhaleTech/CasaOS-AppManagement/blob/debfa317f0f996b91b43210e8d57799461388704/route/v2/compose_app.go#L399-L440):
+  the availability check executes only when `Force != nil && !*Force`. Explicit
+  `force=false` checks availability; `force=true` skips it. Omitted force cannot be
+  assumed equivalent to false from the schema default without verifying request binding.
+  The asynchronous acceptance phrase is not completion evidence. Do not infer general
+  idempotency or safe retries from the availability-guarded no-op response.
+- [Update implementation](https://github.com/IceWhaleTech/CasaOS-AppManagement/blob/debfa317f0f996b91b43210e8d57799461388704/service/compose_app.go#L171-L265):
+  requires a valid store association and matching service-name sets, mutates image references
+  in the local Compose model, calls `removeRuntime`, then launches pull/apply asynchronously.
+  Exact rolling-tag loop behavior and current ZimaOS applicability still need verification;
+  the source is not evidence that every update changes images only.
+- [Pull/apply](https://github.com/IceWhaleTech/CasaOS-AppManagement/blob/debfa317f0f996b91b43210e8d57799461388704/service/compose_app.go#L428-L487)
+  attempts a Compose-file backup/restore on some failures, but sets `success=true` after
+  `UpWithCheckRequire` even when that call returns an error. Restoration/restart can also
+  fail. Reject the child's broad rollback and storage-preservation claims: no reliable
+  general rollback, image rollback, data retention or app-migration guarantee is established.
+- [Upgradable-list handler](https://github.com/IceWhaleTech/CasaOS-AppManagement/blob/debfa317f0f996b91b43210e8d57799461388704/route/v2/appstore.go#L413-L484)
+  filters entries by availability, reports `idle`/`updating`, uses the installed map key
+  for a store lookup and emitted `store_app_id`, and assigns a target tag to `version`
+  although the spec describes that field as current version. A disappearing entry or
+  `updating` → `idle` does not establish update success: failure also ends the upgrading
+  marker. Renamed associations and observation identity remain verification questions.
+- The child's proposal to reuse `ALLOW_APP_CONTROL` is rejected: the approved independent,
+  default-off `ALLOW_APP_UPDATE` contract remains mandatory. No code proposal is accepted.
+
+**Remaining gates:** verify the current VM/API variant and official ZimaOS behavior; characterize
+a safe store-associated update fixture, exact proposed configuration/image effects, response
+normalization, and bounded post-update observations without speculative completion/rollback
+claims. A/B/C is not selected by this checkpoint. Existing published v0.1.0 is untouched.
+
+### Phase 5 SDK/docs and read-only VM follow-up (2026-10-09)
+
+Hermes independently verified Qwen's focused follow-up against these primary sources:
+
+- [Published SDK metadata](https://registry.npmjs.org/@icewhale/casaos-appmanagement-openapi/0.4.17-alpha1):
+  Apache-2.0, `gitHead` equals `debfa317f0f996b91b43210e8d57799461388704`.
+  Downloaded tarball integrity matched the registry SHA-512. Its generated `dist/api.js`
+  emits PATCH with no body and sends `force` only when the caller supplies it; no default
+  value is inserted by the client. This verifies client encoding, not live server binding.
+- [Git tag API](https://api.github.com/repos/IceWhaleTech/CasaOS-AppManagement/git/ref/tags/v0.4.17-alpha1):
+  the actual tag points directly to that same commit. The GitHub release's `target_commitish`
+  value `main` alone would not have proved the tag/source relationship. Matching provenance
+  does not mean SDK bytes are identical to Go source, or prove a ZimaOS binary mapping.
+- Official [API Explorer](https://www.zimaspace.com/docs/developer/openapi-live-preview)
+  and [API Guide](https://www.zimaspace.com/docs/developer/openapi-developer-guide) were
+  read in a real browser after direct retrieval failed. They expose App Management API V2
+  but link its schema to the currently unreachable IceWhaleTech/IceWhale-OpenAPI repository.
+  The guide displays MIT; the inspected CasaOS source/SDK licenses are Apache-2.0.
+  No inaccessible schema was copied or assigned a guessed license, and no exact ZimaOS
+  update/rollback/completion contract is established by those pages.
+
+**Fresh live reads, not update UAT:** authenticated MCP system/app reads reported ZimaOS v1.7.1,
+two installed apps (`compose-3312d0c25fc48cbe` running, `mcp-test-nginx` exited), and neither
+reported an available update. Both are pre-existing and were left untouched. Secret-safe
+direct supported GETs, using the ignored local integration file, confirmed:
+
+- `/v2/app_management/compose`: both carry a nonempty `store_info.store_app_id`, yet
+  `/v2/app_management/apps/{store_app_id}/compose` returned 404 for both. Presence of
+  association metadata alone does not establish a resolvable/updateable store app.
+  **Manager correction on resume:** these two apps were installed outside the App Store
+  (the test fixture and this MCP server). Their 404s characterize those non-store fixtures
+  only, not native App Store Compose retrieval or update support. Association-like metadata
+  is not evidence of native installation origin. The observations above remain historical.
+- `/v2/app_management/apps/upgradable`: HTTP 200, `{data: []}`. No real updating/idle
+  transition, response to PATCH, update success or failure was observed.
+- `/v2/app_management/apps`: catalog exceeds the initial 2 MB scratch-read bound; a
+  bounded 8 MB retry parsed the nested catalog successfully. A mistaken first shallow
+  grouping count was not used as an app total. Bounded traversal found 636 store-info
+  records and selected candidate identifiers for subsequent fixture review, including
+  `big-bear-it-tools` and `big-bear-linuxserver-nginx`. This is test-setup discovery, not
+  a proposed additional MCP catalog tool or permission to register a new App Store.
+
+The two existing apps are not update acceptance fixtures. A future live pass must inspect a
+resolvable benign catalog candidate and its precise service/configuration semantics before
+creating a disposable fixture. No current app mutation, OS change, artifact publication,
+runtime implementation or A/B/C decision was performed in this follow-up.
+
+### Phase 5 resumed candidate and disposable PATCH characterization (2026-10-09)
+
+This pass continues remaining verification, without repeating SDK/tag provenance research.
+All host operations used the documented authenticated app-management API. No host files,
+SSH, shell control, Docker socket or store-registration workaround was used.
+
+**Supported version information:** `GET /v2/app_management/info`, documented by the pinned
+spec's `info` operation, returned HTTP 200 with only `architecture` in its data. It did
+not identify the service build/version/revision. Public ZimaOS-v1.7.1 implementation mapping
+is assigned to a bounded Qwen follow-up; the parent has not inferred binary identity.
+
+**Resolvable candidates:** `GET /apps/{store_app_id}/compose` returned HTTP 200 JSON
+`{data:{compose,store_info},message}` for three selected registered-catalog entries:
+
+- `big-bear-it-tools`: one service `app`, pinned image
+  `corentinth/it-tools:2023.11.2-7d94e11@sha256:30b032f2175e9c4dc5c795cfa44354ce7fe76d9768caee0f24a9a7371948ac0d`,
+  no volumes and no locally detected elevated risks. Selected for disposable characterization.
+- `big-bear-linuxserver-nginx`: one service, two ports and one volume, no detected elevated
+  risks; not installed or updated in this pass.
+- `big-bear-homepage`: Docker-socket exposure detected; excluded from live fixture use.
+
+The existing project parser/analyzer inspected the actual returned Compose projects. A zero
+risk result is a bounded detector finding, not an image-security or general Compose safety proof.
+Docker Hub's public [IT Tools tags API](https://hub.docker.com/v2/repositories/corentinth/it-tools/tags?page_size=100)
+verified the older `2023.11.1-e164afb` tag and amd64 image before fixture setup.
+
+**Disposable live sequence (raw supported API, not a shipped MCP update tool):**
+
+1. Verified `big-bear-it-tools` absent from the two-app baseline. Submitted a benign single
+   `app` service with the older tag, app-scoped marker/label, loopback-only port 18987,
+   no mounts/devices/privileges and a valid catalog association. POST dry-run with explicit
+   port checking returned 200; one real POST returned 200 message-only async acceptance.
+   Reads observed the old image running and app health 200.
+2. This differently pinned installed app reported `is_uncontrolled=true` and
+   `update_available=false`, despite its image differing from the resolvable current store
+   target. The flag is not a comparison proving equivalence to the store target.
+3. One `PATCH /compose/big-bear-it-tools?force=false`, no body, returned 200 message-only
+   with an up-to-date phrase, not async acceptance. A subsequent read retained the old
+   image and identical Compose fingerprint. This is the guarded no-op on this fixture,
+   not evidence that the app was actually at the store target or that PATCH is retry-safe.
+4. After verifying the previous request's no-op and the benign fixture identity, one
+   separate explicit `force=true` PATCH returned 200 message-only with the recognizable
+   asynchronous-update phrase. This was a deliberate distinct force-semantics test,
+   not a retry after an accepted or ambiguous mutation. The precise whole response phrase
+   was not persisted by this scratch probe; do not invent an exact normalization fixture.
+5. First read: Compose referenced the store's pinned target and the app health was 200,
+   but the container endpoint still showed the OLD image. Later read: the container
+   showed `corentinth/it-tools:2023.11.2-7d94e11`, running, with app health 200.
+   The marker, label, loopback port and association remained visible. These demonstrate
+   an observed version transition and selected configuration preservation, not synchronous
+   completion, full configuration/data preservation, runtime-digest verification or rollback.
+6. One supported DELETE with explicit `delete_config_folder=false` was accepted; read-only
+   enumeration verified fixture absence and restored both baseline IDs. Final MCP list
+   retained the pre-existing generated app running and `mcp-test-nginx` exited, unchanged.
+
+**Remaining decision gates:** the ordinary controlled-store app's guarded update-availability
+path is not yet verified by this uncontrolled-pin fixture. Renamed/custom/rolling-tag semantics,
+exact response normalization and practical target/recreation observations need a justified
+supported boundary before Outcome A. Forced update working on one benign associated fixture
+does not authorize overriding user-pinned versions, expose a force knob, prove the VM's code
+revision or establish a generic image-refresh/update tool. Outcome A/B/C remains open pending
+the bounded mapping evidence and remaining reasonable characterization.
+
+### Phase 5 genuine native App Store fixtures (2026-10-09)
+
+Hermes used the authorized VM's normal ZimaOS App Store UI, not Custom App import or a
+manufactured older Compose, to install two new harmless fixtures. The manager confirms the
+two original baseline applications were non-store installations. Their historical catalog
+404s remain specific to those fixtures and are not a negative native-store-support result.
+
+**Observed normal UI/API flow on v1.7.1:**
+
+- Community store IT Tools: catalog detail GET
+  `/v3/app_store/hub/repo/github.com%40ccc18c81/app/big-bear-it-tools`, followed by a
+  registered-repository Compose proxy GET. Clicking the ordinary Install control generated
+  exactly one `POST /v2/app_management/compose?dry_run=false&check_port_conflict=true&uncontrolled=false`,
+  with catalog YAML plus `x-casaos.repo_id: github.com@ccc18c81`. HTTP 200 message-only response;
+  UI subsequently offered Open, and MCP observed the installed app running/healthy.
+- Official Zima App Store BentoPDF: catalog detail GET
+  `/v3/app_store/hub/repo/zimaos-appstore/app/com.icewhale.bentopdf` returned `type: compose`,
+  version `2.8.8`, repo `zimaos-appstore`, and a catalog Compose source. The UI fetched
+  `/v3/app_store/repo/proxy/zimaos-appstore/apps/com.icewhale.bentopdf/docker-compose.yml`.
+  Hermes inspected that public Compose before install: one service, no volumes or host
+  privileges; the existing analyzer found no elevated risks. Settings inspection was closed
+  without edits. The ordinary Install button generated one `POST /v2/app_management/compose`
+  with catalog YAML plus `x-casaos.repo_id: zimaos-appstore`; captured HTTP 200 body was exactly
+  `{"message":"app is being installed asynchronously"}` plus newline. Query parameters were
+  not retained by this second capture; do not infer them from the first fixture's request.
+- The official catalog identifies its source as
+  [IceWhaleTech/CasaOS-AppStore gh-pages](https://github.com/IceWhaleTech/CasaOS-AppStore/tree/gh-pages/apps/com.icewhale.bentopdf).
+  These current UI/catalog observations characterize the tested Compose entries, not every
+  App Store app class. No distinct store-install mutation endpoint was observed for them.
+  They corroborate use of the documented Compose POST, rather than equating all possible
+  catalog install formats to the current MCP installer.
+
+**Installed metadata and identity:**
+
+| Observation                           | Community fixture               | Official fixture        | Two non-store baseline apps |
+| ------------------------------------- | ------------------------------- | ----------------------- | --------------------------- |
+| Stable installed ID                   | `big-bear-it-tools`             | `bentopdf`              | unchanged baseline IDs      |
+| UI name                               | IT Tools                        | BentoPDF                | test app / MCP server       |
+| `x-casaos.id`                         | `com.bigbeartechworld.it-tools` | `com.icewhale.bentopdf` | absent                      |
+| `x-casaos.repo_id`                    | `github.com@ccc18c81`           | `zimaos-appstore`       | absent                      |
+| `store_app_id`                        | `big-bear-it-tools`             | `bentopdf`              | present, equals local IDs   |
+| version metadata                      | no string version exposed       | `2.8.8`                 | no string version exposed   |
+| `is_uncontrolled`                     | false                           | false                   | false                       |
+| `update_available`                    | false                           | false                   | false                       |
+| legacy `/apps/{store_app_id}/compose` | 200                             | 200                     | 404                         |
+
+The community fixture's image is the previously inspected pinned IT Tools catalog target.
+BentoPDF's image is `ghcr.io/alam00000/bentopdf-simple:2.8.8`. Both have no volumes. The
+installed YAML contains generated `store_app_id`, `is_uncontrolled` and icon labels; BentoPDF
+also has interpolated PUID/PGID and normalized memory quantities. Both repo IDs and catalog IDs
+were observed, but they are configuration metadata, not an unforgeable installation-origin
+receipt. Identical false controlled/update flags and nonempty store IDs do not distinguish
+native origin. Recorded UI installation history plus resolved catalog/config correspondence
+establishes these fixtures' origin. No channel selector was exposed in the inspected details;
+BentoPDF displayed one current version/history entry, not an older-version install control.
+
+**Existing MCP compatibility, both fixtures:** normal `list_apps`, `get_app`, `get_app_health`,
+`list_app_containers`, bounded `get_app_logs` (requested 10 lines) and `get_app_compose` succeeded
+with the stable installed IDs. Native apps are discovered through the same installed-Compose
+API used by existing tools. Under existing enabled app-control permission, each fixture received
+one stop, one start and one restart call; readback observed exited after stop and running/app
+probe healthy after start and restart. No fixture Compose was edited. BentoPDF container
+health initially reported `starting` despite the application probe passing, later `healthy`;
+the two signals are not interchangeable. This is live compatibility for the tested Compose
+class, not universal support for all App Store formats or update completion evidence.
+
+**Update gates still open:** `/v2/app_management/apps/upgradable` returned 200 with an empty
+list after both native installs. Both fixtures are currently at their catalog images. That
+limits genuine update mutation UAT; it does not demonstrate unsupported update APIs. No native
+PATCH or forced old-version manipulation was performed. Fixtures remain installed while useful
+for the remaining bounded update investigation. Baseline apps remain untouched. Current public
+implementation mapping and supported older-version selection remain unresolved.
+
+**Secondary future capability:** catalog discovery and official Compose retrieval are usable
+through the observed supported UI; catalog install for these `type: compose` entries uses the
+same documented Compose POST with explicit association metadata. A future store-install tool
+would need trusted catalog selection, source/identity association and risk checks, not merely
+rename the existing arbitrary-Compose installer. It is not implemented or approved in Phase 5.
+
+### Phase 5 final verification and Outcome B (2026-10-09)
+
+**Decision: defer exposing `update_app`, not declare upstream update unsupported.** The final
+native-store Qwen task exhausted its iteration budget without writing its report. Hermes preserved
+its handoff in profile scratch, reviewed the useful first-party leads, and rejected unsupported
+claims about current CasaOS revision equivalence, v3 service ownership and force bypassing store
+target resolution. No child conclusion alone determines this disposition. The earlier interrupted
+runtime-mapping evidence also did not establish the implementation shipped by VM v1.7.1.
+
+**Additional decisive primary sources:**
+
+- Current official [store migration guide](https://www.zimaspace.com/docs/developer/app-store-v1-v2-migration),
+  read in a real browser after the extraction backend failed, describes canonical `x-casaos.id`,
+  static `store.json`/`index.json`, version metadata and incremental catalog updates through
+  `content_hash`. It preserves legacy store artifacts for old clients. Catalog refresh/version
+  display does not specify installed-app mutation, configuration effects or completion. No supported
+  older-version install selector was established by that guide or the inspected normal UI.
+- First-party [zimaos-schema README](https://github.com/IceWhaleTech/zimaos-schema/blob/8be936a609080c2b0760ea06d94bfe235e04bbee/README.md)
+  and [submodules](https://github.com/IceWhaleTech/zimaos-schema/blob/8be936a609080c2b0760ea06d94bfe235e04bbee/.gitmodules),
+  independently retrieved at `8be936a609080c2b0760ea06d94bfe235e04bbee`, identify
+  `ZimaOS-AppManagement` Go types as the schema source. The public tree pins its generator
+  gitlink to `5bc55c2d21073c26edba1b321feab82a89c06714`; its implementation was not available
+  from the public repository lookup. This is not a proven VM build mapping.
+- The pinned [v2 schema scope and field status](https://github.com/IceWhaleTech/zimaos-schema/blob/8be936a609080c2b0760ea06d94bfe235e04bbee/schema/zimaapp/v2/README.md)
+  explicitly deprecate `store_app_id` in favor of canonical `id` and `is_uncontrolled` without
+  replacement. General Compose makes the extension/id optional; repository submissions require
+  canonical id. The scope expressly excludes install/update override behavior, OpenAPI contracts,
+  runtime validation and legacy DTOs. These are published schema facts, not proof that v1.7.1
+  has abandoned the legacy API, nor an update-eligibility predicate for this MCP implementation.
+- The pinned [deployment guide](https://github.com/IceWhaleTech/zimaos-schema/blob/8be936a609080c2b0760ea06d94bfe235e04bbee/docs/deployment/application-deployment.md)
+  and [porting guide](https://github.com/IceWhaleTech/zimaos-schema/blob/8be936a609080c2b0760ea06d94bfe235e04bbee/docs/porting/application-porting.md)
+  require application-specific persistence/migration/upgrade review and actual device verification.
+  They do not publish the missing installed-app update mutation/override/result contract. No
+  inaccessible code or source from the historical MCP repository was used.
+
+**Answers to the core update questions, with scope:**
+
+| Question                    | Verified evidence and remaining limit                                                                                                                                                                                                                                                                                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Eligible app classes        | Native community and official `type: compose` fixtures work with existing management. No genuine native transition established update eligibility. A forced associated Custom Compose fixture transitioned; that does not authorize ordinary or forced updates for all imports. Neither origin nor eligibility can be inferred solely from mutable association fields. |
+| Upgradable list             | Documented `GET /v2/app_management/apps/upgradable` returned 200 and an empty list before and after native installs. Legacy source describes `idle`/`updating`; no live positive entry/state transition was observed.                                                                                                                                                  |
+| Target selection            | Legacy source resolves registered store Compose and corresponding service images, not a caller-selected version/channel. The custom forced fixture reached that catalog target. Current native version/content-hash semantics and rolling-tag behavior are not established by this observation.                                                                        |
+| Mutation                    | Public legacy spec/SDK: `PATCH /v2/app_management/compose/{installed-id}`, no body, optional `force`. Explicit false guards availability in inspected source and gave a no-op on the differently pinned uncontrolled fixture. No current native positive mutation was tested; no dry-run or supported override contract was established.                               |
+| Acceptance/result           | Legacy and custom observations distinguish no-op from asynchronous acceptance. HTTP 200 is not completion. Exact current native success/error normalization remains unverified; never fabricate response fixtures from an unpersisted phrase.                                                                                                                          |
+| Completion                  | Installed Compose, containers, application health and discovery support read-only observation. Earlier custom transition showed Compose already changed while the container still used the old image. An empty list or `idle` is not a success receipt; failure can also clear the updating marker.                                                                    |
+| Changed fields              | The earlier custom test changed Compose/container image and preserved selected markers/port/association. Native image/version/update/task/metadata transition effects are unverified. Restart/health alone is not evidence of update success.                                                                                                                          |
+| Identity/config/storage     | Selected custom fixture identity/environment/label/port fields survived. Native fixtures had no volumes; no native update was performed. No universal settings, generated Compose or persistent-storage guarantee is established.                                                                                                                                      |
+| Store versus Custom Compose | Tested native installations share the documented Compose POST/control plane. Mutable `id`/`repo_id` and resolvable catalog distinguish these snapshots but are not an immutable native-origin receipt. No supported universal update-class boundary was verified.                                                                                                      |
+| Rollback                    | Inspected legacy source has bounded restore attempts with known failure limitations, not guaranteed rollback. No explicit rollback endpoint or safe data/migration guarantee was established.                                                                                                                                                                          |
+| Ambiguous outcomes          | Observe through existing supported reads without mutation retries. Observation can establish specific image/health facts, not necessarily whether the native update job succeeded. No new positive native ambiguous-outcome UAT was possible.                                                                                                                          |
+
+**Candidate investigation and decision rationale:** registered catalog candidates were inspected;
+unsafe socket-exposing candidates were excluded. Two safe genuine current-version fixtures were
+installed through normal UI. Both matched current catalog images and remained absent from the
+upgradable list. The official details exposed a current version/history entry, not an older-version
+install control; no current supported version-transition selection was established. No native
+fixture was made artificially old by editing Compose, host state or Docker. Accordingly, genuine
+native update/permission UAT was not performed. An empty candidate list alone would not preclude
+Outcome A if a sufficiently clean current contract were independently verified. Here the ordinary
+controlled native target/effects contract, app-class boundary and response/observation semantics
+remain insufficiently established despite the public legacy operation and narrow custom transition.
+Exposing force, inferring binary identity or pretending edit/recreate is update would cross the
+approved safety boundary. Outcome B follows from those combined gaps, not from baseline 404s.
+
+**Exact reopening evidence:** upstream version-applicable official API documentation or a shipped
+implementation mapping for eligible classes, installed-ID versus canonical store/repo identity,
+guarded target selection and configuration/storage effects; accepted/no-op/failure and practical
+completion semantics (including stated rollback limits); followed by a genuine supported disposable
+update candidate/transition. A vendor-supported old-version/channel selection or a naturally stale
+native app could supply that candidate. Later implementation must retain independent default-off
+`ALLOW_APP_UPDATE`, meaningful risk boundaries, one mutation attempt and read-only reconciliation
+without automatic retry. No rollback guarantee is demanded where upstream honestly provides none.
+
+**Cleanup:** one existing MCP uninstall request per native fixture, with
+`delete_config_folder=false`, returned accepted/pending. Subsequent supported Compose enumeration
+confirmed both `big-bear-it-tools` and `bentopdf` absent, with exactly the original two IDs remaining.
+No unrelated app or additional persistent path was deleted. The earlier custom fixture was already
+cleaned up separately. Native catalog installation remains a future logical capability requiring
+trusted catalog selection/association; no distinct store-ID mutation was verified for the tested
+entries and no universal equivalence with arbitrary Compose import is claimed.

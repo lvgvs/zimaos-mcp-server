@@ -322,3 +322,23 @@ complete decimal digits with range validation. Reject shipped credential/token p
 Never reflect raw configuration, upstream messages, transport exceptions or response-body
 errors in startup/transport logs; retain static variable-specific config errors and normalized
 codes. Reverse-proxy path prefixes are not supported by this origin-only deployment contract.
+
+## 2026-10-09 — Do not substitute forced catalog refresh for verified app update
+
+**Decision:** Keep `update_app` unexposed under Phase 5 Outcome B until a version-applicable
+supported update contract establishes eligible classes, target/effects and observable result
+semantics. Do not expose a force option or repurpose Compose editing/reinstallation to bypass
+unverified native update eligibility. This is a project verification boundary, not a claim that
+ZimaOS has no update API. Future verified implementation retains an independent default-off gate.
+
+**Reason:** Legacy official source/SDK and a disposable forced associated-import transition
+establish useful narrow facts, but not the current ordinary native update contract. Genuine
+community/official native fixtures are manageable but current; no supported older-version
+selection or genuine transition was established. Current public schema intentionally excludes
+update override/runtime contracts. Mutable store association cannot prove native origin or safely
+authorize overriding a user's image pin. Details and reopening evidence are in `docs/RESEARCH.md`.
+
+**Rejected alternative:** Ship a force-based refresh tool using the earlier custom transition,
+or infer current binary semantics and storage preservation from legacy implementation. Reopen
+with version-applicable upstream contract/mapping and a supported genuine disposable transition;
+neither empty update discovery nor a fixture-specific catalog 404 alone decides support.

@@ -1306,3 +1306,97 @@ Phase 4 is complete only when all applicable items below are satisfied:
 - the first tagged release is published only after that approval.
 
 Do not begin a later phase automatically.
+
+# Phase 5 — update_app closure
+
+## Objective and authorization
+
+Resolve the deferred Phase 2 `update_app` question conclusively, without rewriting historical
+phases or broadening into unrelated capabilities. This post-v0.1.0 phase authorizes research,
+supported implementation when justified, testing, documentation and one fully checked OPEN,
+UNMERGED PR. No intermediate research approval is required; the parent owns the decision.
+
+Accept exactly one outcome:
+
+- **A — IMPLEMENTED:** the smallest safe, tested and documented `update_app` based only on
+  verified current supported ZimaOS semantics, with explicit support/unsupported app classes.
+- **B — NO-GO / DEFER:** durable evidence that no sufficiently clean supported update path can
+  currently be verified, including specific upstream evidence needed to reopen the question.
+- **C — MANAGER DECISION REQUIRED:** authoritative technical evidence is clear but a genuine
+  unresolved product choice remains; document alternatives, implications and the exact decision.
+
+## Scope and safety contract
+
+Preserve the conditional Phase 2 requirements: independently gated, default disabled, never
+infer update behavior from `update_available` alone, and observe post-update state/version where
+practical. Add read-only update discovery only when verified data makes it materially useful.
+Verify app classes, target selection, exact request/result semantics, configuration/storage
+effects, failure/rollback limitations and practical completion observability before implementation.
+
+If implemented, `ALLOW_APP_UPDATE` defaults to false and is independent of control, install,
+uninstall and edit permissions in both directions. Use stable installed-app identity unless the
+verified API requires another selector. Do not invent targets/channels/version selection. Preserve
+at most one upstream mutation attempt, no retry after an ambiguous outcome, normalized secret-safe
+errors and the distinction between acceptance and completion. Reuse meaningful Compose-risk and
+modern informed-approval boundaries where proposed changes expose host-impacting risk; do not
+add ceremonial approval or bypass a material risk boundary.
+
+Use supported APIs only: no historical `IceWhaleTech/ZimaOS-MCP` implementation, undocumented
+host mutation, SSH, shell, Docker socket, privileged runtime or internal files/databases.
+No uninstall/install substitute unless authoritative semantics and configuration/storage effects
+explicitly justify it. Ambiguous authoritative evidence or an unsafe path results in B or C,
+not speculative implementation.
+
+Qwen should perform substantial bounded discovery/evidence and implementation/test work as useful.
+Hermes verifies decisive primary evidence, chooses A/B/C, owns live mutations and all Git/PR work,
+reviews every change and personally authors/reviews paired READMEs. Qwen must not receive secrets,
+edit READMEs, own Git, change release/protection state or decide product scope.
+
+## Verification and delivery
+
+Maintain PROJECT, STATUS and RESEARCH; use DECISIONS only for durable decisions. Outcome A updates
+affected documentation/configuration and `[Unreleased]`, with EN/TR README parity and existing
+disclosures preserved. Outcome B/C retains accurate public limitations without unnecessary churn.
+Run full local format/lint, production/test typechecks, mocked tests, build, Docker build, canonical
+Compose validation, diff and credential-ignore/secret checks. For A, verify a safe disposable-VM
+update scenario and permission isolation without exposing credentials or fabricating UAT.
+
+Deliver one protected-main PR with all required CI/CodeQL checks passing; stop OPEN and UNMERGED
+for manager review. Do not modify AGENTS.md, publish a version, change the immutable v0.1.0
+tag/source/Release/aliases/Compose asset, or begin another phase.
+
+## Current outcome
+
+**Outcome B — NO-GO / DEFER (2026-10-09).** No `update_app` or update permission/configuration
+is shipped. This is a verification boundary, not a claim that ZimaOS lacks updates.
+
+Two genuine native App Store fixtures (community IT Tools and official BentoPDF) were installed
+through the ordinary UI and successfully managed by all existing MCP read/control tools. Their
+installed and catalog Compose reads worked; both were current, and the upgradable list was empty.
+The baseline Custom Compose fixtures' catalog 404s are fixture-specific, not evidence against
+native support. No supported older-version selection or genuine update candidate was established.
+
+The earlier forced, associated Custom Compose transition verifies one narrow image/configuration
+observation, not the ordinary controlled native update path. Verified public CasaOS source/SDK
+exposes a legacy PATCH, but does not establish the current ZimaOS v1.7.1 native target/effects
+contract. Current first-party schemas deprecate legacy association/control fields and expressly
+exclude update override/OpenAPI/runtime semantics; the ordinary native transition, app-class
+boundary and response/failure observability remain unverified. Lack of a candidate is a live-UAT
+limitation, not by itself the reason to reject an otherwise verified contract.
+
+Reopen when upstream publishes a version-applicable supported update contract or implementation
+mapping covering installed identity, eligible classes, target resolution, configuration/storage
+effects and response/failure observation. Then establish a genuine supported disposable version
+transition to validate those facts, bounded ambiguous-outcome reads and one mutation attempt.
+Guaranteed rollback is not required, but its actual limitations must be disclosed. Preserve the
+independent default-off update gate if subsequently implemented; do not expose force as a workaround.
+
+Native catalog installation is future work only: the tested Compose entries used catalog retrieval
+and the existing Compose POST with repository association, not a verified distinct native-ID
+mutation API. An eventual store installer needs trusted selection/association and risk boundaries;
+arbitrary Compose import is not declared universally equivalent. No such tool is added here.
+
+Both disposable native fixtures were removed through the existing supported uninstall path with
+`delete_config_folder=false`; readback verified only the original two applications remain.
+Detailed evidence and remaining verification requirements are in `docs/RESEARCH.md`. Deliver this
+research/decision and the previously installed quota guard in one checked OPEN, UNMERGED PR.

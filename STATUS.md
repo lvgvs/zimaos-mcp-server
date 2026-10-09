@@ -1,5 +1,195 @@
 # Status
 
+## Phase 5 closure — Outcome B / defer update_app (2026-10-09)
+
+**Current milestone:** research and native-store verification complete; prepare one checked
+OPEN, UNMERGED PR on `feat/update-app` for manager review. Canonical repository:
+<https://github.com/lvgvs/zimaos-mcp-server>. Verified development base commit:
+`d6c65ae0015f1cbf17b95e5b66448733c2d60644`; final publication SHA/CI belongs to the PR record.
+
+**Outcome B:** no sufficiently clean current native update target/effects/class/result contract
+was established. No `update_app`, update permission/configuration, or speculative discovery tool
+is shipped. This is not a claim that updates are unsupported, and no candidate/404-only inference
+is used. Verified legacy source/SDK, earlier forced associated-Custom-Compose transition, native
+fixture evidence and exact reopening criteria are recorded in RESEARCH; PROJECT records final
+scope, DECISIONS rejects a force/edit/reinstall workaround. README/config/release files need no
+change because no capability ships. Existing AI disclosures are untouched.
+
+**Genuine live fixtures:** community IT Tools (`big-bear-it-tools`, pinned catalog image) and
+official BentoPDF (`bentopdf`, version/image 2.8.8), installed through ordinary App Store UI,
+one supported Compose POST each. Both had canonical catalog/repo IDs, resolvable installed and
+catalog Compose, no volumes and no available update. The original two non-store apps lack those
+canonical/repo IDs and have fixture-specific catalog 404s; store IDs and false controlled/update
+flags alone do not prove origin. Normal UI history establishes the native origins. All six MCP
+read tools plus stop/start/restart worked on both IDs, with state/health readback. No fixture
+Compose was edited. No genuine native update candidate or live native update/permission UAT was
+possible; forced custom characterization is not relabeled native acceptance testing.
+
+**Cleanup verified:** one MCP uninstall request per native fixture, explicit
+`delete_config_folder=false`, then supported readback verified both absent. Only
+`compose-3312d0c25fc48cbe` and `mcp-test-nginx` remain; unrelated apps/data were not removed.
+The earlier custom fixture had already been removed. No OS/host/internal-file control was used.
+
+**Secondary finding:** native catalog discovery/detail and official Compose retrieval work.
+Both tested native install mutations used the documented Compose POST with repository metadata,
+not a verified distinct native-ID mutation API. A future store-install capability needs trusted
+selection/association/risk checks; universal equivalence with arbitrary imports is unproven.
+No App Store install tool was implemented.
+
+**Executed local gates:** format check, lint, production/test TypeScript checks, mocked tests
+**500/500 in 28 files**, and production build passed after final live cleanup. Cached production
+Docker build (`zimaos-mcp-server:phase5-research`), canonical deployment Compose validation,
+final diff/scope/secret checks and credential-ignore verification also passed. Remote PR/CodeQL
+checks are pending publication; do not interpret those as already passed.
+
+**Delegation/quota:** Qwen performed substantial research, not Git/source/README authoring. Last
+native-store child hit its 50-call cap without writing its report; parent preserved/reviewed its
+handoff and verified only decisive current schema/documentation facts. No VM implementation
+revision mapping was established. Permanent AGENTS quota guard remains the single original
+authorized edit (installed at 30% session / 54% weekly remaining); the earlier CAUTION
+checkpoint/pause is retained below. Latest decisive-review usage: 96% session / 45% weekly
+remaining, normal. No quota redemption or parent-model substitution was performed.
+
+**Release/deployment:** immutable v0.1.0/tag/Release/GHCR aliases/Compose asset remain out of scope
+and untouched. Read-only verification matched the approved post-PR23 Release body/metadata,
+tag source, asset ID/bytes/SHA-256 and four public image aliases at the original digest; only
+the asset's mutable public download counter advanced. No new Phase 5 image publication is
+authorized. Existing v0.1.0 deployment remains the public digest-pinned Custom App artifact;
+no update capability is advertised.
+
+**Blockers/manual action:** current upstream update contract/mapping and genuine transition
+evidence required to reopen implementation; no VM cleanup or credential entry remains for the
+user. Manager should review the final Outcome B OPEN PR; do not merge or begin a later phase.
+The following sections are retained chronological checkpoints, not current authorization/state.
+
+## Historical resumed native App Store characterization (2026-10-09)
+
+Manager authorized resume on the existing `feat/update-app` worktree. Fresh live usage:
+session 82% / weekly 49% remaining (normal); HEAD/main/origin-main remain
+`d6c65ae0015f1cbf17b95e5b66448733c2d60644`, with the same four Markdown files modified.
+No AGENTS edit. Prior verified provenance and disposable forced-update observations are retained;
+the interrupted mapping child's public-source leads remain pending decisive parent verification.
+
+**Evidence correction:** manager confirms the two baseline apps are non-App-Store installations
+(the disposable test app and MCP server). Association-like metadata and their catalog-Compose
+404s do not establish native App Store origin or lack of native retrieval/update support.
+This resume will use the normal supported App Store flow to create a genuine benign fixture,
+verify existing MCP reads/control, then return to update eligibility/semantics. Catalog install
+is secondary research only, not a new feature authorization. Outcome A/B/C remains open.
+
+**Native fixture checkpoint:** installed IT Tools from the community App Store and BentoPDF
+2.8.8 from the official Zima App Store, both via ordinary UI Install, one Compose POST each.
+Both have zero volumes; BentoPDF's inspected catalog Compose had no detected elevated risk.
+Catalog discovery/detail uses v3 app-store paths; both native mutations used documented v2
+Compose POST with repo association. Installed/catalog Compose retrieval returned 200 for both.
+Non-store baseline 404s remain fixture-specific. All six existing MCP read paths and stop/start/
+restart worked on both stable IDs with state/health readback. No existing app or fixture Compose
+was edited. Both report `is_uncontrolled=false` and no available update;
+the upgradable list is empty. RESEARCH contains precise metadata/field limitations.
+
+Both fixtures remain running for the remaining update research; cleanup is pending until they
+are no longer useful. A bounded Qwen native-install/update-eligibility research task is running;
+Hermes owns decisive review. No shipped update code, native update mutation, outcome, commit,
+push or PR yet. Current usage after this bounded live pass: session 67% / weekly 46% remaining,
+normal. Next: review child evidence when returned and resolve supported candidate/target semantics
+without manufacturing an old version or treating lack of available updates as lack of support.
+
+## Historical Phase 5 manager pause (2026-10-09)
+
+Phase 5 is paused; the verified checkpoint below is preserved, not authorization to continue.
+The existing Qwen runtime-mapping child `sa-0-77ff3af3` was narrowly interrupted after its
+latest recorded short schema-inspection commands returned. No new child was launched.
+Its unfinished public-source findings are **UNVERIFIED / pending Hermes review**, not project
+facts. A short preservation note, public downloads and transcript snapshot are retained under
+profile scratch: `phase5-pause-checkpoint.md` and `phase5-pause-evidence/`; the original transcript
+is `cache/delegation/live/deleg_e49cc85e/task-0.log`. Completion now confirms **interrupted**
+while waiting for a model response; no final research report was returned. The superseding
+steer did not land before termination. Preserve the transcript/artifacts for later review;
+the child is no longer running.
+
+Last verified work remains the disposable IT Tools PATCH characterization and cleanup below.
+Runtime implementation mapping, controlled-store availability semantics, exact acceptance
+normalization and Outcome A/B/C remain unresolved. No substantive child review, further research,
+implementation, UAT, full gates, commit, push or PR occurred during pause preservation.
+AGENTS and PROJECT were not edited for this pause; v0.1.0 and its published artifacts are untouched.
+On explicit manager resume: reread this checkpoint, recheck live Codex usage and Git state, then
+review the preserved partial child evidence before selecting any further work; do not repeat
+completed provenance research. Until then, stop.
+
+## Phase 5 last verified checkpoint (2026-10-09)
+
+- **Milestone:** update-app investigation in progress; Outcome A/B/C not yet selected.
+  Working branch `feat/update-app`, base/current HEAD
+  `d6c65ae0015f1cbf17b95e5b66448733c2d60644`;
+  canonical https://github.com/lvgvs/zimaos-mcp-server. No Phase 5 commit, push or PR yet.
+- **Completed:** Phase 5 authorization appended to PROJECT; one-time manager-authorized
+  parent-model quota guard installed in AGENTS and its isolated diff verified. Installation
+  live usage: 30% session / 54% weekly remaining (controlling 30%, normal). Before reviewing
+  Qwen's result: 26% session / 54% weekly (controlling 26%, normal); neither caution nor hard
+  stop entered at these checkpoints.
+- **Delegation / parent verification:** Qwen finished bounded official discovery/repository
+  analysis without tracked edits. Hermes pinned and independently inspected the decisive
+  official CasaOS-AppManagement spec/handler/service. RESEARCH records corrections: control
+  permission reuse is forbidden; omitted-force equivalence, reliable rollback/storage retention,
+  and successful completion from idle/disappearance are not established. Community mirror
+  attribution is corrected. No speculative implementation accepted.
+- **Actual verification:** AGENTS Prettier and diff checks passed at installation; formatting
+  and diff checks passed for all four changed Markdown files at this research checkpoint.
+  Production build passed on resumption. Full tests/lint/typechecks/Docker/Compose gates have
+  not yet been rerun. Fresh raw-API disposable update characterization is recorded below;
+  no shipped MCP update tool or UI UAT claim. Phase 4 results remain historical.
+- **Remaining:** current ZimaOS API/fixture/effects/observability verification and outcome choice;
+  eventual full local gates and checked OPEN, UNMERGED PR. No new manager product decision
+  identified yet. Published v0.1.0/artifacts and deployment files remain unchanged; no Phase 5
+  image or new deployment readiness claimed. Preserve the completed scratch report rather than
+  rerunning bulk child discovery. No manager action required by this checkpoint.
+
+**Focused follow-up completed:** Qwen's second bounded research report is preserved in profile
+scratch; no child remains running. Hermes checked live usage before review (21% session / 53%
+weekly remaining, normal), verified published SDK integrity/gitHead, actual Git tag target and
+official guide/explorer in the browser. Matching SDK/source provenance is not proof of the VM's
+binary version or omitted-force server binding. No speculative implementation accepted.
+
+**Fresh read-only VM evidence:** v1.7.1, two pre-existing apps; generated Compose app running,
+`mcp-test-nginx` exited. Neither has an available update. Both contain association metadata but
+their store Compose lookups return 404; upgradable list is empty. Supported catalog GET and
+bounded nested traversal identified possible fixture candidates. Credentials remained ignored
+and unprinted; no existing app was changed. RESEARCH records failed scratch response-bound and
+shape assumptions as well as the corrected successful read, not fabricated update acceptance.
+
+**Historical quota-caution checkpoint:** controlling live usage reached 15% (session 15%, weekly
+52% remaining), entering CAUTION, not HARD STOP. Finish this bounded evidence/documentation
+checkpoint rather than beginning a new large implementation or live mutation package. Changes
+remain uncommitted in AGENTS, PROJECT, STATUS and RESEARCH; no release/ref/image change. On
+resumption check live usage and Git state, retain both completed child reports and primary-source
+scratch evidence, then inspect a resolvable benign catalog candidate (e.g. `big-bear-it-tools`)
+and design the one-shot disposable update characterization before making any real mutation.
+Do not use either pre-existing app as the fixture. Outcome/implementation/full gates/OPEN PR
+remain unfinished; this is a quota-caution checkpoint, not a new manager approval requirement.
+
+**Resumed verification:** live usage on resume was session 100% / weekly 51% remaining,
+controlling 51% (normal); after this bounded live pass, session 93% / weekly 50%, normal.
+Existing diff and complete current project-state files were read; AGENTS was not edited again.
+Supported app-management `/info` reports architecture only, not a build/version. A new bounded
+Qwen task is checking only the remaining public v1.7.1 service implementation mapping, without
+repeating completed provenance research; its result is pending parent quota check/review.
+
+**Candidate/live findings:** three registered catalog Compose candidates resolved. IT Tools
+had no detected elevated risks and no volumes; Homepage was excluded for Docker-socket access.
+A fresh benign IT Tools fixture with a verified older image tag was dry-run validated and
+installed once. It reported uncontrolled=true/updateAvailable=false. Explicit force=false PATCH
+was a no-op; one separate force=true PATCH was asynchronously accepted and later observed at
+the store target version in both Compose and the running container. Health was 200; selected
+marker/label/port fields persisted. Initial Compose/health read preceded container recreation,
+so it was not treated as completion. No rollback or general retention guarantee was established.
+The fixture was deleted once and exact baseline IDs/statuses restored; both pre-existing apps
+were untouched. Detailed limitations and supported request paths are in RESEARCH.
+
+**Next bounded step:** review the pending mapping evidence, characterize the ordinary controlled
+store availability path and exact acceptance envelope if safely justified, then choose A/B/C.
+Do not infer product support from the successful forced uncontrolled-fixture update. No code,
+commit, push, PR, stable release/image/asset change or new manager product decision yet.
+
 ## Phase 4 final durable-documentation checkpoint (2026-10-09)
 
 - **Release line / publication record:** `v0.1.0` is the selected first stable release;
