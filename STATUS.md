@@ -1,12 +1,48 @@
 # Status
 
+## Phase 4 protected-main history-rewrite reconciliation (2026-10-09)
+
+- **Recovery / current milestone:** clean local `main == origin/main` at
+  `d05283357e42780e02484de6727b97ce53e5c325` before this PR; tree
+  `6db09806fc394ce0aa138f842bb0416e01f74f77`. Protect main is active with no bypass,
+  non-fast-forward protection, PR requirements and all three required checks intact.
+  No release tag or GitHub Release exists. Working branch `docs/history-rewrite-reconciliation`;
+  canonical https://github.com/lvgvs/zimaos-mcp-server. Exact containing commit is available from Git.
+- **Completed rewrite:** seven consecutive commits were reconstructed with the repository's
+  GitHub noreply author email; trees, full messages, names, timestamps and committer metadata
+  were preserved. Parent identities necessarily changed; invalidated GitHub signatures were not
+  copied. No source-content change. The local-only safety ref is retained untouched.
+  Old GitHub commit objects may remain directly resolvable; the manager accepts this and does
+  not request Support/purge work. This is not a release blocker.
+- **Reference audit / changed components:** all tracked files audited. Runtime/source links
+  identify reachable tree-equivalent commits; historical baselines are explicitly equivalents.
+  The old immutable GHCR tag spelling is generalized while its actual digest/workflow evidence
+  is preserved, not renamed to an unpublished replacement tag. Changes are limited to STATUS,
+  PROJECT, CHANGELOG, release guidance and research. READMEs/AI disclosures and proposed public
+  notes are unchanged. No runtime, tests, dependencies, Docker, deployment, workflows, security
+  behavior, permissions, external UAT or delegation changed/occurred.
+- **Runtime UAT / artifact boundary:** accepted source tree is now reachable as
+  `c66254b218afd9436e5931e66518ece88ff58c5e`; accepted image remains
+  `sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
+  Its OCI revision predates the metadata-only rewrite. External UAT was not repeated.
+  Baseline main CI/CodeQL/GHCR runs succeeded; its artifact is not the final release source.
+- **Local verification:** formatting, lint, production/test TypeScript typechecks, all 500 mocked
+  tests across 28 files, production build, Docker build, Compose validation and whitespace checks
+  passed. Privacy scan: zero occurrences of all seven superseded SHAs and of the previous private
+  email in tracked files. No live integration/Inspector tests or mutations were run.
+- **Manager gate:** open one docs-only PR and stop unmerged for manager review.
+  If approved and merged, that final protected-main merge
+  becomes the release-source candidate; exact SHA/digest/checks belong in the verified PR/release
+  handoff, without another status-only publication. No tag/Release/promotion is authorized.
+  Existing limitations remain; no new architecture decision or factual runtime blocker found.
+
 ## Phase 4 final release-metadata checkpoint (2026-10-08)
 
 - **Current milestone:** manager-selected first release version `v0.1.0`; dated changelog
   and proposed public release notes prepared, not published. Phase 3 remains the feature cutoff.
   Tag creation, `v0.1.0` / `stable` / `latest` promotion and GitHub Release require final manager approval.
 - **Recovery / Git:** fetched origin; clean synchronized `main` at
-  `86db08c2d2f9a565c54d4a680e346a3f3dc5a782`, no staged/unstaged/untracked work or stashes,
+  the source tree now reachable as `5ff304423e937f71f4a5e08994e4ab1b173566e9`, no staged/unstaged/untracked work or stashes,
   and no interrupted release-metadata branch. Unrelated bearer-fix branch preserved.
   Working branch `docs/v0.1.0-release-metadata`; repository https://github.com/lvgvs/zimaos-mcp-server.
   Exact containing commit is available from Git; final merged SHA/digest belongs in the PR handoff.
@@ -16,7 +52,7 @@
   Package/root lock versions all verified as `0.1.0`, with no edits needed. Accurate README
   pre-release wording and EN/TR parity remain unchanged, including AI disclosures.
 - **UAT identity / scope:** external runtime acceptance remains tied to
-  `8c2f4e7785002a67cb3d59c8b7758f8b533d0897` and
+  the source tree now reachable as `c66254b218afd9436e5931e66518ece88ff58c5e` and
   `sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
   No external UAT repeated, runtime/dependency/Docker/deployment/workflow/security changes,
   child/subagent delegation, release tag, GitHub Release or stable/latest promotion.
@@ -34,7 +70,7 @@
 - **Current milestone:** external runtime UAT is complete, based on manager/user-reported
   normal-user results. Phase 4 still awaits explicit first version/tag/GitHub Release approval;
   Phase 3 remains the feature cutoff. No later-phase work or release publication is authorized.
-- **Runtime-tested commit:** `8c2f4e7785002a67cb3d59c8b7758f8b533d0897`.
+- **Reachable tree-equivalent runtime-tested source:** `c66254b218afd9436e5931e66518ece88ff58c5e`.
 - **Runtime-tested image:**
   `ghcr.io/lvgvs/zimaos-mcp-server@sha256:78d1e7720d844f72b472d671cca2691c87069a87b78d9d7649ab6945a8d57535`.
 - **Completed runtime gates:** fresh normal-user Custom App installation / first start / health;
@@ -82,7 +118,7 @@ this final runtime-UAT checkpoint supersedes their pending installation / approv
 
 - **Baseline / recovery:** canonical https://github.com/lvgvs/zimaos-mcp-server;
   branch `fix/modern-protocol-discovery`, baseline
-  `d4f9e02c35fe93b1c20f813e4f7f223e037c9db2`, equal to `origin/main` before edits.
+  the source tree now reachable as `dc0dad800b57019122b0e584ddc7473fc39fe3d1`, equal to the then-current `origin/main` tree before edits.
   Repeated interruptions left no source changes, commits, pushes or defect PR.
   Interrupted Qwen research produced no usable edits; replacement read-only research's
   claimed missing SDK discovery support was independently disproved and rejected.
@@ -121,7 +157,7 @@ authoritative.
 ## Historical Phase 4 public image access complete — then awaiting fresh-install UAT (2026-10-07 UTC)
 
 - **Source / baseline:** https://github.com/lvgvs/zimaos-mcp-server is PUBLIC. Clean `main`
-  was synchronized at `86bb176589a9f577e9019ad810da5722900c21fc` before this documentation
+  was synchronized at the source tree now reachable as `26adf8d403c92cc6cf5d295741c7eb9a5b136278` before this documentation
   update. Working branch: `docs/phase4-public-image-checkpoint`; Hermes/local Git retains
   commit/push ownership. This STATUS-only change follows the protected-main, Squash-only PR
   workflow; no direct-main push or child/subagent delegation.
@@ -135,8 +171,9 @@ authoritative.
   SBOM-related versions. These are the owner's pre-update inventory counts, not an independent
   API enumeration or a promise that publication of this update leaves the counts unchanged.
   Package visibility is now PUBLIC; the private-registry UAT path is not being pursued.
-- **Pre-update artifact / publication:** GHCR `37664593471` succeeded for the baseline above;
-  its immutable `sha-86bb176589a9f577e9019ad810da5722900c21fc` tag and `edge` identified
+- **Pre-update artifact / publication:** GHCR `37664593471` succeeded for the pre-rewrite identity
+  of the tree-equivalent baseline above, not for the replacement commit identity;
+  its pre-rewrite immutable commit tag and then-current `edge` identified
   `ghcr.io/lvgvs/zimaos-mcp-server@sha256:bd67e42542a3fe82604a3d51419d2863d5bfbc084d6489633381c94b9471b2f3`.
   This is development content, not an approved stable release.
 - **Anonymous access verified:** without GitHub credentials, pull-token and exact-digest manifest
@@ -453,6 +490,10 @@ the historical repository must not receive rewritten refs or future normal devel
 
 ## History-reference interpretation
 
+The seven recent author-email replacements preserve source trees. Their reachable equivalents
+are used for source/baseline links; original workflow runs and image OCI revisions still identify
+pre-rewrite executions/artifacts. This does not attribute old CI or UAT to a new SHA or image digest.
+
 Repository commit references below identify the rewritten equivalents after the approved
 pre-public privacy sanitization. Historical CI/GHCR run IDs still describe executions
 on the original, pre-rewrite commits, not verification of the rewritten equivalents.
@@ -491,8 +532,8 @@ this current document reconciles the reachable repository commit references.
 - **Phase 4 manager gates:** real-user UAT results must come from the manager/user; final release
   publication, final version/tag, source-repository visibility, and GHCR visibility changes require
   explicit manager approval. Do not begin a later phase automatically.
-- **Current next action:** finish the release-metadata checkpoint and exact-head CI/GHCR
-  verification, then hand off for final source/artifact/notes and publication approval. Fresh normal-user installation and all
+- **Current next action:** open the protected-main rewrite-reconciliation PR and stop unmerged
+  for manager review; final source/artifact/notes and publication approval remain separate. Fresh normal-user installation and all
   reported runtime UAT gates passed; do not repeat external UAT solely for this checkpoint.
 
 ## Historical Phase 4 initial audit — then-blocked image-access gate (2026-10-01)
@@ -557,9 +598,9 @@ this current document reconciles the reachable repository commit references.
 
 ## Git / repository
 
-- **Branch:** `docs/v0.1.0-release-metadata` for this metadata-only checkpoint; return to clean,
-  synchronized `main` after Squash merge. Baseline main:
-  `86db08c2d2f9a565c54d4a680e346a3f3dc5a782`; runtime-tested identity remains separate above.
+- **Branch:** `docs/history-rewrite-reconciliation`; stop with the PR open and unmerged.
+  Pre-PR baseline main: `d05283357e42780e02484de6727b97ce53e5c325`;
+  runtime-tested tree-equivalent source and unchanged tested digest remain separate above.
   Exact containing commit is available from Git.
 - **Phase 2 final implementation HEAD:** `7dcb169d29df8b154c4658a689f5b9120db2e4f0`
 - **Phase 3A HEAD:** `3102cdcd5533293c921c99c8f61e313daeed17b1`
