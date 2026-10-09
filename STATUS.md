@@ -3,7 +3,7 @@
 ## Phase 4 final durable-documentation checkpoint (2026-10-09)
 
 - **Release line / publication record:** `v0.1.0` is the selected first stable release;
-  package/lockfile version is `0.1.0`, changelog date 2026-10-08. Publication state is authoritative
+  package/lockfile version is `0.1.0`, changelog date 2026-10-09. Publication state is authoritative
   in Git tags, GitHub Releases and GHCR aliases rather than this source document.
 - **Completed history/privacy reconciliation:** PR #20 was Squash merged, its author used the
   approved GitHub noreply identity, GitHub signing verified, exact-head CI/CodeQL/GHCR passed,

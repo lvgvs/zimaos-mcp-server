@@ -5,17 +5,17 @@ ZimaOS MCP Server lets MCP-capable assistants inspect and manage ZimaOS Compose 
 ## Highlights
 
 - Authenticated Streamable HTTP MCP access with a required operator-supplied bearer token; ZimaOS credentials stay on the server.
-- Read-only app, container, health, bounded log, Compose and basic system inspection, plus non-mutating Compose validation.
+- Read-only inspection of apps, containers/services, app/container health, bounded recent logs, existing-app Compose and basic system information, plus non-mutating Compose validation.
 - Independent, default-off permissions for start/stop/restart, Compose installation, exact-id uninstall and existing-app Compose editing.
-- Existing-app edits use base fingerprints and optimistic-concurrency checks. Risk-increasing install/edit requires modern MCP native approval, bound to the exact content, short-lived and single-use; risky legacy requests fail closed.
-- Non-root Docker packaging and ZimaOS Custom App Docker Compose/YAML deployment, with publicly accessible GHCR images and English/Turkish setup documentation.
+- Existing-app edits use base fingerprints and optimistic-concurrency checks. Risk-increasing install/edit operations require modern MCP native approval, bound to the exact content, short-lived and single-use; risky legacy requests fail closed.
+- Docker packaging with a non-root runtime user and ZimaOS Custom App Docker Compose/YAML deployment, with publicly accessible GHCR images and English/Turkish setup documentation.
 - Validated configuration, secret-safe normalized errors and active upstream readiness checks. Ambiguous mutation outcomes are not automatically retried.
 
 ## Security and deployment
 
 The server uses supported ZimaOS APIs, not SSH, arbitrary shell execution, the Docker socket, privileged server mode or direct internal-file/database mutation. No default authentication secret is supplied. Use a trusted LAN/VPN or a correctly configured HTTPS reverse proxy: bearer authentication does not encrypt plain HTTP traffic.
 
-For exact deployments, pin an image digest. Version images promote an existing CI-published artifact without rebuilding; `edge` remains a development channel. See [installation and configuration](https://github.com/lvgvs/zimaos-mcp-server#zimaos-installation).
+For exact deployments, pin an image digest. Version images promote an existing CI-published artifact without rebuilding; `edge` remains a development channel. See [installation and configuration](https://github.com/lvgvs/zimaos-mcp-server/blob/v0.1.0/README.md#zimaos-installation).
 
 ## Important limitations
 
