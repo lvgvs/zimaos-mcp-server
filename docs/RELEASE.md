@@ -1,6 +1,6 @@
 # Release process and evidence
 
-`v0.1.0` is the selected first stable release, dated 2026-10-08 in the changelog; package and
+`v0.1.0` is the selected first stable release, dated 2026-10-09 in the changelog; package and
 lockfile versions are `0.1.0`. Publication state is authoritative in Git tags, GitHub Releases
 and GHCR version/alias readback, not in this source document. This is a release-process contract
 and evidence record, not an assertion that a tag, Release or alias exists.
