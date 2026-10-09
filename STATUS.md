@@ -2,10 +2,13 @@
 
 ## Phase 5 closure — Outcome B / defer update_app (2026-10-09)
 
-**Current milestone:** research and native-store verification complete; prepare one checked
-OPEN, UNMERGED PR on `feat/update-app` for manager review. Canonical repository:
+**Current milestone:** Outcome B research/native-store closure published in
+[PR #24](https://github.com/lvgvs/zimaos-mcp-server/pull/24), OPEN and UNMERGED on
+`feat/update-app` for manager review. Canonical repository:
 <https://github.com/lvgvs/zimaos-mcp-server>. Verified development base commit:
-`d6c65ae0015f1cbf17b95e5b66448733c2d60644`; final publication SHA/CI belongs to the PR record.
+`d6c65ae0015f1cbf17b95e5b66448733c2d60644`. Research checkpoint commit:
+`d4d3d631f0c3f559a5f1a43746b3ced8fca29def`; final delivery metadata commit/latest-head CI
+is recorded in the PR and final handoff rather than recursively embedding its own SHA here.
 
 **Outcome B:** no sufficiently clean current native update target/effects/class/result contract
 was established. No `update_app`, update permission/configuration, or speculative discovery tool
@@ -39,8 +42,12 @@ No App Store install tool was implemented.
 **Executed local gates:** format check, lint, production/test TypeScript checks, mocked tests
 **500/500 in 28 files**, and production build passed after final live cleanup. Cached production
 Docker build (`zimaos-mcp-server:phase5-research`), canonical deployment Compose validation,
-final diff/scope/secret checks and credential-ignore verification also passed. Remote PR/CodeQL
-checks are pending publication; do not interpret those as already passed.
+final diff/scope/secret checks and credential-ignore verification also passed. Research checkpoint
+CI [37967344948](https://github.com/lvgvs/zimaos-mcp-server/actions/runs/37967344948) passed all
+three required jobs; CodeQL [37967342909](https://github.com/lvgvs/zimaos-mcp-server/actions/runs/37967342909)
+passed both analyses and its aggregate check. PR readback confirmed expected head, OPEN/unmerged,
+no auto-merge and no unresolved review threads. This status-only delivery update must also pass
+latest-head PR checks; their final evidence belongs to the live PR/final handoff.
 
 **Delegation/quota:** Qwen performed substantial research, not Git/source/README authoring. Last
 native-store child hit its 50-call cap without writing its report; parent preserved/reviewed its
