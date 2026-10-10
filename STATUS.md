@@ -54,9 +54,11 @@ local-only. No update implementation or update UAT is authorized.
 
 **Quota/delegation:** this resumed continuation was parent-only, no Qwen/child/subagent use.
 Earlier accepted child work remains historical; rejected unfinished preflight work was not reused.
-Live `usage_api` checkpoints: integration 80% session / 27% weekly, pre-UAT 63% / 24%, corrected
-explicitly authorized UAT 61% / 24%, final documentation/PR preparation 56% / 23%, all NORMAL.
-No automatic reset, parent substitution or AGENTS edit occurred. Final quota is in the handoff.
+Fresh readable `usage_api` checkpoints: final documentation review 50% session / 22% weekly;
+immediately before PR creation 48% / 22%, both NORMAL. Earlier integration/UAT quota calls
+succeeded, but their numerical outputs were not retained in the compacted handoff and are not
+reasserted here. No automatic reset, parent substitution or AGENTS edit occurred. Final quota
+and exact-head delivery verification are in the handoff.
 
 **Release/deployment:** no Phase 6 GHCR publication or release authorization. Local production
 image and deployment Compose validate; existing public v0.1.0 remains unchanged and does not
