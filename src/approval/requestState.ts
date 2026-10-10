@@ -89,6 +89,24 @@ export const pendingInstallPayloadSchema = z
 
 export type PendingInstallPayload = z.infer<typeof pendingInstallPayloadSchema>;
 
+/** Same integrity/expiry/principal channel; a different operation and exact catalog pair. */
+export const pendingStoreInstallPayloadSchema = pendingInstallPayloadSchema.extend({
+  tool: z.literal("install_app_from_store"),
+  selectionDigest: sha256HexSchema,
+});
+export type PendingStoreInstallPayload = z.infer<typeof pendingStoreInstallPayloadSchema>;
+
+export function parsePendingStoreInstallPayload(
+  decoded: unknown,
+  nowMs: number = Date.now(),
+): PendingStoreInstallPayload {
+  const parsed = pendingStoreInstallPayloadSchema.safeParse(decoded);
+  if (!parsed.success || parsed.data.expiresAtMs <= nowMs) {
+    throw new AppError("INPUT_INVALID", INVALID_PAYLOAD_MESSAGE);
+  }
+  return parsed.data;
+}
+
 /** Same signed, short-lived state channel for an exact existing-app edit. */
 export const pendingEditPayloadSchema = z
   .object({
@@ -162,7 +180,9 @@ export interface PendingInstallRequestStateCodecOptions {
  */
 export function createPendingInstallRequestStateCodec(
   options: PendingInstallRequestStateCodecOptions,
-): RequestStateCodec<PendingInstallPayload | PendingEditPayload> {
+): RequestStateCodec<
+  PendingInstallPayload | PendingEditPayload | PendingStoreInstallPayload
+> {
   if (
     typeof options.principal !== "string" ||
     options.principal.length === 0 ||
@@ -171,7 +191,9 @@ export function createPendingInstallRequestStateCodec(
     throw new RangeError("principal must be a nonempty string of at most 256 characters");
   }
   const key = randomBytes(SIGNING_KEY_BYTES);
-  return createRequestStateCodec<PendingInstallPayload | PendingEditPayload>({
+  return createRequestStateCodec<
+    PendingInstallPayload | PendingEditPayload | PendingStoreInstallPayload
+  >({
     key,
     ttlSeconds: REQUEST_STATE_TTL_SECONDS,
     bind: (ctx) => `${ctx.mcpReq.method}\u0000${options.principal}`,

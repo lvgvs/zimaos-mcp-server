@@ -15,6 +15,33 @@
  */
 
 import { AppError, fromHttpStatus, isRecord } from "../errors.js";
+import { assertStoreSelection, readInstalledStoreAssociation } from "./storeCatalog.js";
+import type {
+  StoreDetail,
+  StoreSelection,
+  InstalledStoreAssociation,
+} from "./storeCatalog.js";
+
+/** Bounded native read options for authenticated catalog GETs (Phase 6 slice). */
+interface NativeReadOptions {
+  /** "json" parses a bounded JSON envelope; "text" returns bounded raw UTF-8 text. */
+  kind: "json" | "text";
+  /** Hard byte bound for the whole streamed body. */
+  limitBytes: number;
+}
+
+// Hard bounds so a hostile/verbose catalog payload cannot grow memory or MCP
+// replies.
+const MAX_STORE_JSON_BYTES = 4 * 1024 * 1024; // 4 MiB store listing/detail JSON
+const MAX_STORE_YAML_BYTES = 512 * 1024; // 512 KiB store compose YAML
+
+// Fixed, sanitized catalog read messages (no input/payload reflection).
+const CATALOG_REDIRECTED = "The ZimaOS host redirected the catalog request.";
+const CATALOG_TOO_LARGE = "The catalog response exceeds the allowed size.";
+const CATALOG_BAD_ENCODING = "The catalog response has an invalid encoding.";
+const CATALOG_EMPTY = "The catalog response is empty.";
+const ARCHITECTURE_INVALID = "The app management info response is malformed.";
+const COMPOSE_DETAIL_INVALID = "The store compose detail is invalid.";
 
 export interface ZimaOsClientOptions {
   /** Base URL of the ZimaOS host, e.g. "http://192.0.2.5:8080". No trailing slash. */
@@ -208,20 +235,35 @@ export class ZimaOsClient {
 
   /** Read the official interpolated YAML representation (not raw stored source). */
   async getComposeAppYaml(id: string): Promise<string> {
+    return this.readComposeProjection(id, (source) => source);
+  }
+
+  /** Internal identity-only read; unrelated interpolated secrets never leave transport. */
+  async getComposeAppAssociation(id: string): Promise<InstalledStoreAssociation> {
+    return this.readComposeProjection(id, readInstalledStoreAssociation);
+  }
+
+  private async readComposeProjection<T>(
+    id: string,
+    project: (source: string) => T,
+  ): Promise<T> {
     if (this.accessToken === null) await this.login();
     try {
-      return await this.readComposeYamlOnce(id);
+      return await this.readComposeYamlOnce(id, project);
     } catch (err) {
       if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
         this.invalidateSession();
         await this.login();
-        return await this.readComposeYamlOnce(id);
+        return await this.readComposeYamlOnce(id, project);
       }
       throw err;
     }
   }
 
-  private async readComposeYamlOnce(id: string): Promise<string> {
+  private async readComposeYamlOnce<T>(
+    id: string,
+    project: (source: string) => T,
+  ): Promise<T> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
@@ -234,52 +276,32 @@ export class ZimaOsClient {
             Authorization: `Bearer ${this.accessToken}`,
           },
           signal: controller.signal,
+          redirect: "error",
         },
       );
-      if (!response.ok) throw fromHttpStatus(response.status);
       // The returned YAML may contain interpolated secrets. Read within a hard
       // bound; neither error bodies nor the YAML are ever included in errors.
-      if (Number(response.headers.get("content-length")) > 512 * 1024) {
-        throw new AppError(
-          "ZIMAOS_UPSTREAM_ERROR",
-          "Compose response exceeds size limit.",
-        );
-      }
-      const reader = response.body?.getReader();
-      if (!reader) throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Empty Compose response.");
-      const chunks: Uint8Array[] = [];
-      let bytes = 0;
-      while (true) {
-        const part = await reader.read();
-        if (part.done) break;
-        bytes += part.value.byteLength;
-        if (bytes > 512 * 1024) {
-          await reader.cancel();
-          throw new AppError(
-            "ZIMAOS_UPSTREAM_ERROR",
-            "Compose response exceeds size limit.",
-          );
-        }
-        chunks.push(part.value);
-      }
-      if (bytes === 0)
-        throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Empty Compose response.");
-      let source: string;
-      try {
-        source = new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks));
-      } catch {
-        throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Invalid Compose response encoding.");
-      }
+      const source = await this.readBoundedBody(
+        response,
+        { kind: "text", limitBytes: MAX_STORE_YAML_BYTES },
+        controller.signal,
+        this.timeoutMs,
+      );
+      if (source instanceof Error) throw source;
+      if (typeof source !== "string")
+        throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Invalid Compose response.");
+      const value = project(source);
+      const exposed = typeof value === "string" ? value : JSON.stringify(value);
       if (
-        source.includes(this.password) ||
-        (this.accessToken !== null && source.includes(this.accessToken))
+        exposed.includes(this.password) ||
+        (this.accessToken !== null && exposed.includes(this.accessToken))
       ) {
         throw new AppError(
           "ZIMAOS_UPSTREAM_ERROR",
           "Compose contains ZimaOS credentials.",
         );
       }
-      return source;
+      return value;
     } catch (err) {
       if (err instanceof AppError) throw err;
       if (err instanceof Error && err.name === "AbortError") {
@@ -388,6 +410,11 @@ export class ZimaOsClient {
     return this.validateComposeAtPath("/v2/app_management/compose", "POST", source);
   }
 
+  /** Native catalog preflight uses the verified explicit controlled option. */
+  async validateNativeStoreCompose(source: string): Promise<ComposeValidationResult> {
+    return this.validateComposeAtPath("/v2/app_management/compose", "POST", source, true);
+  }
+
   /** Official existing-app PUT dry-run, with port checking and no mutation. */
   async validateComposeChange(
     id: string,
@@ -404,6 +431,7 @@ export class ZimaOsClient {
     path: string,
     method: "POST" | "PUT",
     source: string,
+    controlled = false,
   ): Promise<ComposeValidationResult> {
     let outcome: DryRunOutcome;
     try {
@@ -411,13 +439,13 @@ export class ZimaOsClient {
       // 4xx (malformed YAML, schema-invalid Compose, port conflict) and 5xx are
       // data here, not failures — so read the raw response instead of letting
       // rawRequest throw on non-2xx.
-      outcome = await this.composeDryRunOnce(source, path, method);
+      outcome = await this.composeDryRunOnce(source, path, method, controlled);
     } catch (err) {
       if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
         // Stale/expired token: retry once with a fresh login, mirroring authedRequest.
         this.invalidateSession();
         await this.login();
-        outcome = await this.composeDryRunOnce(source, path, method);
+        outcome = await this.composeDryRunOnce(source, path, method, controlled);
       } else {
         throw err;
       }
@@ -446,6 +474,18 @@ export class ZimaOsClient {
    * made at most once.
    */
   async installComposeOnce(source: string): Promise<ComposeInstallResult> {
+    return this.installComposeSourceOnce(source, false);
+  }
+
+  /** Same non-retrying install boundary, with fixed native controlled options. */
+  async installNativeStoreComposeOnce(source: string): Promise<ComposeInstallResult> {
+    return this.installComposeSourceOnce(source, true);
+  }
+
+  private async installComposeSourceOnce(
+    source: string,
+    controlled: boolean,
+  ): Promise<ComposeInstallResult> {
     if (this.accessToken === null) {
       // No session yet: establish one first. This happens BEFORE any install
       // traffic, so a failed login never leaves an ambiguous attempt behind.
@@ -454,7 +494,12 @@ export class ZimaOsClient {
 
     let outcome: InstallOutcome;
     try {
-      outcome = await this.installOnce(source);
+      outcome = await this.installOnce(
+        source,
+        "/v2/app_management/compose",
+        "POST",
+        controlled,
+      );
     } catch (err) {
       if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
         // The attempt was made and the session is stale. Drop it so later calls
@@ -631,6 +676,7 @@ export class ZimaOsClient {
     source: string,
     path = "/v2/app_management/compose",
     method: "POST" | "PUT" = "POST",
+    controlled = false,
   ): Promise<InstallOutcome> {
     const token = this.accessToken as string;
 
@@ -648,9 +694,9 @@ export class ZimaOsClient {
     let text: string;
     try {
       response = await this.fetchImpl(
-        `${this.baseUrl}${path}?dry_run=false&check_port_conflict=true`,
+        `${this.baseUrl}${path}?dry_run=false&check_port_conflict=true${controlled ? "&uncontrolled=false" : ""}`,
         // The exact original UTF-8 string is sent unchanged as the body.
-        { method, headers, body: source, signal: controller.signal },
+        { method, headers, body: source, signal: controller.signal, redirect: "error" },
       );
       text = await response.text();
     } catch (err) {
@@ -701,6 +747,7 @@ export class ZimaOsClient {
     source: string,
     path: string,
     method: "POST" | "PUT",
+    controlled = false,
   ): Promise<DryRunOutcome> {
     if (this.accessToken === null) {
       await this.login();
@@ -720,9 +767,9 @@ export class ZimaOsClient {
     let text: string;
     try {
       response = await this.fetchImpl(
-        `${this.baseUrl}${path}?dry_run=true&check_port_conflict=true`,
+        `${this.baseUrl}${path}?dry_run=true&check_port_conflict=true${controlled ? "&uncontrolled=false" : ""}`,
         // The exact original UTF-8 string is sent unchanged as the body.
-        { method, headers, body: source, signal: controller.signal },
+        { method, headers, body: source, signal: controller.signal, redirect: "error" },
       );
       text = await response.text();
     } catch (err) {
@@ -781,6 +828,119 @@ export class ZimaOsClient {
     return body;
   }
 
+  // ------------------------------------------------- catalog reads (GETs) --
+  //
+  // Bounded, authenticated, native catalog READ transport (Phase 6 slice).
+  // These are read-only: the stale-401 retry exactly once is inherited from
+  // authedRequest. No install/dry-run/mutation path is touched.
+
+  /**
+   * Store repository listing: GET /v3/app_store/repo.
+   *
+   * Returns the unwrapped `data` payload (bounded 4 MiB JSON envelope with
+   * `success:false` rejected and sanitized).
+   */
+  async getStoreRepositories(): Promise<unknown> {
+    const body = await this.envelopeRequest("GET", "/v3/app_store/repo", undefined, {
+      kind: "json",
+      limitBytes: MAX_STORE_JSON_BYTES,
+    });
+    return body;
+  }
+
+  /**
+   * App management info: bare GET /v2/app_management/info (no envelope).
+   *
+   * Returns the top-level `architecture` field (must be "amd64" or "arm64");
+   * any malformed payload fails closed with a sanitized upstream error.
+   */
+  async getAppManagementArchitecture(): Promise<string> {
+    const body = await this.authedRequest(
+      "GET",
+      "/v2/app_management/info",
+      undefined,
+      this.timeoutMs,
+      { kind: "json", limitBytes: MAX_STORE_JSON_BYTES },
+    );
+    if (!isRecord(body) || body["success"] === false) {
+      throw new AppError("ZIMAOS_UPSTREAM_ERROR", ARCHITECTURE_INVALID);
+    }
+    const architecture = body["architecture"];
+    if (architecture !== "amd64" && architecture !== "arm64") {
+      throw new AppError("ZIMAOS_UPSTREAM_ERROR", ARCHITECTURE_INVALID);
+    }
+    return architecture;
+  }
+
+  /**
+   * Store app detail: GET
+   * /v3/app_store/hub/repo/{encodeURIComponent(repoId)}/app/{encodeURIComponent(appId)}?locale=en_us
+   *
+   * The caller pair is validated with the shared `assertStoreSelection`
+   * BEFORE any network traffic (path-injection characters are rejected).
+   * Returns the unwrapped `data` payload (bounded 4 MiB JSON envelope).
+   */
+  async getStoreAppDetail(selection: StoreSelection): Promise<unknown> {
+    assertStoreSelection(selection);
+    const path =
+      `/v3/app_store/hub/repo/${encodeURIComponent(selection.repoId)}` +
+      `/app/${encodeURIComponent(selection.appId)}` +
+      `?locale=en_us`;
+    return this.envelopeRequest("GET", path, undefined, {
+      kind: "json",
+      limitBytes: MAX_STORE_JSON_BYTES,
+    });
+  }
+
+  /**
+   * Store compose document: GET
+   * /v3/app_store/repo/proxy/{encodeURIComponent(repoId)}{composePath}
+   *
+   * `detail` is validated independently of any catalog source:
+   *   - the pair passes the shared `assertStoreSelection`;
+   *   - `architecture` is exactly "amd64" or "arm64";
+   *   - `composePath` equals exactly `/apps/{appId}/docker-compose.{architecture}.yml`.
+   *
+   * No external URL is used: only the configured base URL plus the validated
+   * registered repository identity and exact verified path.
+   * Returns the YAML string byte-for-byte unchanged (bounded 512 KiB, strict
+   * UTF-8; empty or undecodable bodies fail closed).
+   */
+  async getStoreCompose(detail: StoreDetail): Promise<string> {
+    // A StoreDetail carries architecture/composePath beyond the caller pair, so
+    // the shared assertStoreSelection (which rejects extra options) cannot be
+    // applied to it directly: this client independently re-verifies every field
+    // before building the path, fail-closed.
+    if (!isRecord(detail)) {
+      throw new AppError("ZIMAOS_UPSTREAM_ERROR", COMPOSE_DETAIL_INVALID);
+    }
+    const repoId = detail["repoId"];
+    const appId = detail["appId"];
+    const architecture = detail["architecture"];
+    const composePath = detail["composePath"];
+    try {
+      assertStoreSelection({ repoId, appId });
+    } catch {
+      throw new AppError("ZIMAOS_UPSTREAM_ERROR", COMPOSE_DETAIL_INVALID);
+    }
+    if (architecture !== "amd64" && architecture !== "arm64") {
+      throw new AppError("ZIMAOS_UPSTREAM_ERROR", COMPOSE_DETAIL_INVALID);
+    }
+    const expected = `/apps/${appId}/docker-compose.${architecture}.yml`;
+    if (composePath !== expected) {
+      throw new AppError("ZIMAOS_UPSTREAM_ERROR", COMPOSE_DETAIL_INVALID);
+    }
+    const path = `/v3/app_store/repo/proxy/${encodeURIComponent(repoId)}${composePath}`;
+    const text = await this.authedRequest("GET", path, undefined, this.timeoutMs, {
+      kind: "text",
+      limitBytes: MAX_STORE_YAML_BYTES,
+    });
+    if (typeof text !== "string") {
+      throw new AppError("ZIMAOS_UPSTREAM_ERROR", CATALOG_EMPTY);
+    }
+    return text;
+  }
+
   /** Active read-only readiness; at most four bounded I/O attempts, shared in flight. */
   checkReadiness(): Promise<boolean> {
     this.readinessProbe ??= this.getDeviceInfo(Math.min(this.timeoutMs, 1_000))
@@ -801,6 +961,7 @@ export class ZimaOsClient {
     path: string,
     rawBody?: string,
     timeoutMs = this.timeoutMs,
+    readOptions?: NativeReadOptions,
   ): Promise<unknown> {
     if (this.accessToken === null) {
       await this.login(timeoutMs);
@@ -815,6 +976,7 @@ export class ZimaOsClient {
         token,
         rawBody,
         timeoutMs,
+        readOptions,
       );
     } catch (err) {
       // A stale/expired token: retry once with a fresh login.
@@ -830,6 +992,7 @@ export class ZimaOsClient {
           fresh,
           rawBody,
           timeoutMs,
+          readOptions,
         );
       }
       throw err;
@@ -841,8 +1004,15 @@ export class ZimaOsClient {
     method: string,
     path: string,
     rawBody?: string,
+    readOptions?: NativeReadOptions,
   ): Promise<unknown> {
-    const body = await this.authedRequest(method, path, rawBody);
+    const body = await this.authedRequest(
+      method,
+      path,
+      rawBody,
+      this.timeoutMs,
+      readOptions,
+    );
     if (!isRecord(body)) {
       throw new AppError(
         "ZIMAOS_UPSTREAM_ERROR",
@@ -868,6 +1038,7 @@ export class ZimaOsClient {
     tokenOverride?: string,
     rawStringBody?: string,
     timeoutMs = this.timeoutMs,
+    readOptions?: NativeReadOptions,
   ): Promise<unknown> {
     const headers: Record<string, string> = {
       Accept: "application/json",
@@ -892,16 +1063,18 @@ export class ZimaOsClient {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     let response: Response;
-    let text: string;
     try {
+      // Native catalog GETs never follow redirects: a hop away from the
+      // configured base is rejected, not chased (no caller URL is ever used).
       response = await this.fetchImpl(`${this.baseUrl}${path}`, {
         method,
         headers,
         body,
         signal: controller.signal,
+        ...(readOptions !== undefined ? { redirect: "manual" } : {}),
       });
-      text = await response.text();
     } catch (err) {
+      clearTimeout(timer);
       if (err instanceof Error && err.name === "AbortError") {
         throw new AppError(
           "ZIMAOS_UNREACHABLE",
@@ -912,9 +1085,32 @@ export class ZimaOsClient {
         "ZIMAOS_UNREACHABLE",
         "Could not reach the ZimaOS host (network error).",
       );
-    } finally {
-      clearTimeout(timer);
     }
+
+    if (readOptions !== undefined) {
+      // Timer covers the ENTIRE streamed body, not just the headers.
+      try {
+        const value = await this.readBoundedBody(
+          response,
+          readOptions,
+          controller.signal,
+          timeoutMs,
+        );
+        if (value instanceof Error) throw value;
+        return value;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    let text: string;
+    try {
+      text = await response.text();
+    } catch (err) {
+      clearTimeout(timer);
+      throw this.transportError(err, timeoutMs);
+    }
+    clearTimeout(timer);
 
     if (!response.ok) {
       throw fromHttpStatus(response.status);
@@ -927,6 +1123,159 @@ export class ZimaOsClient {
     } catch {
       throw new AppError("ZIMAOS_UPSTREAM_ERROR", "ZimaOS returned a non-JSON response.");
     }
+  }
+
+  /**
+   * Read a native GET response within a hard byte bound, streaming it until
+   * complete. The timer (set by the caller) covers the full body read.
+   *
+   * - redirects (status 3xx with redirect: "manual") are rejected, not followed;
+   * - a numeric content-length above the bound is rejected before streaming;
+   * - streamed bytes above the bound cancel the reader;
+   * - JSON kind: strict UTF-8, JSON.parse, envelope success:false rejected;
+   * - text kind: strict UTF-8, raw string returned unchanged.
+   *
+   * Returns the decoded value, or an Error to throw (never leaks payload bytes).
+   */
+  private async readBoundedBody(
+    response: Response,
+    options: NativeReadOptions,
+    signal?: AbortSignal,
+    timeoutMs = this.timeoutMs,
+  ): Promise<unknown> {
+    const rejectBody = (error: AppError): AppError => {
+      void response.body?.cancel().catch(() => undefined);
+      return error;
+    };
+    if (signal?.aborted) {
+      return rejectBody(
+        new AppError(
+          "ZIMAOS_UNREACHABLE",
+          `Timed out after ${timeoutMs} ms while contacting ZimaOS.`,
+        ),
+      );
+    }
+    if (
+      response.type === "opaqueredirect" ||
+      (response.status >= 300 && response.status < 400)
+    ) {
+      return rejectBody(new AppError("ZIMAOS_UPSTREAM_ERROR", CATALOG_REDIRECTED));
+    }
+    if (!response.ok) {
+      return rejectBody(fromHttpStatus(response.status));
+    }
+
+    // A numeric content-length above the bound is rejected up front (non-numeric
+    // or absent values are still verified against streamed bytes).
+    const contentLength = response.headers.get("content-length");
+    if (contentLength !== null && /^\d+$/.test(contentLength)) {
+      if (Number(contentLength) > options.limitBytes) {
+        return rejectBody(new AppError("ZIMAOS_UPSTREAM_ERROR", CATALOG_TOO_LARGE));
+      }
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      // No body stream (e.g. empty 200): treat as an empty body.
+      return options.kind === "text"
+        ? new AppError("ZIMAOS_UPSTREAM_ERROR", CATALOG_EMPTY)
+        : null;
+    }
+
+    const whole = new Uint8Array(options.limitBytes);
+    let bytes = 0;
+    try {
+      while (true) {
+        // Race each read against the abort signal so a slow or hung stream
+        // cannot outlive the timer: the timer bounds the FULL body read.
+        const part = await this.readWithAbort(reader, signal);
+        if (part.done) break;
+        if (bytes + part.value.byteLength > options.limitBytes) {
+          void reader.cancel().catch(() => undefined);
+          return new AppError("ZIMAOS_UPSTREAM_ERROR", CATALOG_TOO_LARGE);
+        }
+        whole.set(part.value, bytes);
+        bytes += part.value.byteLength;
+      }
+    } catch (err) {
+      // Abort (timeout) or a stream failure mid-read: sanitized transport error.
+      void reader.cancel().catch(() => undefined);
+      throw this.transportError(err, timeoutMs);
+    } finally {
+      reader.releaseLock();
+    }
+
+    let text: string;
+    try {
+      text = new TextDecoder("utf-8", {
+        fatal: true,
+        ignoreBOM: options.kind === "text",
+      }).decode(whole.subarray(0, bytes));
+    } catch {
+      return new AppError("ZIMAOS_UPSTREAM_ERROR", CATALOG_BAD_ENCODING);
+    }
+
+    if (options.kind === "text") {
+      if (text.length === 0) {
+        return new AppError("ZIMAOS_UPSTREAM_ERROR", CATALOG_EMPTY);
+      }
+      // YAML returned byte-for-byte unchanged (strict UTF-8 already proven).
+      return text;
+    }
+
+    if (text.length === 0) return null;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return new AppError(
+        "ZIMAOS_UPSTREAM_ERROR",
+        "ZimaOS returned a non-JSON response.",
+      );
+    }
+    // A success:false envelope is an explicit upstream failure: sanitized.
+    if (isRecord(parsed) && parsed["success"] === false) {
+      return new AppError(
+        "ZIMAOS_UPSTREAM_ERROR",
+        "ZimaOS reported the operation failed.",
+      );
+    }
+    return parsed;
+  }
+
+  /** Race one streaming read against timeout, removing its listener on every outcome. */
+  private async readWithAbort(
+    reader: ReadableStreamDefaultReader<Uint8Array>,
+    signal?: AbortSignal,
+  ): Promise<Awaited<ReturnType<typeof reader.read>>> {
+    if (!signal) return reader.read();
+    let fail: () => void = () => undefined;
+    const aborted = new Promise<never>((_, reject) => {
+      fail = () => reject(new DOMException("Request timed out", "AbortError"));
+      signal.addEventListener("abort", fail, { once: true });
+      if (signal.aborted) fail();
+    });
+    try {
+      return await Promise.race([reader.read(), aborted]);
+    } finally {
+      signal.removeEventListener("abort", fail);
+    }
+  }
+
+  /** Map a fetch/stream failure to a sanitized AppError. */
+  private transportError(err: unknown, timeoutMs?: number): AppError {
+    if (err instanceof AppError) return err;
+    if (err instanceof Error && err.name === "AbortError") {
+      const limit = timeoutMs ?? this.timeoutMs;
+      return new AppError(
+        "ZIMAOS_UNREACHABLE",
+        `Timed out after ${limit} ms while contacting ZimaOS.`,
+      );
+    }
+    return new AppError(
+      "ZIMAOS_UNREACHABLE",
+      "Could not reach the ZimaOS host (network error).",
+    );
   }
 }
 

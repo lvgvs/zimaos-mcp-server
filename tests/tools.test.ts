@@ -80,6 +80,40 @@ function makeDeps(overrides: { allowAppControl?: boolean } = {}): ToolDeps {
 }
 
 describe("MCP tools (mocked services)", () => {
+  it("strictly accepts only store identities and denies disabled installs before service traffic", async () => {
+    const deps = makeDeps();
+    const { client, serverTransport } = await connect(deps);
+    try {
+      const tools = await client.listTools();
+      const store = tools.tools.find((tool) => tool.name === "install_app_from_store");
+      expect(store?.inputSchema).toMatchObject({
+        additionalProperties: false,
+        required: ["repo_id", "app_id"],
+      });
+      const args = { repo_id: "example", app_id: "com.example.app" };
+      expect(
+        (await client.callTool({ name: "install_app_from_store", arguments: args }))
+          .isError,
+      ).toBe(true);
+      for (const extra of [
+        { uncontrolled: true },
+        { source: "services: {}" },
+        { repo_url: "https://example.test" },
+        { force: true },
+      ]) {
+        expect(
+          (
+            await client.callTool({
+              name: "install_app_from_store",
+              arguments: { ...args, ...extra },
+            })
+          ).isError,
+        ).toBe(true);
+      }
+    } finally {
+      await serverTransport.close();
+    }
+  });
   it("keeps existing-app editing denied by default independently of other controls", async () => {
     const deps = makeDeps();
     const { client, serverTransport } = await connect(deps);
@@ -157,6 +191,7 @@ describe("MCP tools (mocked services)", () => {
           "get_app_logs",
           "get_system_info",
           "install_app_from_compose",
+          "install_app_from_store",
           "list_app_containers",
           "list_apps",
           "restart_app",

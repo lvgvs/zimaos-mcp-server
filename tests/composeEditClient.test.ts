@@ -19,12 +19,64 @@ function setup() {
 }
 
 describe("existing-app Compose official API client (mocked)", () => {
+  it("projects only native association when unrelated YAML contains credentials, while raw reads remain denied", async () => {
+    const { fake, client } = setup();
+    fake.on("GET", path, {
+      text:
+        source +
+        "x-casaos: {id: com.example.app, repo_id: example}\n# local-password-value\n",
+    });
+    expect(await client.getComposeAppAssociation("test-app")).toEqual({
+      appId: "com.example.app",
+      repoId: "example",
+    });
+    await expect(client.getComposeAppYaml("test-app")).rejects.toMatchObject({
+      code: "ZIMAOS_UPSTREAM_ERROR",
+    });
+  });
   it("refuses to return the configured ZimaOS credential if interpolated into Compose", async () => {
     const { fake, client } = setup();
     fake.on("GET", path, { text: source + "# local-password-value\n" });
     await expect(client.getComposeAppYaml("test-app")).rejects.toMatchObject({
       code: "ZIMAOS_UPSTREAM_ERROR",
     });
+  });
+  it("rejects credential-bearing identities rather than reflecting them", async () => {
+    const { fake, client } = setup();
+    fake.on("GET", path, {
+      text: source + "x-casaos: {id: com.example.local-password-value}\n",
+    });
+    await expect(client.getComposeAppAssociation("test-app")).rejects.toMatchObject({
+      code: "ZIMAOS_UPSTREAM_ERROR",
+    });
+  });
+  it("bounds association body timeout and disables redirect following", async () => {
+    let redirect;
+    const fetchImpl = async (input: string | URL | Request, init?: RequestInit) => {
+      if (String(input).endsWith("/v1/users/login"))
+        return new Response(
+          JSON.stringify({ data: { token: { access_token: "fixture-token" } } }),
+        );
+      redirect = init?.redirect;
+      return new Response(
+        new ReadableStream({
+          start() {
+            /* deliberately no chunks */
+          },
+        }),
+      );
+    };
+    const client = new ZimaOsClient({
+      baseUrl: "http://example.test",
+      username: "test",
+      password: "synthetic",
+      fetchImpl,
+      timeoutMs: 20,
+    });
+    await expect(client.getComposeAppAssociation("test-app")).rejects.toMatchObject({
+      code: "ZIMAOS_UNREACHABLE",
+    });
+    expect(redirect).toBe("error");
   });
   it("reads interpolated YAML as exact returned bytes with a YAML Accept header", async () => {
     const { fake, client } = setup();

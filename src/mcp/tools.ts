@@ -15,12 +15,17 @@ import {
 } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import type { ChallengeLedger } from "../approval/challengeLedger.js";
-import { buildPendingInstallIntents } from "../approval/intent.js";
+import {
+  buildPendingInstallIntents,
+  buildStoreInstallIntents,
+} from "../approval/intent.js";
 import { buildEditIntents } from "../approval/editIntent.js";
 import {
   type createPendingInstallRequestStateCodec,
   parsePendingInstallPayload,
   parsePendingEditPayload,
+  parsePendingStoreInstallPayload,
+  type PendingStoreInstallPayload,
   type PendingInstallPayload,
   type PendingEditPayload,
 } from "../approval/requestState.js";
@@ -519,6 +524,119 @@ export function createMcpServer(deps: ToolDeps): McpServer {
             ? err
             : new AppError("INTERNAL", "compose install failed unexpectedly.");
         return { ...errorResult(normalized), isError: true };
+      }
+    },
+  );
+
+  server.registerTool(
+    "install_app_from_store",
+    {
+      title: "Install a registered App Store application",
+      description:
+        "Installs only a Compose-class app from an enabled registered ZimaOS repository, using the server-selected current architecture. Requires ALLOW_APP_INSTALL=true. Applies exact-content risk analysis, controlled dry-run and modern elicitation for risky installs. No URLs, force, update or uncontrolled option. One mutation attempt; accepted is asynchronous acceptance, not completion. Bounded reconciliation reports observed, pending or unknown; observed running/healthy is not proof of completion.",
+      inputSchema: z
+        .object({
+          repo_id: z
+            .string()
+            .min(1)
+            .max(128)
+            .describe("Exact enabled registered repository identifier, not a URL."),
+          app_id: z
+            .string()
+            .min(1)
+            .max(192)
+            .describe(
+              "Exact canonical lower-case reverse-domain catalog app identifier.",
+            ),
+        })
+        .strict(),
+    },
+    async (args, ctx) => {
+      try {
+        deps.permissions.assertCanInstall("install_app_from_store");
+        const selection = { repoId: args.repo_id, appId: args.app_id };
+        const approval = deps.approval;
+        const modern = server.server.getNegotiatedProtocolVersion() === "2026-07-28";
+        const state = ctx.mcpReq.requestState();
+        if (state !== undefined || ctx.mcpReq.inputResponses !== undefined) {
+          if (!approval || !modern || state === undefined) {
+            throw new AppError("INPUT_INVALID", "Invalid approval continuation.");
+          }
+          const payload = parsePendingStoreInstallPayload(state);
+          const content = acceptedContent(
+            ctx.mcpReq.inputResponses,
+            "approve_store_install",
+          );
+          if (!z.object({ confirm: z.literal(true) }).safeParse(content).success) {
+            throw new AppError("INPUT_INVALID", "Approval was not accepted.");
+          }
+          return textResult(
+            JSON.stringify(
+              await deps.apps.installApprovedStoreApp(
+                selection,
+                deps.permissions,
+                payload,
+                approval.target,
+                approval.principal,
+                approval.ledger,
+              ),
+            ),
+          );
+        }
+        const result = await deps.apps.installStoreApp(selection, deps.permissions);
+        if (result.status !== "confirmation_required")
+          return textResult(JSON.stringify(result));
+        if (!approval || !modern) {
+          throw new AppError(
+            "INPUT_INVALID",
+            "Risky store installation requires modern MCP elicitation.",
+          );
+        }
+        const intents = buildStoreInstallIntents({
+          source: result.source,
+          name: result.name,
+          findings: result.findings,
+          selection,
+          target: approval.target,
+        });
+        const challenge = approval.ledger.issue({
+          tool: "install_app_from_store",
+          contentFingerprint: intents.contentSha256,
+          principal: approval.principal,
+        });
+        const pending: PendingStoreInstallPayload = {
+          version: 1,
+          tool: "install_app_from_store",
+          challengeId: challenge.id,
+          ...intents,
+          expiresAtMs: challenge.expiresAtMs,
+        };
+        const requestState = await approval.codec.mint(pending, ctx);
+        const disclosure = result.findings.map(({ category, field, description }) => ({
+          category,
+          field,
+          description,
+        }));
+        return inputRequired({
+          requestState,
+          inputRequests: {
+            approve_store_install: inputRequired.elicit({
+              message: `Risky native store installation requires explicit confirmation. Operation: install_app_from_store. Repository: ${selection.repoId}. Catalog app: ${selection.appId}. Name: ${result.name}. Exact final UTF-8 SHA-256: ${intents.contentSha256}. Findings: ${JSON.stringify(disclosure)}. Approval expires within 300 seconds. Decline to cancel.`,
+              requestedSchema: {
+                type: "object",
+                properties: {
+                  confirm: {
+                    type: "boolean",
+                    title: "Approve this exact store installation",
+                  },
+                },
+                required: ["confirm"],
+              },
+            }),
+          },
+        });
+      } catch (err) {
+        return { ...errorResult(err), isError: true };
       }
     },
   );

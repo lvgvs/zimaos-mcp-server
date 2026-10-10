@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Native `install_app_from_store` for exact registered repository/catalog identities and verified
+  architecture-selected Compose, sharing default-off `ALLOW_APP_INSTALL`, exact-final-content
+  modern approval and one-shot controlled installation with bounded acceptance readback.
+- Fail-closed installed native-association checks and process-local catalog-identity reservations;
+  internal identity-only Compose projection without exposing unrelated interpolated credentials.
+
+### Fixed
+
+- Bounded whole-body timeout and redirect rejection for existing-app Compose/association reads.
+
 ## [0.1.0] - 2026-10-09
 
 ### Added

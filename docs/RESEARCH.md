@@ -1264,3 +1264,122 @@ evidence before shipping. Keep `update_app` and `ALLOW_APP_UPDATE` unshipped mea
 expose `force=true`, substitute edit/reinstall, infer success from async acceptance or automatically
 retry an ambiguous mutation. No new App Store capability or later phase is authorized by these
 secondary installation observations.
+
+## Phase 6 — native catalog installation research (2026-10-10)
+
+Phase 6 is separately manager-authorized; Phase 5 remains ON HOLD / Outcome B DEFER.
+No update investigation/mutation or retained-fixture reconfiguration is part of this pass.
+Current disposable candidate identity, YAML and VM baselines stay in local scratch only.
+
+### Public evidence and parent verification
+
+Qwen produced a substantial bounded official-source evidence table in local scratch. Hermes
+independently verified the decisive current catalog protocol documentation and running API reads.
+The child report incorrectly dates its fetches 2026-10-12 and contains hypotheses about generic
+Compose selection; those are not accepted facts. Parent verification occurred on 2026-10-10.
+No available public v3 OpenAPI spec was established; live request observations are attributed
+as observations, not a fabricated specification or binary-to-legacy-source equivalence.
+
+- Official [build-output documentation](https://www.zimaspace.com/docs/developer/app-store-build-output)
+  (page updated 2026-09-22, independently read in browser) defines `index.json`, canonical ID
+  from source `x-casaos.id`, advertised architectures, current version metadata and generated
+  generic/architecture-specific Compose files. Built Compose is a transformed catalog artifact,
+  not source YAML; metadata and runtime fields have different representations.
+- [Compose metadata](https://www.zimaspace.com/docs/developer/app-store-compose-x-casaos)
+  and [repository structure](https://www.zimaspace.com/docs/developer/app-store-repository-structure)
+  are the primary catalog documentation leads. Catalog `content_hash` is an incremental change
+  signal, not a cryptographic guarantee of the exact selected Compose bytes.
+- The previously pinned Apache-2.0
+  [management specification](https://github.com/IceWhaleTech/CasaOS-AppManagement/blob/debfa317f0f996b91b43210e8d57799461388704/api/app_management/openapi.yaml)
+  documents application/YAML Compose POST, dry-run, port checking, deprecated `uncontrolled`
+  and architecture info. Its legacy appstore registry is not the current v3 repo identity source.
+
+### Fresh read-only native UI/API observations
+
+On the authorized disposable VM, Hermes observed the normal UI's network requests without
+installing a candidate or changing repository registration:
+
+| Supported observed operation                                            | Verified fields and implication                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /v3/app_store/repo`                                                | `{data:[...]}` includes registered repository `id`, `enabled`, protocol `version`, transport and source metadata. Current v2 HTTP catalog and legacy v1 ZIP entries coexist. Use the exact enabled registered ID; do not derive IDs from URLs or legacy numeric appstore IDs. Never return source URLs or credential-bearing query data to callers. |
+| `GET /v2/app_management/info`                                           | Bare `{architecture}` on this runtime, not a `{data}` envelope. Current observed architecture is amd64. No service revision mapping is inferred.                                                                                                                                                                                                    |
+| `GET /v3/app_store/hub/app/search?q=...&locale=...&page=1&page_size=60` | Results carry canonical `id`, `repo_id`, `type`, title, architectures and current version; pagination and per-repo status are separate. Display names are not stable unique selectors.                                                                                                                                                              |
+| `GET /v3/app_store/hub/repo/{repo_id}/app/{app_id}?locale=...`          | `{data:{...}}` identifies matching app/repo and `type: compose`; `source.compose_arch`, `compose_path`, `compose_url`, and `compose_architectures` identify the server-selected architecture variant. No caller-selected history/version/force is needed.                                                                                           |
+| `GET /v3/app_store/repo/proxy/{repo_id}/apps/{app_id}/{compose_file}`   | Opening an unsubmitted settings preview fetched the detail-selected `docker-compose.amd64.yml`; retrieved image is digest-pinned. This corrects the child hypothesis that generic/tag Compose was necessarily submitted. The preview is not a real Install request or proof of submission-byte equality.                                            |
+
+The retrieved current catalog Compose has an explicit local project `name` and canonical
+`x-casaos.id`, but no `x-casaos.repo_id`. Earlier actual ordinary UI mutations verified addition
+of the selected registered repo ID. Preserve canonical app ID and add only this deterministic
+repo association internally; incompatible preexisting association must fail closed. Analyze,
+dry-run, approve and submit the exact final transformed bytes, not the downloaded document's hash.
+Do not copy frontend settings-form reserialization; that preview differs from raw catalog YAML.
+
+One non-persistent POST of a candidate with only that association added, using
+`dry_run=true&check_port_conflict=true&uncontrolled=false` and `Content-Type: application/yaml`,
+returned HTTP 200 with a message-only envelope. Local parser/analyzer found no elevated risks
+in the same candidate. No real install POST was made in this research checkpoint.
+Earlier recorded ordinary native installs establish the real query with `dry_run=false` and
+the exact message-only asynchronous acceptance; completion still needs separate readback.
+
+### Current bounded implementation direction and remaining checks
+
+Use an explicit pair of registered repo ID and canonical app ID, not a name or caller URL.
+Initially restrict to enabled v2 HTTP repositories and advertised Compose entries whose detail
+selects a supported matching architecture and an app-scoped Compose path. Legacy v1/special
+classes and malformed/ambiguous metadata fail clearly; this is not universal store compatibility.
+The server resolves through its configured ZimaOS origin and registered-repo proxy only, never
+follows catalog/caller external URLs or silently falls back to arbitrary downloads.
+
+Remaining before shipping: normalization/adversarial tests, exact final-content approval and
+intent binding, installed association/name conflicts, serialized reservation across both install
+surfaces, controlled one-shot POST, bounded conservative completion observation, live disposable
+install/duplicate/cleanup UAT and full gates. No cross-process atomicity or rollback guarantee.
+Do not register extra stores or duplicate-install retained fixtures merely to probe collision rules.
+
+### Implemented contract and disposable live verification (2026-10-10)
+
+Parent-only continuation implemented the accepted resolution chain and strict identity-only MCP
+surface; no further child work or frontend/historical-MCP source inspection was used. Current
+official catalog metadata/build-output documentation and the attributed current-runtime observations
+above remain the sources for v3 selection/proxy semantics. No public v3 OpenAPI or binary-to-legacy
+implementation mapping is newly claimed.
+
+The previously pinned management OpenAPI specifies supported installed YAML retrieval at
+`GET /v2/app_management/compose/{id}` with `Accept: application/yaml`. Native preflight now scans
+at most 128 supported installed identities and projects only canonical `x-casaos.id` / `repo_id`
+inside the typed client, rejecting opaque, alias/merge-built, malformed or unreadable association.
+Unrelated interpolated credentials never enter the projection; credential-bearing public YAML reads
+still reject. Whole-body byte/time/encoding bounds and redirect rejection apply to both reads.
+Canonical ID conflicts block even when project/repository differs; no update semantics are inferred.
+
+Final associated bytes are deterministic, parsed/analyzed and sent unchanged to both native dry-run
+and real install. The fixed native request is
+`POST /v2/app_management/compose?dry_run=false&check_port_conflict=true&uncontrolled=false`,
+`Content-Type: application/yaml`; dry-run changes only `dry_run=true`. Modern approval binds exact
+UTF-8 content, operation, selection, intended name, target, fixed options and risk policy/disclosure,
+then re-resolves before consuming single-use state and sending one mutation. Generic installation
+and risky legacy fail-closed behavior remain independently regression-tested.
+
+Live authorized VM UAT used a separate benign current catalog fixture; identity/version/images/
+ports and detailed evidence remain local-only. No Phase 5 fixture was used or modified. One first
+install was accepted, but the scratch harness incorrectly treated the `list_apps` `{apps:[...]}`
+envelope as an array and therefore did not assess completion. It performed supported cleanup and
+verified absence/baseline restoration. The user explicitly authorized one fresh corrected lifecycle
+after that cleanup; this was not retrying an accepted/uncertain mutation.
+
+The corrected lifecycle verified registered repository/current architecture resolution, canonical
+final association, zero-traffic disabled permission, explicit controlled dry-run and one real native
+MCP install with byte fingerprints matching the final source. Immediate output was asynchronous
+acceptance with pending reconciliation. Separate bounded later MCP reads observed running containers,
+read installed canonical metadata, freshly resolved the catalog pair, exercised app/system/health/
+Compose/container reads and denied a duplicate without a second real POST. One supported uninstall
+used `delete_config_folder=false`; subsequent reads proved fixture absence and restored preexisting
+IDs/status/health/association/retained-fixture Compose fingerprints. The Phase 5 local checkpoint
+remained byte-identical. Neither running nor health alone proves an overall transaction guarantee.
+
+Each of the two explicitly authorized isolated lifecycles used one install POST and one uninstall;
+there was no mutation retry, force/update or dangerous elevated-risk live fixture. Elevated-risk,
+changed content/selection, replay, cross-operation and legacy cases passed mocked/local authenticated
+HTTP tests. Full mocked suite: 641 tests / 35 files; complete local build/type/lint/format/Docker/
+deployment-Compose/privacy/diff gates passed. Arm64 and unsupported/error neighborhoods are mocked;
+live execution verified the available amd64 VM only. No image/release publication is part of Phase 6.
