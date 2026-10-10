@@ -2,8 +2,8 @@
 
 ## Phase 6 — Native App Store Installation
 
-**Current milestone:** parent-implemented native-store installation and disposable live UAT
-complete (2026-10-10), submitted through the protected-main workflow in
+**Current milestone:** Phase 6 COMPLETE / MERGED. Parent-implemented native-store installation
+and disposable live UAT complete (2026-10-10), delivered through the protected-main workflow in
 [PR #26](https://github.com/lvgvs/zimaos-mcp-server/pull/26). GitHub/Git are authoritative for
 live review, PR/merge state and current branch/main identities. Historical preparation branch:
 `feat/app-store-install`; <https://github.com/lvgvs/zimaos-mcp-server>.
@@ -62,12 +62,15 @@ succeeded, but their numerical outputs were not retained in the compacted handof
 reasserted here. No automatic reset, parent substitution or AGENTS edit occurred. Final quota
 and exact-head delivery verification are in the handoff.
 
-**Release/deployment:** Phase 6 remains UNRELEASED. No release/version/tag/stable/latest/v0.1.0/
-Release/asset mutation is authorized by Phase 6. Feature-branch work did not publish a Phase 6
+**Release/deployment:** v0.2.0 is selected as the next stable release line under separate explicit
+manager release authorization. Git tags, GitHub Releases and GHCR are authoritative for live
+publication state; exact-candidate release gates govern publication, not Phase 6 feature approval.
+No release/version/tag/stable/latest/v0.1.0/Release/asset mutation was authorized by Phase 6.
+Feature-branch work did not publish a Phase 6
 release image. Normal trusted-main commit artifact (`sha-<commit>`) and development `edge`
 publication after an approved protected-main merge is allowed under existing repository policy;
 it is not a Phase 6 release. Local production image and deployment Compose validate; existing
-public v0.1.0 does not contain this unreleased tool. Preparation-time read-only verification matched
+public v0.1.0 does not contain this tool. Preparation-time read-only verification matched
 Release/asset/tag IDs, the asset's recorded SHA-256 and v0.1.0/stable/latest/release-source image
 digests against approved anchors. No version/configuration/deployment YAML changes or
 base-OS/fixture reconfiguration were made during Phase 6 preparation.
@@ -77,8 +80,8 @@ Compose/amd64-arm64 scope only; identities come from normal catalog/UI, no disco
 Reservations/approval are process-local and bounded, not durable/cross-replica/upstream CAS.
 Accepted/uncertain native reservations survive uninstall until restart; reconcile before recovery.
 No external-writer race, rollback or general storage-retention guarantee. Protected-main merge
-requires manager approval; live review/merge state is authoritative in GitHub. No release is
-authorized. Phase 5 remains ON HOLD / Outcome B DEFER with retained fixtures untouched and no
+requires manager approval; live review/merge state is authoritative in GitHub. Separate v0.2.0
+release authorization does not resume Phase 5. Phase 5 remains ON HOLD / Outcome B DEFER with retained fixtures untouched and no
 Phase 5 update UAT authorized. No next phase is authorized automatically.
 
 The following Phase 5 correction is a historical delivery checkpoint, not current Phase 6 scope.

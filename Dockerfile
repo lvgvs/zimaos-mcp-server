@@ -22,7 +22,7 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # Install only production deps (no devDependencies).
-COPY package.json package-lock.json ./
+COPY --chmod=0644 package.json package-lock.json ./
 RUN NODE_DISABLE_COMPILE_CACHE=1 npm ci --omit=dev --no-audit --no-fund && rm -rf /root/.npm
 
 # Compiled output from the build stage.

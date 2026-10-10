@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
@@ -23,7 +23,7 @@ beforeAll(() => {
     join(directory, "node_modules"),
     "dir",
   );
-  writeFileSync(join(directory, "package.json"), JSON.stringify({ type: "module" }));
+  copyFileSync(join(process.cwd(), "package.json"), join(directory, "package.json"));
 }, 20_000);
 
 afterAll(() => rmSync(directory, { recursive: true, force: true }));

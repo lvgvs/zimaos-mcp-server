@@ -22,7 +22,7 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
 ## Proje durumu
 
-**Seçilen ilk kararlı sürüm: `v0.1.0`.** Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
+**Seçilen sonraki kararlı sürüm: `v0.2.0`; ilk kararlı sürüm: `v0.1.0`.** Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
 sıfırdan Custom App kurulumu, modern riskli işlem onayı ve onarımı, hata durumları,
 yükseltme, yeniden başlatma/VM reboot kalıcılığı ve temiz yeniden kurulum dahil tamamlandı.
 Yayın durumunun kaynağı bu belge değil, Git etiketleri, GitHub Releases ve GHCR alias kayıtlarıdır.
@@ -35,8 +35,9 @@ değişikliği içeren sürüm kaynağı çıktılarından ayrıdır.
 Güncel geliştirme durumu için [`STATUS.md`](STATUS.md), onaylı kapsam ve güvenlik
 sınırları için [`PROJECT.md`](PROJECT.md) dosyasına bakın.
 
-**Henüz yayımlanmamış geliştirme:** yerel App Store kurulumu geliştirme kaynak kodunda
-uygulanmıştır; `v0.1.0` içinde yoktur. Phase 5 güncellemeleri ON HOLD / Outcome B DEFER durumundadır.
+**v0.2.0 özelliği:** yerel App Store kurulumu bu kaynak kodunda uygulanmıştır; `v0.1.0` içinde
+yoktur. Yayın, tam olarak seçilen adayın sürüm doğrulama kapılarına bağlıdır;
+[`v0.2.0 sürüm notlarına`](docs/RELEASE-NOTES-v0.2.0.md) bakın. Phase 5 güncellemeleri ON HOLD / Outcome B DEFER durumundadır.
 
 ## Neler yapabilir?
 
