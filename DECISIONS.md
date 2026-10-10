@@ -365,3 +365,24 @@ option. Phase 5 remains ON HOLD and releases remain unchanged.
 **Rejected alternative:** Accept arbitrary remote YAML/repo URLs, infer current IDs from the
 legacy registry, treat arbitrary associated Compose as native origin, or support every catalog
 class based on shared POST routing.
+
+## 2026-10-10 — Await native association evidence without exposing installed secrets
+
+**Decision:** Extend shared install preflight with an optional awaited association step before
+dry-run. Native installs use a bounded installed list (128) and sequential supported YAML reads,
+projected inside the typed client to validated canonical app/repository IDs only. Raw public
+Compose reads retain the credential-reflection guard; a secret in unrelated runtime configuration
+does not make identity evidence unreadable. Malformed/aliased/merged or unreadable association
+fails closed. Native IDs conflict across repository/name changes and use bounded process-local
+reservations alongside the shared install queue/name reservations.
+
+**Reason:** Association reads are asynchronous. A synchronous/unawaited hook cannot gate mutation.
+The MCP server itself can have credentials in interpolated Compose; returning only identity metadata
+preserves the security boundary without a raw-source bypass or blocking every store installation.
+An existing catalog association is not authorization to update or reinstall that application.
+
+**Rejected alternatives:** Restore the rejected child hook; bypass the public credential guard;
+guess origin from `store_app_id`; use a parallel weaker installer; release accepted/ambiguous native
+reservations merely because immediate readback is absent. Process-local protection is not upstream
+CAS, cross-replica coordination or durable retry recovery. Accepted/uncertain native reservations
+remain until restart (including after uninstall); safe recovery needs explicit state reconciliation.

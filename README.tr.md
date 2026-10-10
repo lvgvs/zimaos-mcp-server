@@ -35,6 +35,9 @@ değişikliği içeren sürüm kaynağı çıktılarından ayrıdır.
 Güncel geliştirme durumu için [`STATUS.md`](STATUS.md), onaylı kapsam ve güvenlik
 sınırları için [`PROJECT.md`](PROJECT.md) dosyasına bakın.
 
+**Henüz yayımlanmamış geliştirme:** yerel App Store kurulumu geliştirme kaynak kodunda
+uygulanmıştır; `v0.1.0` içinde yoktur. Phase 5 güncellemeleri ON HOLD / Outcome B DEFER durumundadır.
+
 ## Neler yapabilir?
 
 ### Salt okunur
@@ -55,6 +58,7 @@ Değişiklik yapan yetkiler birbirinden bağımsız ve varsayılan olarak kapal�
 | ------------------------------------- | -------------------------------------- | --------------------- | ---------- |
 | Geri döndürülebilir uygulama kontrolü | `start_app`, `stop_app`, `restart_app` | `ALLOW_APP_CONTROL`   | `false`    |
 | Compose kurulumu                      | `install_app_from_compose`             | `ALLOW_APP_INSTALL`   | `false`    |
+| Yerel App Store kurulumu              | `install_app_from_store`               | `ALLOW_APP_INSTALL`   | `false`    |
 | Uygulama kaldırma                     | `uninstall_app`                        | `ALLOW_APP_UNINSTALL` | `false`    |
 | Mevcut uygulama Compose düzenleme     | `edit_app_compose`                     | `ALLOW_APP_EDIT`      | `false`    |
 
@@ -130,7 +134,7 @@ Tam olarak sabit UAT/deployment için şablondaki geliştirme imajını yönetic
 | `ZIMAOS_PASSWORD`     | evet    | Bu ZimaOS hesabının parolası.                                         |
 | `MCP_AUTH_TOKEN`      | evet    | MCP istemcileri için Bearer token; en az 32 karakter, varsayılan yok. |
 | `ALLOW_APP_CONTROL`   | hayır   | Start/stop/restart işlemlerini açar; varsayılan `false`.              |
-| `ALLOW_APP_INSTALL`   | hayır   | Compose kurulumunu açar; varsayılan `false`.                          |
+| `ALLOW_APP_INSTALL`   | hayır   | Compose ve yerel App Store kurulumunu açar; varsayılan `false`.       |
 | `ALLOW_APP_UNINSTALL` | hayır   | Exact-id kaldırmayı açar; varsayılan `false`.                         |
 | `ALLOW_APP_EDIT`      | hayır   | Mevcut uygulama Compose düzenlemesini açar; varsayılan `false`.       |
 | `PORT`                | hayır   | Container iç HTTP portu; varsayılan `3000`.                           |
@@ -193,21 +197,59 @@ tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
 
 ## Araç referansı
 
-| Araç                                     | Değişiklik yapar mı? | Not                                                                           |
-| ---------------------------------------- | -------------------- | ----------------------------------------------------------------------------- |
-| `list_apps`                              | hayır                | Kurulu Compose uygulamalarını listeler.                                       |
-| `get_app`                                | hayır                | Tek uygulama için normalize edilmiş ayrıntılar.                               |
-| `get_app_health`                         | hayır                | ZimaOS'un sunduğu ölçüde uygulama/container sağlık bilgisi.                   |
-| `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.              |
-| `list_app_containers`                    | hayır                | Bir uygulamaya ait container/service bilgisi.                                 |
-| `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                  |
-| `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                    |
-| `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin. |
-| `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.        |
-| `start_app` / `stop_app` / `restart_app` | evet                 | `ALLOW_APP_CONTROL=true` gerekir.                                             |
-| `install_app_from_compose`               | evet                 | `ALLOW_APP_INSTALL=true` gerekir; riskli değişiklikler onay ister.            |
-| `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.    |
-| `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır. |
+| Araç                                     | Değişiklik yapar mı? | Not                                                                                         |
+| ---------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
+| `list_apps`                              | hayır                | Kurulu Compose uygulamalarını listeler.                                                     |
+| `get_app`                                | hayır                | Tek uygulama için normalize edilmiş ayrıntılar.                                             |
+| `get_app_health`                         | hayır                | ZimaOS'un sunduğu ölçüde uygulama/container sağlık bilgisi.                                 |
+| `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.                            |
+| `list_app_containers`                    | hayır                | Bir uygulamaya ait container/service bilgisi.                                               |
+| `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                                |
+| `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                                  |
+| `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin.               |
+| `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.                      |
+| `start_app` / `stop_app` / `restart_app` | evet                 | `ALLOW_APP_CONTROL=true` gerekir.                                                           |
+| `install_app_from_compose`               | evet                 | `ALLOW_APP_INSTALL=true` gerekir; riskli değişiklikler onay ister.                          |
+| `install_app_from_store`                 | evet                 | Aynı kurulum izni; yalnızca kayıtlı katalog kimlikleriyle kontrollü, tek denemelik kurulum. |
+| `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                  |
+| `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.               |
+
+## Yerel App Store kurulumu
+
+`install_app_from_store`, yalnızca iki zorunlu string alan kabul eder:
+
+```json
+{ "repo_id": "registered-repo-id", "app_id": "com.example.app" }
+```
+
+Host'un kayıtlı App Store deposu/kataloğundaki tam kimlikleri kullanın; görünen adları veya
+URL'leri değil. Depo kimlikleri 128, kanonik küçük harfli ters alan adı biçimindeki uygulama
+kimlikleri 192 karakterle sınırlıdır. Ek alanlar reddedilir. İstemci tarafından verilen Compose,
+depo/Compose URL'si, mimari override, sürüm, force, update veya downgrade seçeneği yoktur.
+Keşif veya depo yönetimi MCP aracı eklenmemiştir; kimlikleri normal App Store arayüzünden/kataloğundan alın.
+
+- Etkin kayıtlı **v2 HTTP depolarını**, **Compose sınıfındaki** girdileri ve sunucunun seçtiği
+  tam **amd64/arm64** Compose varyantlarını destekler. Desteklenmeyen sınıf, hatalı ayrıntı,
+  kimlik/mimari uyuşmazlığı veya kanonik olmayan yol fail-closed davranır; alternatif indirme yoktur.
+- Doğrulanmış `x-casaos.id` korunur; seçilen `x-casaos.repo_id` yalnızca yoksa eklenir.
+  Deterministik son baytlar analiz edilir, dry-run ile doğrulanır, riskliyse onaylanır ve değiştirilmeden
+  gönderilir. Store kökeni modern onayı atlamaz. `uncontrolled=false` ve port kontrolü içeride zorunludur;
+  `ALLOW_APP_INSTALL` açıldığında iki kurulum aracı da açılır.
+- Dry-run öncesinde desteklenen ilişkilendirme okumalarıyla en fazla 128 kurulu uygulama taranır.
+  Mevcut kanonik katalog kimliği, depo veya proje adından bağımsız olarak çakışır. Okunamayan, hatalı
+  veya belirsiz ilişkilendirme kanıtı ve sınırı aşan listeler kurulumu engeller; güncelleme başlatmaz.
+  İlişkilendirme okumaları içeride yalnızca kimlik metadata'sını sunar; kimlik bilgisi içeren ham Compose,
+  mevcut herkese açık okuma yolunda engellenmeye devam eder.
+- Compose kurulumu ile process-local sıralama/ad rezervasyonlarını paylaşır; yerel katalog kimliklerini
+  de rezerve eder. Kabul edilen veya belirsiz denemeler, kaldırma sonrasında da sunucu yeniden başlayana
+  kadar rezerve kalır; kesin ret rezervasyonları bırakır. Belirsiz sonuçtan sonra yeniden başlatmadan
+  önce gerçek host durumunu doğrulayın. Rezervasyonlar sınırlıdır ve sınır dolunca fail-closed davranır;
+  kalıcı veya process'ler arası kilit değildir ve harici aktör yarışlarını engelleyemez.
+- En fazla bir gerçek kurulum POST'u gönderir. `accepted`, asenkron kabul demektir; tamamlanma değildir.
+  Bir anlık liste okuması ve tam proje görünüyorsa en fazla bir container okuması ile bir sağlık probu,
+  `reconciliation: observed|pending|unknown` ve isteğe bağlı `appId`, `containerCount`, `health` üretir.
+  Görünürlük, çalışan container'lar veya sağlık durumu gözlemdir; işlemin bütünüyle tamamlandığını kanıtlamaz.
+  Bu araçta polling, değişiklik tekrar denemesi veya rollback yoktur.
 
 ## Önemli davranışlar ve sınırlamalar
 

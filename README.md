@@ -33,6 +33,9 @@ Runtime-UAT evidence is distinct from later documentation-only release-source ar
 For implementation state and engineering history, see [`STATUS.md`](STATUS.md). For
 approved scope and safety boundaries, see [`PROJECT.md`](PROJECT.md).
 
+**Unreleased development:** native App Store installation is implemented in the development
+source, not in `v0.1.0`. Phase 5 updates remain ON HOLD / Outcome B DEFER.
+
 ## What it can do
 
 ### Read-only
@@ -49,12 +52,13 @@ approved scope and safety boundaries, see [`PROJECT.md`](PROJECT.md).
 
 Mutating capabilities are separated behind independent, default-off permissions:
 
-| Capability                | MCP tools                              | Required flag         | Default |
-| ------------------------- | -------------------------------------- | --------------------- | ------- |
-| Reversible app control    | `start_app`, `stop_app`, `restart_app` | `ALLOW_APP_CONTROL`   | `false` |
-| Compose installation      | `install_app_from_compose`             | `ALLOW_APP_INSTALL`   | `false` |
-| App uninstall             | `uninstall_app`                        | `ALLOW_APP_UNINSTALL` | `false` |
-| Existing-app Compose edit | `edit_app_compose`                     | `ALLOW_APP_EDIT`      | `false` |
+| Capability                    | MCP tools                              | Required flag         | Default |
+| ----------------------------- | -------------------------------------- | --------------------- | ------- |
+| Reversible app control        | `start_app`, `stop_app`, `restart_app` | `ALLOW_APP_CONTROL`   | `false` |
+| Compose installation          | `install_app_from_compose`             | `ALLOW_APP_INSTALL`   | `false` |
+| Native App Store installation | `install_app_from_store`               | `ALLOW_APP_INSTALL`   | `false` |
+| App uninstall                 | `uninstall_app`                        | `ALLOW_APP_UNINSTALL` | `false` |
+| Existing-app Compose edit     | `edit_app_compose`                     | `ALLOW_APP_EDIT`      | `false` |
 
 Read-only tools do not inherit mutation authority from any of these flags.
 
@@ -127,7 +131,7 @@ For exact UAT/deployment, replace the template's development image with the mana
 | `ZIMAOS_PASSWORD`     | yes      | Password for that ZimaOS account.                                   |
 | `MCP_AUTH_TOKEN`      | yes      | Bearer token for MCP clients; minimum 32 characters, no default.    |
 | `ALLOW_APP_CONTROL`   | no       | Enable start/stop/restart; default `false`.                         |
-| `ALLOW_APP_INSTALL`   | no       | Enable Compose install; default `false`.                            |
+| `ALLOW_APP_INSTALL`   | no       | Enable Compose and native App Store install; default `false`.       |
 | `ALLOW_APP_UNINSTALL` | no       | Enable exact-id uninstall; default `false`.                         |
 | `ALLOW_APP_EDIT`      | no       | Enable existing-app Compose edits; default `false`.                 |
 | `PORT`                | no       | Internal HTTP port; default `3000`.                                 |
@@ -187,21 +191,60 @@ ZimaOS-side rate limiting.
 
 ## Tool reference
 
-| Tool                                     | Mutation? | Notes                                                                        |
-| ---------------------------------------- | --------- | ---------------------------------------------------------------------------- |
-| `list_apps`                              | no        | Lists installed Compose apps.                                                |
-| `get_app`                                | no        | Normalized details for one app.                                              |
-| `get_app_health`                         | no        | App/container health when exposed by ZimaOS.                                 |
-| `get_app_logs`                           | no        | Bounded recent logs; default 100 lines, max 500.                             |
-| `list_app_containers`                    | no        | Containers/services belonging to one app.                                    |
-| `get_system_info`                        | no        | Small normalized ZimaOS system summary.                                      |
-| `validate_app_compose`                   | no        | Local risk analysis + official ZimaOS dry run.                               |
-| `get_app_compose`                        | no        | Reads interpolated Compose + SHA-256 fingerprint. Treat output as sensitive. |
-| `validate_app_compose_change`            | no        | Validates a proposed change, including risk delta and stale-base checks.     |
-| `start_app` / `stop_app` / `restart_app` | yes       | Requires `ALLOW_APP_CONTROL=true`.                                           |
-| `install_app_from_compose`               | yes       | Requires `ALLOW_APP_INSTALL=true`; risky changes require approval.           |
-| `uninstall_app`                          | yes       | Requires `ALLOW_APP_UNINSTALL=true`; sends `delete_config_folder=false`.     |
-| `edit_app_compose`                       | yes       | Requires `ALLOW_APP_EDIT=true`; uses optimistic base-fingerprint checks.     |
+| Tool                                     | Mutation? | Notes                                                                                     |
+| ---------------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `list_apps`                              | no        | Lists installed Compose apps.                                                             |
+| `get_app`                                | no        | Normalized details for one app.                                                           |
+| `get_app_health`                         | no        | App/container health when exposed by ZimaOS.                                              |
+| `get_app_logs`                           | no        | Bounded recent logs; default 100 lines, max 500.                                          |
+| `list_app_containers`                    | no        | Containers/services belonging to one app.                                                 |
+| `get_system_info`                        | no        | Small normalized ZimaOS system summary.                                                   |
+| `validate_app_compose`                   | no        | Local risk analysis + official ZimaOS dry run.                                            |
+| `get_app_compose`                        | no        | Reads interpolated Compose + SHA-256 fingerprint. Treat output as sensitive.              |
+| `validate_app_compose_change`            | no        | Validates a proposed change, including risk delta and stale-base checks.                  |
+| `start_app` / `stop_app` / `restart_app` | yes       | Requires `ALLOW_APP_CONTROL=true`.                                                        |
+| `install_app_from_compose`               | yes       | Requires `ALLOW_APP_INSTALL=true`; risky changes require approval.                        |
+| `install_app_from_store`                 | yes       | Same install permission; registered catalog identities only, controlled one-shot install. |
+| `uninstall_app`                          | yes       | Requires `ALLOW_APP_UNINSTALL=true`; sends `delete_config_folder=false`.                  |
+| `edit_app_compose`                       | yes       | Requires `ALLOW_APP_EDIT=true`; uses optimistic base-fingerprint checks.                  |
+
+## Native App Store installation
+
+`install_app_from_store` accepts only two required string fields:
+
+```json
+{ "repo_id": "registered-repo-id", "app_id": "com.example.app" }
+```
+
+Use exact identifiers from the host's registered App Store repository/catalog, not display
+names or URLs. Repository IDs are bounded to 128 characters; canonical lower-case
+reverse-domain app IDs to 192. Additional fields are rejected. There is no caller-supplied
+Compose, repository/Compose URL, architecture override, version, force, update or downgrade option.
+No discovery or repository-management MCP tool is added; use the normal App Store UI/catalog
+to obtain identities.
+
+- Supports enabled registered **v2 HTTP repositories**, **Compose-class** entries and exact
+  server-selected **amd64/arm64** Compose variants. Unsupported classes, malformed detail,
+  mismatched identity/architecture or noncanonical paths fail closed; no download fallback.
+- Preserves verified `x-casaos.id` and adds the selected `x-casaos.repo_id` only when absent.
+  The deterministic final bytes are analyzed, dry-run validated, approved when risky and submitted
+  unchanged. Store origin does not bypass modern approval. `uncontrolled=false` and port checking
+  are enforced internally; enabling `ALLOW_APP_INSTALL` enables both installation tools.
+- Before dry-run, scans at most 128 installed apps through supported association reads. An existing
+  canonical catalog ID conflicts regardless of repository or project name. Unreadable, malformed
+  or ambiguous association evidence and excessive listings block installation, not trigger update.
+  Association reads expose only identity metadata internally; raw credential-bearing Compose
+  remains blocked by the existing public read path.
+- Shares process-local serialization/name reservations with Compose installation and reserves
+  native catalog IDs. Accepted or uncertain attempts remain reserved until server restart,
+  including after uninstall; definitive rejection releases reservations. Verify actual host state
+  before restarting after an uncertain result. Reservations are bounded and fail closed on exhaustion;
+  they are neither durable nor cross-process locks and cannot prevent external-actor races.
+- Sends at most one real install POST. `accepted` is asynchronous acceptance, never completion.
+  One immediate list read, plus at most one container read and one health probe if the exact
+  project is visible, yields `reconciliation: observed|pending|unknown` and optional `appId`,
+  `containerCount` and `health`. Visibility, running containers or health are observations, not
+  proof of overall completion. There is no polling, mutation retry or rollback in this tool.
 
 ## Important behavior and limitations
 

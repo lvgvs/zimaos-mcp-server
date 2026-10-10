@@ -2,24 +2,75 @@
 
 ## Phase 6 — Native App Store Installation
 
-**Current milestone:** manager-authorized research-first development (2026-10-10), independently
-of Phase 5. Branch `feat/app-store-install`, clean synchronized starting HEAD/main/origin-main
-`e9fa328c2ecd6e49eebc7741d66bdfbe5046e23f`;
-<https://github.com/lvgvs/zimaos-mcp-server>. PROJECT records the authorized bounded scope.
-No Phase 6 runtime implementation, live mutation, tests, commit/push or PR yet.
+**Current milestone:** parent-implemented native-store installation and disposable live UAT
+complete (2026-10-10); delivery is one protected-main OPEN, UNMERGED PR for manager review.
+Branch `feat/app-store-install`; <https://github.com/lvgvs/zimaos-mcp-server>.
+Reviewed preservation `fb1baed66910df288c61aa357769ef690aedb017` and its prior history remain intact.
+Tested runtime checkpoint: `5c08116b9140e476aa0dd8876b53c70ac0fae665`.
+The containing documentation commit/final delivery SHA, PR URL and exact-head CI/CodeQL results
+are authoritative in Git and the final PR handoff, not recursively embedded here. Base/main remains
+`e9fa328c2ecd6e49eebc7741d66bdfbe5046e23f`.
+
+**Implemented:** sole new tool `install_app_from_store({repo_id, app_id})`; strict two-string
+schema (128/192-character bounds), shared identity validation and no extra options. Enabled
+registered v2 HTTP/Compose-class/current server-selected amd64/arm64 only; configured host/proxy
+paths, no caller URLs, fallback or force/update/downgrade. Canonical final association bytes feed
+analysis, controlled dry-run, modern signed expiring single-use intent approval and one real POST.
+
+**Safety integration:** shared preflight awaits the installed-association scan before dry-run;
+generic installation remains unchanged. At most 128 installed identities, internal supported
+identity-only YAML projection with byte/time/encoding/redirect bounds; raw credential-bearing
+public Compose still rejects. Existing canonical ID conflicts across name/repo changes, and
+opaque/malformed/aliased/unreadable evidence fails closed. Both install surfaces share the queue
+and name reservations; native IDs also reserve until restart for accepted/uncertain attempts,
+including after uninstall. Definitive rejection releases reservations; bounded exhaustion denies.
+Default-off `ALLOW_APP_INSTALL` gates both install tools; no new permission or legacy approval bypass.
+
+**Mutation/readback:** explicit `dry_run=false&check_port_conflict=true&uncontrolled=false`,
+exact final source, no mutation retry. `accepted` is not completion. One immediate list, and at
+most one container read/health probe when the exact project is visible, reports observed/pending/
+unknown and optional observed app ID, container count and health. No polling or rollback guarantee.
+
+**Executed local gates:** 641 mocked tests in 35 files; formatting, lint, production TypeScript,
+strict test TypeScript, production build, Docker build (`zimaos-mcp-phase6:local`), canonical
+deployment Compose validation, whitespace and exact-secret/retained-fixture privacy checks passed.
+Tests cover adversarial resolution, awaited conflicts, generic/native serialization, disabled
+policy, risky exact-byte/selection binding, authenticated modern HTTP continuation, replay,
+cross-operation/legacy denial, one-shot uncertainty/rejection and bounded observations.
+
+**Live UAT:** separate benign current native fixture, exact controlled dry-run/install fingerprint,
+async acceptance with pending immediate reconciliation, later running-container observation,
+installed/catalog canonical association, existing MCP reads, duplicate denial without a second
+POST, supported uninstall and subsequent absence all passed. Initial scratch-harness envelope
+mistake caused cleanup without completion assessment; the user explicitly authorized one corrected
+new lifecycle after verified absence. Two isolated lifecycles total, one install and cleanup each,
+not an ambiguous retry. Preexisting IDs/status/health/association and retained-fixture Compose
+fingerprints were restored; the Phase 5 checkpoint is byte-identical. Fixture identity/version/
+image/port/VM details remain local-only. Risky cases and arm64 are mocked, not live-UAT claims.
 
 **Preserved Phase 5:** ON HOLD / Outcome B DEFER; its existing resume trigger and evidence remain
 unchanged. Retained native update fixtures must remain untouched and their identities/baselines
 local-only. No update implementation or update UAT is authorized.
 
-**Quota/delegation:** initial live active-account usage source `usage_api`: session 87% and weekly
-37% remaining; controlling gate NORMAL (above 15%). Qwen delegation is configured for the local
-worker; meaningful bounded API research is the first work package. Hermes owns decisive verification.
+**Quota/delegation:** this resumed continuation was parent-only, no Qwen/child/subagent use.
+Earlier accepted child work remains historical; rejected unfinished preflight work was not reused.
+Live `usage_api` checkpoints: integration 80% session / 27% weekly, pre-UAT 63% / 24%, corrected
+explicitly authorized UAT 61% / 24%, final documentation/PR preparation 56% / 23%, all NORMAL.
+No automatic reset, parent substitution or AGENTS edit occurred. Final quota is in the handoff.
 
-**Next:** verify native catalog identity, registered trust, architecture/association and one-shot
-install/readback contracts before fixing the tool schema. Stop on unsupported decisive evidence,
-a genuine manager decision or quota hard stop. Eventual delivery is one checked OPEN, UNMERGED PR;
-release/version/tag/stable/latest and existing release assets remain unchanged.
+**Release/deployment:** no Phase 6 GHCR publication or release authorization. Local production
+image and deployment Compose validate; existing public v0.1.0 remains unchanged and does not
+contain this unreleased tool. Read-only verification matched Release/asset/tag IDs, the asset's
+recorded SHA-256 and v0.1.0/stable/latest/release-source image digests against approved anchors.
+No version/configuration/deployment YAML changes or base-OS/fixture reconfiguration.
+
+**Limitations/blockers/manual action:** no implementation/UAT cleanup blocker. Registered v2 HTTP
+Compose/amd64-arm64 scope only; identities come from normal catalog/UI, no discovery tool.
+Reservations/approval are process-local and bounded, not durable/cross-replica/upstream CAS.
+Accepted/uncertain native reservations survive uninstall until restart; reconcile before recovery.
+No external-writer race, rollback or general storage-retention guarantee. Manager should review the
+checked final PR and these documented decisions; do not merge, publish, resume Phase 5 or start
+another phase under this authorization.
 
 The following Phase 5 correction is a historical delivery checkpoint, not current Phase 6 scope.
 

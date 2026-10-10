@@ -1471,9 +1471,11 @@ Unsupported/special/non-Compose classes fail clearly.
 ## Execution, acceptance and delivery
 
 Hermes/Sol owns architecture, decisive source verification, security, live UAT, Git/PR and paired
-English/Turkish README authorship. Meaningful bounded Qwen research/implementation/tests/review is
-required; children may not own Git, product policy, READMEs or AGENTS. Follow the permanent live
-parent quota guard at every substantial checkpoint; never bypass hard stop or switch parent.
+English/Turkish README authorship. Earlier bounded Qwen research/client/resolver work is preserved
+only as parent-reviewed history. The manager's resumed continuation is PARENT-ONLY: launch no
+Qwen or other child/subagent and do not restore the rejected unfinished preflight delta.
+Follow the permanent live parent quota guard at every substantial checkpoint; never bypass
+hard stop or switch parent. AGENTS must not be edited again.
 
 Acceptance requires verified selection/trust/architecture/association contracts; implemented
 minimal schema and tool if supportable; permission and elevated-risk approval enforcement;
@@ -1492,3 +1494,42 @@ with equivalent limitations/permissions/approval/trust claims and the existing U
 Deliver `feat/app-store-install` through protected-main PR with exact-head CI/CodeQL success and
 no unresolved conversations. Leave the PR OPEN and UNMERGED for manager review, then stop.
 No release/version/tag, v0.1.0 Release/Compose asset or stable/latest changes are authorized.
+
+## Implemented development contract and acceptance (2026-10-10)
+
+The sole new MCP tool is `install_app_from_store({repo_id, app_id})`: two required strings,
+128/192-character bounds respectively, strict rejection of extra fields, further shared identifier
+validation before catalog reads. No discovery tool is necessary for the approved explicit-identity
+surface. Only enabled registered v2 HTTP repositories, verified Compose-class entries and matching
+server-selected amd64/arm64 canonical Compose paths are supported. No caller URL, alternate source,
+version/architecture override, force/update/downgrade or uncontrolled option exists.
+
+The resolver remains read-only. Shared preflight deliberately awaits a bounded installed-association
+step before dry-run; ordinary Compose callers retain the original path. Internal supported YAML
+reads project only canonical IDs/repo metadata, without returning unrelated source/credentials.
+Raw credential-bearing public Compose reads still fail closed. Any installed canonical ID conflict
+blocks a native install regardless of project name/repository; malformed, aliased/merged, unreadable
+association or installed listings above 128 also block. Display-only nonassociated metadata is allowed.
+
+The exact final associated bytes feed analysis, explicit controlled dry-run, expiring modern signed
+single-use approval and real POST. Native approval additionally binds operation, selection, name,
+target, risk disclosure/policy and fixed request options; continuation re-resolves all current catalog
+evidence. Both install surfaces share process-local serialization/name reservations; native IDs are
+also reserved. Accepted/uncertain reservations persist until restart, even after uninstall; only
+definitive rejection releases them. Reservations cap at 4096 per set and fail closed on exhaustion.
+No durable/cross-process atomicity or external-writer race protection is claimed.
+
+One native POST uses `dry_run=false&check_port_conflict=true&uncontrolled=false`. Acceptance is never
+completion. Immediate observation is at most one list, one container read and one health probe when
+the exact project is visible: `reconciliation: observed|pending|unknown`, with optional observed
+`appId`, `containerCount`, `health`. No polling, compensating mutation or automatic mutation retry.
+
+Full local gates passed with 641 mocked tests in 35 files, production/test TypeScript, formatting,
+lint, production/Docker builds, deployment Compose validation and whitespace/secret/privacy checks.
+Separate benign live MCP UAT verified controlled exact-content install acceptance, later running
+containers, canonical installed/catalog association, reads, duplicate denial with no second mutation,
+and supported cleanup/absence. An initial UAT harness envelope mistake was cleaned up; the user
+explicitly authorized one corrected new lifecycle after verified absence. Each lifecycle sent one
+real install and one cleanup, not an ambiguous retry. Phase 5 baselines/checkpoint remained unchanged.
+Risky native approvals are covered with mocks/authenticated local HTTP, not dangerous live fixtures.
+Final exact-head PR checks and manager review remain the delivery gate; no merge/release is authorized.

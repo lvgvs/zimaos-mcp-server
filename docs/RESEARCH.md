@@ -1335,3 +1335,51 @@ intent binding, installed association/name conflicts, serialized reservation acr
 surfaces, controlled one-shot POST, bounded conservative completion observation, live disposable
 install/duplicate/cleanup UAT and full gates. No cross-process atomicity or rollback guarantee.
 Do not register extra stores or duplicate-install retained fixtures merely to probe collision rules.
+
+### Implemented contract and disposable live verification (2026-10-10)
+
+Parent-only continuation implemented the accepted resolution chain and strict identity-only MCP
+surface; no further child work or frontend/historical-MCP source inspection was used. Current
+official catalog metadata/build-output documentation and the attributed current-runtime observations
+above remain the sources for v3 selection/proxy semantics. No public v3 OpenAPI or binary-to-legacy
+implementation mapping is newly claimed.
+
+The previously pinned management OpenAPI specifies supported installed YAML retrieval at
+`GET /v2/app_management/compose/{id}` with `Accept: application/yaml`. Native preflight now scans
+at most 128 supported installed identities and projects only canonical `x-casaos.id` / `repo_id`
+inside the typed client, rejecting opaque, alias/merge-built, malformed or unreadable association.
+Unrelated interpolated credentials never enter the projection; credential-bearing public YAML reads
+still reject. Whole-body byte/time/encoding bounds and redirect rejection apply to both reads.
+Canonical ID conflicts block even when project/repository differs; no update semantics are inferred.
+
+Final associated bytes are deterministic, parsed/analyzed and sent unchanged to both native dry-run
+and real install. The fixed native request is
+`POST /v2/app_management/compose?dry_run=false&check_port_conflict=true&uncontrolled=false`,
+`Content-Type: application/yaml`; dry-run changes only `dry_run=true`. Modern approval binds exact
+UTF-8 content, operation, selection, intended name, target, fixed options and risk policy/disclosure,
+then re-resolves before consuming single-use state and sending one mutation. Generic installation
+and risky legacy fail-closed behavior remain independently regression-tested.
+
+Live authorized VM UAT used a separate benign current catalog fixture; identity/version/images/
+ports and detailed evidence remain local-only. No Phase 5 fixture was used or modified. One first
+install was accepted, but the scratch harness incorrectly treated the `list_apps` `{apps:[...]}`
+envelope as an array and therefore did not assess completion. It performed supported cleanup and
+verified absence/baseline restoration. The user explicitly authorized one fresh corrected lifecycle
+after that cleanup; this was not retrying an accepted/uncertain mutation.
+
+The corrected lifecycle verified registered repository/current architecture resolution, canonical
+final association, zero-traffic disabled permission, explicit controlled dry-run and one real native
+MCP install with byte fingerprints matching the final source. Immediate output was asynchronous
+acceptance with pending reconciliation. Separate bounded later MCP reads observed running containers,
+read installed canonical metadata, freshly resolved the catalog pair, exercised app/system/health/
+Compose/container reads and denied a duplicate without a second real POST. One supported uninstall
+used `delete_config_folder=false`; subsequent reads proved fixture absence and restored preexisting
+IDs/status/health/association/retained-fixture Compose fingerprints. The Phase 5 local checkpoint
+remained byte-identical. Neither running nor health alone proves an overall transaction guarantee.
+
+Each of the two explicitly authorized isolated lifecycles used one install POST and one uninstall;
+there was no mutation retry, force/update or dangerous elevated-risk live fixture. Elevated-risk,
+changed content/selection, replay, cross-operation and legacy cases passed mocked/local authenticated
+HTTP tests. Full mocked suite: 641 tests / 35 files; complete local build/type/lint/format/Docker/
+deployment-Compose/privacy/diff gates passed. Arm64 and unsupported/error neighborhoods are mocked;
+live execution verified the available amd64 VM only. No image/release publication is part of Phase 6.
