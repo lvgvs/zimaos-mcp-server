@@ -34,13 +34,32 @@ with `hermes usage --json` (or the available equivalent). Check:
 7. before PR finalization or merge/release-sensitive work;
 8. whenever a step consumed materially more parent work than expected.
 
-Let REMAINING be the lowest remaining percentage across relevant active Codex quota windows:
+Evaluate relevant active Codex quota windows independently; do not use their minimum percentage
+as a shared threshold input. Define SESSION_REMAINING and WEEKLY_REMAINING from their respective
+windows. If additional provider windows appear and their meaning is unclear, fail closed rather
+than guessing.
 
-- **Above 15%:** continue normally.
-- **Above 10% through 15% — CAUTION:** prefer finishing the current bounded atomic step;
+Session window:
+
+- **Above 15% — NORMAL.**
+- **Above 10% through 15% — CAUTION.**
+- **10% or below — HARD STOP.**
+
+Weekly window:
+
+- **Above 5% — NORMAL.**
+- **Exactly 5% — CAUTION.**
+- **Below 5% — HARD STOP.**
+
+Overall parent state is the most restrictive independently evaluated state: HARD STOP if either
+window is HARD STOP; otherwise CAUTION if either window is CAUTION; otherwise NORMAL. Do not apply
+the session 15% / 10% thresholds to the weekly window.
+
+- **NORMAL:** continue normally.
+- **CAUTION:** prefer finishing the current bounded atomic step;
   avoid unnecessary large parent packages and broad children requiring substantial later review.
   Recheck usage at the next safe checkpoint.
-- **10% or below — HARD STOP:** no new substantive parent work: architecture/product decisions,
+- **HARD STOP:** no new substantive parent work: architecture/product decisions,
   implementation, live mutation/UAT, child launches, or large review/documentation passes.
   Do not try to finish quickly. Only perform minimum mechanical actions needed to avoid unsafe
   half-written files, interrupted mutations or corrupted state; preserve a resumable checkpoint
