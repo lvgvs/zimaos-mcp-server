@@ -24,13 +24,15 @@ export interface FakeReadClient {
   calls: CallName[];
 }
 
-function makeFakeClient(opts: {
-  repos?: unknown;
-  arch?: string;
-  detail?: unknown;
-  compose?: string;
-  fail?: Partial<Record<CallName, AppError>>;
-} = {}): FakeReadClient {
+function makeFakeClient(
+  opts: {
+    repos?: unknown;
+    arch?: string;
+    detail?: unknown;
+    compose?: string;
+    fail?: Partial<Record<CallName, AppError>>;
+  } = {},
+): FakeReadClient {
   const calls: CallName[] = [];
   const next = (name: CallName): void => {
     calls.push(name);
@@ -138,7 +140,10 @@ const reposPayload = (): unknown[] => [
   repoEntry({ id: "other", enabled: false, version: "v2", transport: "http" }),
 ];
 
-const detailPayload = (arch: string, overrides: Record<string, unknown> = {}): unknown => {
+const detailPayload = (
+  arch: string,
+  overrides: Record<string, unknown> = {},
+): unknown => {
   const path = `/apps/${SEL.appId}/docker-compose.${arch}.yml`;
   return {
     id: SEL.appId,
@@ -181,6 +186,37 @@ const expectedDetail = (arch: string): StoreDetail => ({
 // ---------------------------------------------------------------------------
 
 describe("resolveStoreCompose — happy resolution (amd64/arm64)", () => {
+  it("passes the exact selection and verified detail, ignoring external catalog URLs", async () => {
+    const client = makeFakeClient({ repos: reposPayload(), compose: composeSource() });
+    client.getStoreAppDetail = (selection) => {
+      client.calls.push("detail");
+      expect(selection).toEqual(SEL);
+      const detail = detailPayload("amd64") as Record<string, unknown>;
+      (detail.source as Record<string, unknown>).compose_url =
+        "https://untrusted.example/compose.yml";
+      return Promise.resolve(detail);
+    };
+    client.getStoreCompose = (detail) => {
+      client.calls.push("compose");
+      expect(detail).toEqual(expectedDetail("amd64"));
+      expect(detail).not.toHaveProperty("compose_url");
+      return Promise.resolve(composeSource());
+    };
+    const first = await resolveStoreCompose(client, SEL);
+    const second = await resolveStoreCompose(client, SEL);
+    expect(first).toEqual(second);
+    expect(first.source).not.toContain("untrusted.example");
+    expect(client.calls).toEqual([
+      "repos",
+      "arch",
+      "detail",
+      "compose",
+      "repos",
+      "arch",
+      "detail",
+      "compose",
+    ]);
+  });
   it("resolves an amd64 item: one read per step, authoritative source adds repo_id", async () => {
     const client = makeFakeClient({
       repos: reposPayload(),
@@ -241,6 +277,13 @@ describe("resolveStoreCompose — happy resolution (amd64/arm64)", () => {
 // ---------------------------------------------------------------------------
 
 describe("resolveStoreCompose — repository gate before architecture/detail/compose", () => {
+  it("fails closed on ambiguous registered repository identities", async () => {
+    const client = makeFakeClient({
+      repos: [repoEntry(), repoEntry({ id: "COMMUNITY" })],
+    });
+    await expectAppError(resolveStoreCompose(client, SEL), "ZIMAOS_UPSTREAM_ERROR");
+    expect(client.calls).toEqual(["repos"]);
+  });
   it("rejects an unknown repository with ZIMAOS_BAD_REQUEST and performs no further reads", async () => {
     const client = makeFakeClient({
       repos: reposPayload(),
@@ -273,7 +316,7 @@ describe("resolveStoreCompose — repository gate before architecture/detail/com
     }
   });
 
-  it("rejects a malformed registry with ZIMAOS_UPSTREAM_ERROR and performs no further reads", async () {
+  it("rejects a malformed registry with ZIMAOS_UPSTREAM_ERROR and performs no further reads", async () => {
     for (const repos of [null, {}, "junk", [{ enabled: true }]]) {
       const client = makeFakeClient({
         repos,
@@ -292,6 +335,29 @@ describe("resolveStoreCompose — repository gate before architecture/detail/com
 // ---------------------------------------------------------------------------
 
 describe("resolveStoreCompose — detail gate before Compose fetch", () => {
+  it("propagates app-not-found without fallback or Compose reads", async () => {
+    const client = makeFakeClient({
+      repos: reposPayload(),
+      fail: {
+        detail: new AppError("ZIMAOS_NOT_FOUND", "The requested resource was not found."),
+      },
+    });
+    await expectAppError(resolveStoreCompose(client, SEL), "ZIMAOS_NOT_FOUND");
+    expect(client.calls).toEqual(["repos", "arch", "detail"]);
+  });
+
+  it("rejects missing, malformed and architecture-mismatched detail without fallback", async () => {
+    for (const detail of [
+      null,
+      {},
+      detailPayload("arm64"),
+      detailPayload("amd64", { source: {} }),
+    ]) {
+      const client = makeFakeClient({ repos: reposPayload(), detail });
+      await expectAppError(resolveStoreCompose(client, SEL), "ZIMAOS_UPSTREAM_ERROR");
+      expect(client.calls).toEqual(["repos", "arch", "detail"]);
+    }
+  });
   it("rejects an unsupported current architecture with ZIMAOS_BAD_REQUEST and performs no Compose read", async () => {
     const client = makeFakeClient({
       repos: reposPayload(),
@@ -301,7 +367,7 @@ describe("resolveStoreCompose — detail gate before Compose fetch", () => {
     });
 
     await expectAppError(resolveStoreCompose(client, SEL), "ZIMAOS_BAD_REQUEST");
-    expect(client.calls).toEqual(["repos", "arch"]);
+    expect(client.calls).toEqual(["repos", "arch", "detail"]);
   });
 
   it("rejects a non-compose class with ZIMAOS_BAD_REQUEST and performs no Compose read", async () => {
@@ -351,7 +417,7 @@ describe("resolveStoreCompose — Compose association and upstream failures", ()
     for (const step of ["repos", "arch", "detail", "compose"] as const) {
       const failure = new AppError(
         "ZIMAOS_UPSTREAM_ERROR",
-        "Upstream failure with secret-token-abc",
+        "ZimaOS reported the operation failed.",
       );
       const client = makeFakeClient({
         repos: reposPayload(),
@@ -361,7 +427,10 @@ describe("resolveStoreCompose — Compose association and upstream failures", ()
         fail: { [step]: failure },
       });
 
-      const err = await expectAppError(resolveStoreCompose(client, SEL), "ZIMAOS_UPSTREAM_ERROR");
+      const err = await expectAppError(
+        resolveStoreCompose(client, SEL),
+        "ZIMAOS_UPSTREAM_ERROR",
+      );
       expect(err).toBe(failure);
       expect(err.message).not.toContain("secret-token");
     }
