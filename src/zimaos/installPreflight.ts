@@ -73,9 +73,12 @@ export interface InstallPreflightResult {
  */
 export async function preflightInstall(
   source: string,
-  apps: AppService,
+  apps: Pick<AppService, "listApps" | "validateCompose">,
   permissions: PermissionLayer,
   assertAvailable?: (name: string) => void,
+  assertAssociationAvailable?: (
+    apps: Awaited<ReturnType<AppService["listApps"]>>,
+  ) => Promise<void>,
 ): Promise<InstallPreflightResult> {
   // Permission first: with the default-off policy this throws before any
   // upstream traffic (zero list reads, zero dry runs).
@@ -96,6 +99,8 @@ export async function preflightInstall(
   // The install service may also check its process-local reservation after
   // the fresh host list read and before any upstream dry run.
   assertAvailable?.(name);
+  // Await supported association reads before dry-run or later mutation.
+  await assertAssociationAvailable?.(existingApps);
 
   // Exactly one dry run (inside validateCompose): parse + analyze + dry-run.
   const validation = await apps.validateCompose(source);

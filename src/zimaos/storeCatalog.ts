@@ -63,6 +63,46 @@ export interface AssociatedCompose {
   readonly name: string;
 }
 
+/** Internal association projection; never carries source or other metadata. */
+export interface InstalledStoreAssociation {
+  appId?: string;
+  repoId?: string;
+}
+
+export function readInstalledStoreAssociation(source: string): InstalledStoreAssociation {
+  try {
+    const parsed = parseCompose(source);
+    if (!parsed.document.has("x-casaos")) return {};
+    const metadata = parsed.document.get("x-casaos");
+    const node = parseDocument(source, { merge: false }).get("x-casaos", true);
+    if (!(metadata instanceof Map) || !isMap(node) || node.anchor || node.has("<<"))
+      throw new Error("ambiguous");
+    for (const key of ["id", "repo_id"]) {
+      if (!node.has(key)) continue;
+      const value = node.get(key, true);
+      if (!isScalar(value) || value.anchor || typeof value.value !== "string")
+        throw new Error("ambiguous");
+    }
+    if (!metadata.has("id")) {
+      if (metadata.has("repo_id")) throw new Error("ambiguous");
+      return {};
+    }
+    assertStoreSelection({
+      repoId: metadata.get("repo_id") ?? "installed",
+      appId: metadata.get("id"),
+    });
+    return {
+      appId: metadata.get("id"),
+      ...(metadata.has("repo_id") ? { repoId: metadata.get("repo_id") } : {}),
+    };
+  } catch {
+    throw new AppError(
+      "ZIMAOS_UPSTREAM_ERROR",
+      "Installed association could not be verified safely.",
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Fixed, sanitized messages (no input reflection)
 // ---------------------------------------------------------------------------

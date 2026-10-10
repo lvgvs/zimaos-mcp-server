@@ -6,7 +6,10 @@
  * never leak past this layer (AGENTS.md).
  */
 
-import { AppError } from "../errors.js";
+import { AppError, isRecord } from "../errors.js";
+import { resolveStoreCompose } from "./storeResolver.js";
+import { assertStoreSelection, type StoreSelection } from "./storeCatalog.js";
+
 import type {
   HealthProbeResult,
   ZimaOsClient,
@@ -22,10 +25,13 @@ import type { PendingEditPayload } from "../approval/requestState.js";
 import type { ChallengeLedger } from "../approval/challengeLedger.js";
 import {
   assertPendingInstallIntentsMatch,
+  assertStoreInstallIntentsMatch,
   sourceFingerprint,
 } from "../approval/intent.js";
 import {
   parsePendingInstallPayload,
+  parsePendingStoreInstallPayload,
+  type PendingStoreInstallPayload,
   type PendingInstallPayload,
 } from "../approval/requestState.js";
 import {
@@ -99,6 +105,23 @@ const MAX_RESERVED_INSTALL_NAMES = 4096;
 
 /** Lower-cased normalized names with an in-flight or accepted install. */
 const reservedInstallNames = new Set<string>();
+const reservedNativeAppIds = new Set<string>();
+
+type StoreInstallResult =
+  | {
+      status: "confirmation_required";
+      source: string;
+      name: string;
+      findings: RiskFinding[];
+    }
+  | {
+      status: "accepted" | "rejected" | "upstream_error";
+      accepted: boolean;
+      reconciliation?: "observed" | "pending" | "unknown";
+      appId?: string;
+      health?: HealthProbeResult["state"];
+      containerCount?: number;
+    };
 
 /** Fixed sanitized message: the name is already reserved by another request. */
 const RESERVED_NAME_MESSAGE =
@@ -367,7 +390,7 @@ export class AppService {
    * rejected / ambiguous upstream failure) are returned as data. Client
    * transport/auth failures propagate as their AppErrors. No name is required.
    */
-  async validateCompose(source: string): Promise<ValidateComposeResult> {
+  async validateCompose(source: string, native = false): Promise<ValidateComposeResult> {
     let parsed;
     try {
       parsed = parseCompose(source);
@@ -390,7 +413,9 @@ export class AppService {
     }
 
     // The exact original source reaches the dry run unchanged.
-    const validation = await this.client.validateCompose(source);
+    const validation = native
+      ? await this.client.validateNativeStoreCompose(source)
+      : await this.client.validateCompose(source);
     return { ...validation, findings };
   }
 
@@ -452,6 +477,169 @@ export class AppService {
       // Ready: reserve after all read-only checks and before the real POST.
       return this.attemptInstallOnce(source, preflight.name);
     });
+  }
+
+  /** Only explicit catalog identities enter; final source stays internal. */
+  async installStoreApp(
+    selection: StoreSelection,
+    permissions: PermissionLayer,
+  ): Promise<StoreInstallResult> {
+    return runInstallExclusive(() => this.installStoreLocked(selection, permissions));
+  }
+
+  async installApprovedStoreApp(
+    selection: StoreSelection,
+    permissions: PermissionLayer,
+    state: PendingStoreInstallPayload,
+    target: string,
+    principal: string,
+    ledger: ChallengeLedger,
+  ): Promise<StoreInstallResult> {
+    return runInstallExclusive(() =>
+      this.installStoreLocked(selection, permissions, {
+        state,
+        target,
+        principal,
+        ledger,
+      }),
+    );
+  }
+
+  private async installStoreLocked(
+    selection: StoreSelection,
+    permissions: PermissionLayer,
+    approval?: {
+      state: PendingStoreInstallPayload;
+      target: string;
+      principal: string;
+      ledger: ChallengeLedger;
+    },
+  ): Promise<StoreInstallResult> {
+    permissions.assertCanInstall("install_app_from_store");
+    assertStoreSelection(selection);
+    const state = approval ? parsePendingStoreInstallPayload(approval.state) : undefined;
+    if (reservedNativeAppIds.has(selection.appId)) {
+      throw new AppError(
+        "ZIMAOS_BAD_REQUEST",
+        "An install for this catalog identity was already attempted.",
+      );
+    }
+    const resolved = await resolveStoreCompose(this.client, selection);
+    const preflight = await preflightInstall(
+      resolved.source,
+      {
+        listApps: () => this.listNativeInstalledApps(),
+        validateCompose: (source) => this.validateCompose(source, true),
+      },
+      permissions,
+      assertInstallNameAvailable,
+      (apps) => this.assertNativeAssociationAvailable(apps, selection),
+    );
+    if (state && approval) {
+      if (preflight.status !== "confirmation_required") {
+        throw new AppError(
+          "INPUT_INVALID",
+          "The approved risk disclosure is no longer applicable.",
+        );
+      }
+      assertStoreInstallIntentsMatch(state, {
+        source: resolved.source,
+        name: preflight.name,
+        findings: preflight.findings,
+        selection,
+        target: approval.target,
+      });
+      approval.ledger.consume(state.challengeId, {
+        tool: state.tool,
+        contentFingerprint: state.contentSha256,
+        principal: approval.principal,
+      });
+    } else if (preflight.status === "confirmation_required") {
+      return {
+        status: "confirmation_required",
+        source: resolved.source,
+        name: preflight.name,
+        findings: preflight.findings,
+      };
+    }
+    const install = await this.attemptInstallOnce(
+      resolved.source,
+      preflight.name,
+      selection.appId,
+    );
+    if (install.status !== "accepted") return install;
+    return { ...install, ...(await this.observeNativeInstall(preflight.name)) };
+  }
+
+  private async listNativeInstalledApps(): Promise<AppInfo[]> {
+    const data = await this.client.listComposeApps();
+    if (
+      !isRecord(data) ||
+      Object.keys(data).length > 128 ||
+      Object.entries(data).some(
+        ([id, entry]) => !SAFE_APP_ID.test(id) || !isRecord(entry),
+      )
+    ) {
+      throw new AppError(
+        "ZIMAOS_UPSTREAM_ERROR",
+        "Installed identities could not be verified safely.",
+      );
+    }
+    return normalizeAppList(data);
+  }
+
+  private async assertNativeAssociationAvailable(
+    apps: AppInfo[],
+    selection: StoreSelection,
+  ): Promise<void> {
+    for (const app of apps) {
+      let association;
+      try {
+        association = await this.client.getComposeAppAssociation(app.id);
+      } catch {
+        throw new AppError(
+          "ZIMAOS_UPSTREAM_ERROR",
+          "Installed associations could not be verified safely.",
+        );
+      }
+      if (association.appId === selection.appId) {
+        throw new AppError(
+          "ZIMAOS_BAD_REQUEST",
+          "This catalog application is already associated with an installed app.",
+        );
+      }
+    }
+  }
+
+  private async observeNativeInstall(name: string): Promise<{
+    reconciliation: "observed" | "pending" | "unknown";
+    appId?: string;
+    health?: HealthProbeResult["state"];
+    containerCount?: number;
+  }> {
+    try {
+      const apps = await this.listNativeInstalledApps();
+      if (!apps.some((app) => app.id === name)) return { reconciliation: "pending" };
+      const result: {
+        reconciliation: "observed";
+        appId: string;
+        health?: HealthProbeResult["state"];
+        containerCount?: number;
+      } = { reconciliation: "observed", appId: name };
+      try {
+        result.containerCount = (await this.listContainers(name)).length;
+      } catch {
+        /* observation only */
+      }
+      try {
+        result.health = (await this.client.probeComposeAppHealth(name)).state;
+      } catch {
+        /* observation only */
+      }
+      return result;
+    } catch {
+      return { reconciliation: "unknown" };
+    }
   }
 
   /**
@@ -517,12 +705,29 @@ export class AppService {
   private async attemptInstallOnce(
     source: string,
     name: string,
+    nativeAppId?: string,
   ): Promise<Exclude<InstallSafeResult, { status: "confirmation_required" }>> {
+    if (nativeAppId !== undefined) {
+      if (reservedNativeAppIds.has(nativeAppId)) {
+        throw new AppError(
+          "ZIMAOS_BAD_REQUEST",
+          "An install for this catalog identity was already attempted.",
+        );
+      }
+      if (reservedNativeAppIds.size >= MAX_RESERVED_INSTALL_NAMES) {
+        throw new AppError("INTERNAL", "Catalog install reservations are exhausted.");
+      }
+    }
     reserveInstallName(name);
-    const install = await this.client.installComposeOnce(source);
+    if (nativeAppId !== undefined) reservedNativeAppIds.add(nativeAppId);
+    const install =
+      nativeAppId === undefined
+        ? await this.client.installComposeOnce(source)
+        : await this.client.installNativeStoreComposeOnce(source);
     if (install.status === "rejected") {
       // Definitive rejection only: an accepted or ambiguous attempt may land.
       releaseInstallName(name);
+      if (nativeAppId !== undefined) reservedNativeAppIds.delete(nativeAppId);
     }
     return { status: install.status, accepted: install.accepted };
   }

@@ -68,9 +68,7 @@ export async function resolveStoreCompose(
 ): Promise<ResolvedStoreCompose> {
   assertStoreSelection(selection);
 
-  const repositories = normalizeStoreRepositories(
-    await client.getStoreRepositories(),
-  );
+  const repositories = normalizeStoreRepositories(await client.getStoreRepositories());
   if (!repositories.some((repository) => repository.id === selection.repoId)) {
     throw new AppError("ZIMAOS_BAD_REQUEST", UNSUPPORTED_ITEM_MESSAGE);
   }

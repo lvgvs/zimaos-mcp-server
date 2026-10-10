@@ -15,8 +15,12 @@
  */
 
 import { AppError, fromHttpStatus, isRecord } from "../errors.js";
-import { assertStoreSelection } from "./storeCatalog.js";
-import type { StoreDetail, StoreSelection } from "./storeCatalog.js";
+import { assertStoreSelection, readInstalledStoreAssociation } from "./storeCatalog.js";
+import type {
+  StoreDetail,
+  StoreSelection,
+  InstalledStoreAssociation,
+} from "./storeCatalog.js";
 
 /** Bounded native read options for authenticated catalog GETs (Phase 6 slice). */
 interface NativeReadOptions {
@@ -231,20 +235,35 @@ export class ZimaOsClient {
 
   /** Read the official interpolated YAML representation (not raw stored source). */
   async getComposeAppYaml(id: string): Promise<string> {
+    return this.readComposeProjection(id, (source) => source);
+  }
+
+  /** Internal identity-only read; unrelated interpolated secrets never leave transport. */
+  async getComposeAppAssociation(id: string): Promise<InstalledStoreAssociation> {
+    return this.readComposeProjection(id, readInstalledStoreAssociation);
+  }
+
+  private async readComposeProjection<T>(
+    id: string,
+    project: (source: string) => T,
+  ): Promise<T> {
     if (this.accessToken === null) await this.login();
     try {
-      return await this.readComposeYamlOnce(id);
+      return await this.readComposeYamlOnce(id, project);
     } catch (err) {
       if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
         this.invalidateSession();
         await this.login();
-        return await this.readComposeYamlOnce(id);
+        return await this.readComposeYamlOnce(id, project);
       }
       throw err;
     }
   }
 
-  private async readComposeYamlOnce(id: string): Promise<string> {
+  private async readComposeYamlOnce<T>(
+    id: string,
+    project: (source: string) => T,
+  ): Promise<T> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
@@ -257,52 +276,32 @@ export class ZimaOsClient {
             Authorization: `Bearer ${this.accessToken}`,
           },
           signal: controller.signal,
+          redirect: "error",
         },
       );
-      if (!response.ok) throw fromHttpStatus(response.status);
       // The returned YAML may contain interpolated secrets. Read within a hard
       // bound; neither error bodies nor the YAML are ever included in errors.
-      if (Number(response.headers.get("content-length")) > 512 * 1024) {
-        throw new AppError(
-          "ZIMAOS_UPSTREAM_ERROR",
-          "Compose response exceeds size limit.",
-        );
-      }
-      const reader = response.body?.getReader();
-      if (!reader) throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Empty Compose response.");
-      const chunks: Uint8Array[] = [];
-      let bytes = 0;
-      while (true) {
-        const part = await reader.read();
-        if (part.done) break;
-        bytes += part.value.byteLength;
-        if (bytes > 512 * 1024) {
-          await reader.cancel();
-          throw new AppError(
-            "ZIMAOS_UPSTREAM_ERROR",
-            "Compose response exceeds size limit.",
-          );
-        }
-        chunks.push(part.value);
-      }
-      if (bytes === 0)
-        throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Empty Compose response.");
-      let source: string;
-      try {
-        source = new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks));
-      } catch {
-        throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Invalid Compose response encoding.");
-      }
+      const source = await this.readBoundedBody(
+        response,
+        { kind: "text", limitBytes: MAX_STORE_YAML_BYTES },
+        controller.signal,
+        this.timeoutMs,
+      );
+      if (source instanceof Error) throw source;
+      if (typeof source !== "string")
+        throw new AppError("ZIMAOS_UPSTREAM_ERROR", "Invalid Compose response.");
+      const value = project(source);
+      const exposed = typeof value === "string" ? value : JSON.stringify(value);
       if (
-        source.includes(this.password) ||
-        (this.accessToken !== null && source.includes(this.accessToken))
+        exposed.includes(this.password) ||
+        (this.accessToken !== null && exposed.includes(this.accessToken))
       ) {
         throw new AppError(
           "ZIMAOS_UPSTREAM_ERROR",
           "Compose contains ZimaOS credentials.",
         );
       }
-      return source;
+      return value;
     } catch (err) {
       if (err instanceof AppError) throw err;
       if (err instanceof Error && err.name === "AbortError") {
