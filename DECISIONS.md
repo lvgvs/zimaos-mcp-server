@@ -342,3 +342,26 @@ authorize overriding a user's image pin. Details and reopening evidence are in `
 or infer current binary semantics and storage preservation from legacy implementation. Reopen
 with version-applicable upstream contract/mapping and a supported genuine disposable transition;
 neither empty update discovery nor a fixture-specific catalog 404 alone decides support.
+
+## 2026-10-10 — Native-store resolution stays inside registered v2 catalog APIs
+
+**Decision:** Phase 6 initially resolves explicit canonical app/repository ID pairs through the
+configured ZimaOS origin, enabled registered v2 HTTP repositories, native detail and app-scoped
+selected Compose proxy paths. Support only verified Compose-class entries with compatible
+server-selected architecture metadata. Reject unverified legacy/special classes, mismatched
+identity/association, unsupported paths and external-download fallbacks. Canonical `x-casaos.id`
+comes from catalog Compose; add the verified selected repo association internally when absent.
+
+**Reason:** Current read-only UI/API observation supplies registered IDs and architecture-selected
+paths; legacy numeric registry IDs and caller URLs do not establish the current trust boundary.
+Display names and mutable association alone cannot prove native origin. Restricting to verified
+protocol/classes avoids speculative compatibility while preserving the supported API architecture.
+
+**Safety:** Reuse default-off `ALLOW_APP_INSTALL` and existing exact-final-content risk analysis,
+dry-run, modern single-use approval, install serialization/reservations and one mutation attempt.
+Store provenance grants no risk bypass. Explicit controlled install is internal, never a caller
+option. Phase 5 remains ON HOLD and releases remain unchanged.
+
+**Rejected alternative:** Accept arbitrary remote YAML/repo URLs, infer current IDs from the
+legacy registry, treat arbitrary associated Compose as native origin, or support every catalog
+class based on shared POST routing.

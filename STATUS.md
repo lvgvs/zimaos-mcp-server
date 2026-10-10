@@ -1,6 +1,29 @@
 # Status
 
-## Phase 5 — ON HOLD / Outcome B defer update_app
+## Phase 6 — Native App Store Installation
+
+**Current milestone:** manager-authorized research-first development (2026-10-10), independently
+of Phase 5. Branch `feat/app-store-install`, clean synchronized starting HEAD/main/origin-main
+`e9fa328c2ecd6e49eebc7741d66bdfbe5046e23f`;
+<https://github.com/lvgvs/zimaos-mcp-server>. PROJECT records the authorized bounded scope.
+No Phase 6 runtime implementation, live mutation, tests, commit/push or PR yet.
+
+**Preserved Phase 5:** ON HOLD / Outcome B DEFER; its existing resume trigger and evidence remain
+unchanged. Retained native update fixtures must remain untouched and their identities/baselines
+local-only. No update implementation or update UAT is authorized.
+
+**Quota/delegation:** initial live active-account usage source `usage_api`: session 87% and weekly
+37% remaining; controlling gate NORMAL (above 15%). Qwen delegation is configured for the local
+worker; meaningful bounded API research is the first work package. Hermes owns decisive verification.
+
+**Next:** verify native catalog identity, registered trust, architecture/association and one-shot
+install/readback contracts before fixing the tool schema. Stop on unsupported decisive evidence,
+a genuine manager decision or quota hard stop. Eventual delivery is one checked OPEN, UNMERGED PR;
+release/version/tag/stable/latest and existing release assets remain unchanged.
+
+The following Phase 5 correction is a historical delivery checkpoint, not current Phase 6 scope.
+
+## Historical Phase 5 — ON HOLD lifecycle correction
 
 **Current milestone:** Phase 5 remains the active update phase, ON HOLD, not closed or completed.
 Outcome B is the current implementation decision: defer `update_app` until the remaining native

@@ -1369,7 +1369,7 @@ for manager review. Do not modify AGENTS.md in ordinary Phase 5 work; the alread
 separately manager-authorized one-time parent-model quota guard is the sole exception included
 in PR #24. No further AGENTS.md edits are authorized without new explicit manager
 instruction. Do not publish a version, change the immutable v0.1.0
-tag/source/Release/aliases/Compose asset, or begin another phase.
+tag/source/Release/aliases/Compose asset, or begin another phase automatically.
 
 ## Current state — ON HOLD / Outcome B defer update_app
 
@@ -1416,5 +1416,79 @@ The earlier temporary native fixtures were removed through the supported uninsta
 authorized long-lived genuine native fixtures, which are intentionally retained rather than
 cleaned up. PR #24 was squash-merged at `8cd3c2e87638716deea9c178450695ebca6f251a`; it did not
 complete Phase 5. Detailed preserved evidence and remaining verification requirements are in
-`docs/RESEARCH.md`. No update UAT, store-installer implementation or later phase starts while
-waiting for the resume trigger.
+`docs/RESEARCH.md`. No update UAT starts while waiting for the resume trigger. No later phase
+starts automatically. Phase 6 Native App Store Installation was separately manager-authorized
+on 2026-10-10; it proceeds independently and does not resume Phase 5.
+
+# Phase 6 — Native App Store Installation
+
+## Objective and authorization (2026-10-10)
+
+Implement the smallest production-shaped `install_app_from_store` capability through supported
+ZimaOS APIs, conditional on verified native-store selection and installation semantics. Start
+from `e9fa328c2ecd6e49eebc7741d66bdfbe5046e23f`. Phase 5 remains ON HOLD / Outcome B DEFER;
+its resume trigger, evidence and safety boundaries are unchanged. Do not implement `update_app`,
+perform update UAT or disturb its retained native fixtures. Current fixture identities and
+VM-specific baselines remain local-only, including any separate disposable Phase 6 UAT fixture.
+
+## Architecture and research requirements
+
+Preserve the authenticated MCP → permission/safety → typed API abstraction → supported ZimaOS
+API architecture. Reuse existing provisioning, Compose analysis, dry-run, approval, serialization,
+reservation and normalized-error machinery rather than creating a parallel installer.
+
+Before fixing the public schema, verify current catalog discovery/detail, stable app/repository
+identity, duplicate/ambiguous selection, registered repository trust, running-system architecture,
+architecture-specific current/default Compose selection, supported Compose app classes and canonical
+association metadata. Verify exact dry-run/real-install queries, body/content type, response/error
+envelopes, port conflicts, duplicate detection and bounded completion observation. Distinguish
+official/public evidence, live observations, decisions and unsupported assumptions in RESEARCH.
+Stop if decisive trust, identity, association or supported contract evidence remains unresolved.
+
+Use only permitted clean-room sources and authorized API observations; do not inspect the forbidden
+historical MCP repository or copy frontend source. Do not vendor catalog Compose. No SSH, shell,
+Docker socket, privileged MCP runtime, internal DB/files or undocumented host-control path.
+
+## Permission and safety requirements
+
+Reuse default-off `ALLOW_APP_INSTALL`; store provenance is not a safety bypass. Analyze, dry-run,
+approve and submit the same exact final Compose bytes. Any association transformation must be
+verified, deterministic and internal. Elevated risk requires the existing modern, expiring,
+single-use exact-content/intent-bound approval; legacy risky requests remain fail-closed.
+
+Resolve only repositories registered with the current native App Store service. Callers cannot
+supply repository/proxy/catalog/Compose URLs, metadata injection, `uncontrolled=true`, force,
+historical versions, downgrade or update behavior. Enforce `uncontrolled=false` internally.
+Fail closed on existing/ambiguous targets; never rename or reinterpret install as update. Serialize,
+reserve and recheck as required; at most one real mutation, no automatic retry of ambiguous writes.
+Separate asynchronous acceptance from bounded supported readback: rejection, in-progress, observed
+completion/failure or unknown as actually observable. No transactional, rollback or cleanup guarantee.
+
+A compact read-only discovery tool is allowed only if needed for safe identifier selection; no
+repository management, publishing, ratings/reviews, accounts or general marketplace administration.
+Unsupported/special/non-Compose classes fail clearly.
+
+## Execution, acceptance and delivery
+
+Hermes/Sol owns architecture, decisive source verification, security, live UAT, Git/PR and paired
+English/Turkish README authorship. Meaningful bounded Qwen research/implementation/tests/review is
+required; children may not own Git, product policy, READMEs or AGENTS. Follow the permanent live
+parent quota guard at every substantial checkpoint; never bypass hard stop or switch parent.
+
+Acceptance requires verified selection/trust/architecture/association contracts; implemented
+minimal schema and tool if supportable; permission and elevated-risk approval enforcement;
+exact-final-content consistency; duplicate/in-flight protection; one mutation/no retry;
+explicit controlled install; bounded honest readback; comprehensive adversarial mocked coverage
+and all existing regressions passing. Run formatting/lint, production/test typechecks, tests,
+production and Docker builds, canonical deployment Compose validation, diff/secret/privacy checks.
+
+Live UAT uses a separate benign native entry, never the Phase 5 retained fixtures. Verify disabled
+permission, enabled single-attempt install, association/architecture selection, read tools,
+duplicate rejection and supported uninstall cleanup; restore the baseline. Risky cases may remain
+synthetic/mocked. Keep current disposable fixture details out of tracked docs and PR discussion.
+
+Update PROJECT/STATUS/RESEARCH and real decisions only; if a public tool ships, update both READMEs
+with equivalent limitations/permissions/approval/trust claims and the existing Unreleased convention.
+Deliver `feat/app-store-install` through protected-main PR with exact-head CI/CodeQL success and
+no unresolved conversations. Leave the PR OPEN and UNMERGED for manager review, then stop.
+No release/version/tag, v0.1.0 Release/Compose asset or stable/latest changes are authorized.

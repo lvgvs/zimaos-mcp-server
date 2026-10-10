@@ -28,6 +28,7 @@ import { createHash } from "node:crypto";
 import type { RiskFinding } from "../compose/analyze.js";
 import { AppError } from "../errors.js";
 import type { PendingInstallPayload } from "./requestState.js";
+import { assertStoreSelection, type StoreSelection } from "../zimaos/storeCatalog.js";
 
 /** Fixed policy version bound into every risk-disclosure digest (currently 1). */
 export const RISK_POLICY_VERSION = "1";
@@ -80,6 +81,9 @@ export function targetIdentityDigest(target: string): string {
  * once; it is a constant and can never equal any dry-run variant.
  */
 export const INSTALL_OPTIONS_DIGEST = sha256Hex(REAL_INSTALL_REQUEST_LINE);
+export const STORE_INSTALL_OPTIONS_DIGEST = sha256Hex(
+  `${REAL_INSTALL_REQUEST_LINE}&uncontrolled=false`,
+);
 
 /** Canonical key-sorted projection of one finding (fixed structure). */
 function canonicalFinding(finding: RiskFinding): Record<string, string> {
@@ -203,6 +207,14 @@ export function assertPendingInstallIntentsMatch(
   >,
   supplied: PendingInstallIntentInput,
 ): void {
+  assertInstallIntentsMatch(bound, supplied, INSTALL_OPTIONS_DIGEST);
+}
+
+function assertInstallIntentsMatch(
+  bound: PendingInstallIntents,
+  supplied: PendingInstallIntentInput,
+  expectedOptionsDigest: string,
+): void {
   if (typeof supplied.name !== "string" || supplied.name.length === 0) {
     throw new AppError("INPUT_INVALID", NAME_CHANGED_MESSAGE);
   }
@@ -217,7 +229,7 @@ export function assertPendingInstallIntentsMatch(
   if (bound.targetDigest !== targetIdentityDigest(supplied.target)) {
     throw new AppError("INPUT_INVALID", TARGET_CHANGED_MESSAGE);
   }
-  if (bound.optionsDigest !== INSTALL_OPTIONS_DIGEST) {
+  if (bound.optionsDigest !== expectedOptionsDigest) {
     throw new AppError("INPUT_INVALID", OPTIONS_CHANGED_MESSAGE);
   }
   if (
@@ -225,5 +237,42 @@ export function assertPendingInstallIntentsMatch(
     riskDisclosureDigest(supplied.findings, RISK_POLICY_VERSION)
   ) {
     throw new AppError("INPUT_INVALID", RISK_DISCLOSURE_CHANGED_MESSAGE);
+  }
+}
+
+export interface StoreInstallIntentInput extends PendingInstallIntentInput {
+  selection: StoreSelection;
+}
+
+export interface StoreInstallIntents extends PendingInstallIntents {
+  selectionDigest: string;
+}
+
+function storeSelectionDigest(selection: StoreSelection): string {
+  assertStoreSelection(selection);
+  return sha256Hex(JSON.stringify([selection.repoId, selection.appId]));
+}
+
+/** Final associated bytes and the exact current native selection/controlled request. */
+export function buildStoreInstallIntents(
+  input: StoreInstallIntentInput,
+): StoreInstallIntents {
+  return {
+    ...buildPendingInstallIntents(input),
+    optionsDigest: STORE_INSTALL_OPTIONS_DIGEST,
+    selectionDigest: storeSelectionDigest(input.selection),
+  };
+}
+
+export function assertStoreInstallIntentsMatch(
+  bound: StoreInstallIntents,
+  supplied: StoreInstallIntentInput,
+): void {
+  assertInstallIntentsMatch(bound, supplied, STORE_INSTALL_OPTIONS_DIGEST);
+  if (bound.selectionDigest !== storeSelectionDigest(supplied.selection)) {
+    throw new AppError(
+      "INPUT_INVALID",
+      "The store selection does not match the approved install.",
+    );
   }
 }
