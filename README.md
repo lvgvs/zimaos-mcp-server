@@ -21,7 +21,7 @@ ZimaOS internal-file/database manipulation.
 
 ## Project status
 
-**Selected first stable release: `v0.1.0`.** Phase 1–3 functionality is implemented and Phase 4 external runtime
+**Selected next stable release: `v0.2.0`; first stable release: `v0.1.0`.** Phase 1–3 functionality is implemented and Phase 4 external runtime
 UAT is complete, including fresh Custom App installation, modern risky approval and repair,
 failure modes, upgrade, restart/reboot persistence, and clean reinstall. Publication state is
 authoritative in Git tags, GitHub Releases and GHCR aliases, not this source document.
@@ -33,8 +33,9 @@ Runtime-UAT evidence is distinct from later documentation-only release-source ar
 For implementation state and engineering history, see [`STATUS.md`](STATUS.md). For
 approved scope and safety boundaries, see [`PROJECT.md`](PROJECT.md).
 
-**Unreleased development:** native App Store installation is implemented in the development
-source, not in `v0.1.0`. Phase 5 updates remain ON HOLD / Outcome B DEFER.
+**v0.2.0 feature:** native App Store installation is implemented in this source, not in
+`v0.1.0`. Exact-candidate release verification governs publication; see
+[`v0.2.0 release notes`](docs/RELEASE-NOTES-v0.2.0.md). Phase 5 updates remain ON HOLD / Outcome B DEFER.
 
 ## What it can do
 

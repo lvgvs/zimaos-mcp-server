@@ -1,7 +1,8 @@
 # Release process and evidence
 
-`v0.1.0` is the selected first stable release, dated 2026-10-09 in the changelog; package and
-lockfile versions are `0.1.0`. Publication state is authoritative in Git tags, GitHub Releases
+`v0.1.0` remains the first stable release, dated 2026-10-09 in the changelog. `v0.2.0` is the
+selected next stable release line; package and lockfile versions for this source are `0.2.0`.
+Publication state is authoritative in Git tags, GitHub Releases
 and GHCR version/alias readback, not in this source document. This is a release-process contract
 and evidence record, not an assertion that a tag, Release or alias exists.
 
@@ -10,7 +11,8 @@ with Squash-only merging.
 The GHCR package is also PUBLIC after retained-version exposure review/cleanup; anonymous pull
 access is verified. Phase 4 external runtime UAT, including fresh normal-user Custom App installation
 and clean reinstall, is complete on the separately recorded runtime-tested digest below.
-Public notes are in [release notes](RELEASE-NOTES-v0.1.0.md). Do not change package
+Public v0.2.0 notes are in [release notes](RELEASE-NOTES-v0.2.0.md); retain the
+[first-release notes](RELEASE-NOTES-v0.1.0.md) as historical evidence. Do not change package
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
 corresponding explicit manager approval.
 

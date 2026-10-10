@@ -6,6 +6,7 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { createRequire } from "node:module";
 import {
   Client,
   InMemoryTransport,
@@ -80,6 +81,21 @@ function makeDeps(overrides: { allowAppControl?: boolean } = {}): ToolDeps {
 }
 
 describe("MCP tools (mocked services)", () => {
+  it("advertises the project package version during MCP initialization", async () => {
+    const metadata = createRequire(import.meta.url)("../package.json") as {
+      version: string;
+    };
+    const { client, serverTransport } = await connect(makeDeps());
+    try {
+      expect(client.getServerVersion()).toEqual({
+        name: "zimaos-mcp-server",
+        version: metadata.version,
+      });
+    } finally {
+      await serverTransport.close();
+    }
+  });
+
   it("strictly accepts only store identities and denies disabled installs before service traffic", async () => {
     const deps = makeDeps();
     const { client, serverTransport } = await connect(deps);

@@ -1,6 +1,6 @@
 {
   "name": "zimaos-mcp-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server exposing supported ZimaOS application and system APIs to MCP clients over authenticated Streamable HTTP.",
   "license": "Apache-2.0",
   "type": "module",

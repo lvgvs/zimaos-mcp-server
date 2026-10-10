@@ -33,6 +33,7 @@ import { AppError } from "../errors.js";
 import type { PermissionLayer } from "../permissions.js";
 import type { AppService } from "../zimaos/appService.js";
 import type { SystemService } from "../zimaos/systemService.js";
+import { VERSION } from "../version.js";
 
 export interface ToolDeps {
   apps: AppService;
@@ -99,7 +100,7 @@ function guard(
 
 export function createMcpServer(deps: ToolDeps): McpServer {
   const server = new McpServer(
-    { name: "zimaos-mcp-server", version: "0.1.0" },
+    { name: "zimaos-mcp-server", version: VERSION },
     {
       inputRequired: { legacyShim: false },
       ...(deps.approval && { requestState: { verify: deps.approval.codec.verify } }),
