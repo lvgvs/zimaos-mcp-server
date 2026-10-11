@@ -1,5 +1,63 @@
 # Status
 
+## Phase 7 — App Store Discovery
+
+**Current milestone:** Phase 7 implementation and read-only MCP UAT complete; protected-main
+delivery is governed by exact-head CI/CodeQL, clean parent review and the authorized Squash gate.
+Manager-approved roadmap reconciliation is on `feat/app-store-discovery`, based on canonical
+post-v0.2.0 main `c98dd49e6188817707f75b4f7d92a2e7f2efb444` (baseline, not a future delivery SHA).
+Repository: <https://github.com/lvgvs/zimaos-mcp-server>. Git/GitHub own the containing commit,
+PR/merge state and resulting main identity; this is development work, not a new release.
+
+**Scope:** only authenticated read-only `search_app_store` and `get_app_store_details`, with
+Phase 6 registered/enabled v2 HTTP canonical repo/app trust preserved. Phase 5 remains ON HOLD /
+Outcome B DEFER; Phase 6 is COMPLETE and released in v0.2.0. Phase 8/9 are approved future scope,
+not current implementation authorization. No version/tag/stable/latest/Release changes authorized.
+
+**Verified research:** parent read-only VM checks confirm repository listing, filtered text search,
+outer search pagination/status and exact detail metadata. Empty-query search returns HTTP 400;
+the chosen public search requires nonempty text. Current detail/search identities match and
+application inventory remained unchanged; observed non-authentication mutation traffic: zero.
+Official build-output documentation corroborates listing/metadata fields. These are research
+results, not completed Phase 7 MCP UAT. Detailed authoritative findings are in `docs/RESEARCH.md`.
+
+**Implementation/gates:** bounded pure metadata normalization, authenticated search transport,
+no-I/O credential screening, typed search/detail orchestration, minimal AppService forwarding and
+exactly two read-only MCP registrations are implemented. Parent corrected canonical identity/type
+evidence, strict test typing, exact unordered repository-set comparison and pagination consistency;
+the whole bounded relevance window is sorted before limiting. Public README EN/TR contracts were
+updated together by the parent; both GitHub-Flavored Markdown rendered DOMs and semantic parity
+were reviewed. Qwen's supporting review reported no security/logic concerns; parent review added
+a failing Unicode percent-encoded credential regression and fixed UTF-8 screening before acceptance.
+Parent-executed full mocked suite: 741/741 tests across 41 files passed. Clean dependency install
+with explicit developer dependencies, formatting, ESLint, production and strict test TypeScript,
+production build, Docker build (`zimaos-mcp-phase7:local`), canonical Compose validation and
+whitespace checks passed. No dependency/version/lockfile change; the initial inherited production-only
+install omitted TypeScript and was corrected with `--include=dev`. Staged Gitleaks and exact
+configured-value privacy/scope checks passed with zero leaks; parent diff review is clean.
+Exact-head remote CI/CodeQL remain delivery gates. Hermes/Sol retains final architecture/security
+acceptance, live-UAT interpretation and Git ownership.
+
+**Live MCP UAT (2026-10-11):** compiled authenticated Streamable HTTP initialize/discovery exposed
+18 tools, including both discovery tools and the unchanged native installer. Unauthenticated MCP
+returned 401. A known benign catalog search returned a real entry; its exact pair resolved through
+details and matched normalized direct supported API metadata, including release notes and advertised
+architectures. The pair passes the same canonical selection validator used by Phase 6. All mutation
+flags were explicitly false; guarded upstream transport recorded seven GET reads, one authentication
+POST and zero non-authentication mutations. Before/after installed-app inventories were equal.
+No app was installed or otherwise changed; the temporary local HTTP listener/client were closed.
+The sanitized probe report remains in profile scratch at `phase7/mcp-uat-result.json`.
+
+**Limitations / next step:** installed-state and installation-compatibility claims are intentionally
+omitted; discovery does not read installed Compose or implement update detection. Empty-query
+browsing is unsupported; fuzzy search covers at most 300 upstream matches with fixed English locale,
+not an exhaustive catalog. Complete one protected-main PR with
+verified exact-head CI/CodeQL and authorized Squash merge; verify main/development publication,
+then stop without beginning Phase 8. No manager/product blocker or manual user action is required.
+Fresh readable quota before staging/finalization: NORMAL (session 19% used; weekly 3% used),
+evaluated independently under AGENTS. Normal trusted-main development GHCR publication is permitted only
+after an authorized verified merge; no Phase 7 published artifact is claimed yet.
+
 ## Phase 6 — Native App Store Installation
 
 **Current milestone:** Phase 6 COMPLETE / MERGED. Parent-implemented native-store installation

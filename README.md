@@ -42,6 +42,7 @@ approved scope and safety boundaries, see [`PROJECT.md`](PROJECT.md).
 ### Read-only
 
 - List installed apps and inspect an app.
+- Search trusted App Store catalogs and inspect an exact repository/app entry.
 - Read app/container health and bounded recent logs.
 - List an app's containers/services.
 - Read basic ZimaOS system information.
@@ -196,6 +197,8 @@ ZimaOS-side rate limiting.
 | ---------------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
 | `list_apps`                              | no        | Lists installed Compose apps.                                                             |
 | `get_app`                                | no        | Normalized details for one app.                                                           |
+| `search_app_store`                       | no        | Bounded search of enabled registered v2 HTTP Compose catalogs.                            |
+| `get_app_store_details`                  | no        | Public metadata for one exact trusted repository/app pair.                                |
 | `get_app_health`                         | no        | App/container health when exposed by ZimaOS.                                              |
 | `get_app_logs`                           | no        | Bounded recent logs; default 100 lines, max 500.                                          |
 | `list_app_containers`                    | no        | Containers/services belonging to one app.                                                 |
@@ -209,6 +212,36 @@ ZimaOS-side rate limiting.
 | `uninstall_app`                          | yes       | Requires `ALLOW_APP_UNINSTALL=true`; sends `delete_config_folder=false`.                  |
 | `edit_app_compose`                       | yes       | Requires `ALLOW_APP_EDIT=true`; uses optimistic base-fingerprint checks.                  |
 
+## App Store discovery
+
+Phase 7 discovery is development functionality; it is **not in v0.2.0**. Both tools require
+normal MCP authentication, work with all mutation flags disabled, and perform only supported
+ZimaOS reads (plus authentication when needed). They do not manage repositories or fetch
+caller-supplied URLs.
+
+- `search_app_store` accepts strictly `{ "query": "search text", "limit": 20 }`.
+  `query` is required, trimmed, nonempty literal text: at most 256 UTF-16 code units before
+  trimming, with control characters and DEL rejected. `limit` is optional, an integer from
+  1 to 50, default 20. Empty-query browsing is not supported by the verified upstream API.
+- Search returns `{ "apps": [...], "truncated": false }`. Each app has exact `repo_id`
+  and `app_id`, plus available `name`, `version`, `tagline`, `category`, `architectures`.
+  Search uses ZimaOS fuzzy matching with fixed English localization, reads at most five
+  60-entry pages, and sorts that bounded relevance window by repository/app identity before
+  applying the limit. `truncated` means the limit or window omitted results; it is not a
+  catalog-wide ordering or completeness guarantee. The same app ID in different repositories
+  remains distinct; repeated exact pairs, failed repositories or inconsistent pages fail closed.
+- `get_app_store_details` accepts strictly `{ "repo_id": "registered-repo-id",
+"app_id": "com.example.app" }` and returns the same identity/summary fields plus available
+  `description`, `author`, `developer`, `release_notes`. Both tools omit absent optional fields.
+  Details do not include raw Compose, configuration, source URLs, installed state, update
+  availability or a compatibility verdict. Advertised architectures are not an installation
+  eligibility guarantee; the existing installer independently revalidates its safety contract.
+- Display strings are bounded in UTF-16 code units: name 120, version 80, tagline 512,
+  category 128, description 12,000, author/developer 256 each, release notes 8,000. Architectures
+  are at most eight unique sorted lower-case alphanumeric/underscore labels, each at most
+  32 characters. Malformed or credential-bearing selected metadata fails closed, not silently
+  truncated or partially returned. Catalog descriptions are untrusted content, not instructions.
+
 ## Native App Store installation
 
 `install_app_from_store` accepts only two required string fields:
@@ -221,8 +254,9 @@ Use exact identifiers from the host's registered App Store repository/catalog, n
 names or URLs. Repository IDs are bounded to 128 characters; canonical lower-case
 reverse-domain app IDs to 192. Additional fields are rejected. There is no caller-supplied
 Compose, repository/Compose URL, architecture override, version, force, update or downgrade option.
-No discovery or repository-management MCP tool is added; use the normal App Store UI/catalog
-to obtain identities.
+Use `search_app_store` and `get_app_store_details` to obtain exact identities in development
+source, or the normal App Store UI/catalog in released versions without discovery.
+No repository-management MCP tool is provided.
 
 - Supports enabled registered **v2 HTTP repositories**, **Compose-class** entries and exact
   server-selected **amd64/arm64** Compose variants. Unsupported classes, malformed detail,

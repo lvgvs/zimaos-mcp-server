@@ -1383,3 +1383,72 @@ changed content/selection, replay, cross-operation and legacy cases passed mocke
 HTTP tests. Full mocked suite: 641 tests / 35 files; complete local build/type/lint/format/Docker/
 deployment-Compose/privacy/diff gates passed. Arm64 and unsupported/error neighborhoods are mocked;
 live execution verified the available amd64 VM only. No image/release publication is part of Phase 6.
+
+## Phase 7 — read-only App Store discovery research (2026-10-11)
+
+### Sources and evidence boundary
+
+Parent reverified current official
+<https://www.zimaspace.com/docs/developer/app-store-build-output> (page updated 2026-09-22).
+It documents generated listing identity/title/tagline/category/version/attribution/architecture
+fields and descriptive/optional release-note metadata. Locale-resolved listing titles are strings;
+architecture labels describe advertised variants. Catalog version/content hashes do not establish
+installed update availability or exact installation eligibility. No implementation code was copied.
+
+The Phase 6 current-runtime catalog observations above and new supported API reads on the authorized
+VM supply the v3 HTTP contract. The published management OpenAPI remains a source for management
+operations, not an invented v3 search specification. No new public v3 OpenAPI is claimed. Local-only
+research checkpoints hold raw responses; catalog/fixture identities and VM connection data are not
+duplicated here. All reconnaissance used GETs except the existing supported login POST.
+
+### Verified supported reads
+
+| Operation                                                                    | Current observation and implementation implication                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /v3/app_store/repo`                                                     | Registered enabled v2 HTTP and legacy v1 ZIP entries coexist. Reuse Phase 6 normalization; exclude legacy/disabled/unsupported repositories and never derive identities from URLs.                                                                                                                                                                                                                                                                   |
+| `GET /v3/app_store/hub/app/search?q={text}&locale=en_us&page=1&page_size=60` | Unwrapped `data` is an array of catalog entries. Outer envelope contains `pagination` (`page`, `page_size`, `total`, `total_pages`), `query`, and `status.repo` (`failed`, `succeeded`). The existing envelope helper discards outer metadata, so discovery transport must preserve and validate the bounded raw envelope.                                                                                                                           |
+| Same search with `repo_ids={registered-id}&types=compose`                    | Trusted repository/type filters are acknowledged in `query.repo_ids`/`query.types`; locale resolves to `en_US`. Comma-separated filtering was separately verified with two currently registered IDs, echoed as two array elements with matching success-status IDs. This tests filter parsing, not authorization of legacy v1 repositories for the product. The server-reported query must not be treated as caller-selected URL/architecture input. |
+| Same search with empty `q`                                                   | HTTP 400. Do not claim empty-query browsing support; require bounded nonempty search text rather than inventing a browse endpoint.                                                                                                                                                                                                                                                                                                                   |
+| `GET /v3/app_store/hub/repo/{repo_id}/app/{app_id}?locale=en_us`             | Exact returned `id`/`repo_id` matches a search pair; `type` is `compose`. Current string fields include title, version, tagline, category, description, author, developer and release_note; architectures are a string array. Optional metadata availability for other entries must be normalized conservatively, not fabricated.                                                                                                                    |
+
+Search entries additionally include ranking/highlight and source asset metadata. Exact details also
+contain source/Compose paths and URLs, environment/port/volume configuration and other fields.
+Discovery projects only its explicit bounded identity/display allowlist; none of those configuration,
+source URL or raw Compose fields are public outputs. No Compose proxy request is needed for discovery.
+
+The recon used an exact benign search/detail pair, cross-checked important display fields and
+advertised architectures, then reread the supported application inventory. Before/after inventory
+was byte-equivalent as parsed data; the guarded fetch recorded zero non-authentication mutations.
+This establishes read-only research, not final MCP UAT or broad installed-state semantics.
+
+### Chosen bounded implementation implications
+
+The proposed public query is required nonempty text (maximum 256 code units); optional limit is
+an integer 1–50, default 20. Fixed English locale and server-internal trusted repo/type filtering
+avoid caller-controlled URLs/options. Read at most five 60-entry upstream pages, validate identity,
+metadata and pagination, sort exact repo/app pairs deterministically within that bounded relevance
+window, and report truncation instead of promising a complete catalog. Details require the same
+canonical pair and fresh registered/enabled supported repository evidence as Phase 6.
+
+Allowlisted strings/collections must be bounded, optional absence must remain absence, and configured
+credential reflection must fail closed. Advertised architectures do not imply that all installer
+checks would pass. Installed state, compatible flags, asset/homepage URLs, sizes/dependencies and
+update detection are omitted rather than guessed or obtained through unrelated installed configuration.
+Existing Phase 6 resolver, selected-path checks, approval and installation behavior remain unchanged.
+
+The verified search uses upstream fuzzy/relevance semantics: even unfamiliar nonempty text can
+produce broad matches, so discovery must not invent an exact substring-match guarantee or claim that
+an unfamiliar query necessarily returns no results. A broader read confirmed a 60-row page with
+integer total/page-count metadata. Per-repository status lists the requested successful IDs and
+an empty failed collection in the observed success cases. Mocked failures must remain fail-closed.
+
+### Implemented and verified acceptance
+
+Typed orchestration and exactly two read-only MCP registrations are complete. Parent-executed
+mocked negative/regression gates passed: 741 tests across 41 files, including unchanged Phase 6
+installation behavior and a RED-to-GREEN Unicode percent-encoded credential-screening regression.
+Authenticated compiled HTTP MCP UAT discovered 18 tools, searched a real benign catalog entry,
+resolved its exact pair and matched normalized direct supported API detail fields. All mutation
+flags were disabled; guarded transport recorded zero non-authentication mutations and unchanged
+installed-app inventory. No app installation or fixture change was needed or performed. Installed
+state/update availability/compatibility are not public discovery claims; see STATUS for delivery.

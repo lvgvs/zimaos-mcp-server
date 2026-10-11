@@ -21,6 +21,8 @@ import type {
   StoreSelection,
   InstalledStoreAssociation,
 } from "./storeCatalog.js";
+import { validateStoreSearchInput } from "./storeDiscovery.js";
+import type { StoreDiscoveryItem } from "./storeDiscovery.js";
 
 /** Bounded native read options for authenticated catalog GETs (Phase 6 slice). */
 interface NativeReadOptions {
@@ -34,12 +36,15 @@ interface NativeReadOptions {
 // replies.
 const MAX_STORE_JSON_BYTES = 4 * 1024 * 1024; // 4 MiB store listing/detail JSON
 const MAX_STORE_YAML_BYTES = 512 * 1024; // 512 KiB store compose YAML
+const PAGE_SIZE = 60; // fixed page size for store search
 
 // Fixed, sanitized catalog read messages (no input/payload reflection).
 const CATALOG_REDIRECTED = "The ZimaOS host redirected the catalog request.";
 const CATALOG_TOO_LARGE = "The catalog response exceeds the allowed size.";
 const CATALOG_BAD_ENCODING = "The catalog response has an invalid encoding.";
 const CATALOG_EMPTY = "The catalog response is empty.";
+const SEARCH_INPUT_INVALID = "The store search page request is invalid.";
+const SEARCH_UPSTREAM_INVALID = "The store search response is malformed; retry later.";
 const ARCHITECTURE_INVALID = "The app management info response is malformed.";
 const COMPOSE_DETAIL_INVALID = "The store compose detail is invalid.";
 
@@ -939,6 +944,97 @@ export class ZimaOsClient {
       throw new AppError("ZIMAOS_UPSTREAM_ERROR", CATALOG_EMPTY);
     }
     return text;
+  }
+
+  /**
+   * Store search page: GET /v3/app_store/hub/app/search.
+   *
+   * All inputs are validated BEFORE any network traffic:
+   *   - `query` via the shared `validateStoreSearchInput` (the returned
+   *     trimmed query is the literal text sent; never interpreted as a URL);
+   *   - `repoIds`: 1..128 strings, each passing the shared canonical
+   *     `assertStoreSelection` repository checks; duplicates (case-
+   *     insensitive) are rejected;
+   *   - `page`: integer 1..5.
+   *
+   * The request path is built with URLSearchParams from the configured
+   * base URL only; no caller-supplied URL, limit, or options are accepted.
+   * Returns the raw bounded outer envelope (pagination/status intact),
+   * NOT an unwrapped `data` payload; a `success:false` or non-record
+   * envelope fails closed with a fixed sanitized upstream error.
+   */
+  async getStoreSearchPage(
+    query: string,
+    repoIds: readonly string[],
+    page: number,
+  ): Promise<unknown> {
+    const validated = validateStoreSearchInput({ query });
+    if (!Array.isArray(repoIds) || repoIds.length < 1 || repoIds.length > 128) {
+      throw new AppError("INPUT_INVALID", SEARCH_INPUT_INVALID);
+    }
+    const seen = new Set<string>();
+    for (const repoId of repoIds) {
+      if (typeof repoId !== "string") {
+        throw new AppError("INPUT_INVALID", SEARCH_INPUT_INVALID);
+      }
+      assertStoreSelection({ repoId, appId: "com.example.validation" });
+      const key = repoId.toLowerCase();
+      if (seen.has(key)) {
+        throw new AppError("INPUT_INVALID", SEARCH_INPUT_INVALID);
+      }
+      seen.add(key);
+    }
+    if (!Number.isInteger(page) || page < 1 || page > 5) {
+      throw new AppError("INPUT_INVALID", SEARCH_INPUT_INVALID);
+    }
+    const params = new URLSearchParams({
+      q: validated.query,
+      locale: "en_us",
+      page: String(page),
+      page_size: String(PAGE_SIZE),
+      repo_ids: repoIds.join(","),
+      types: "compose",
+    });
+    const body = await this.authedRequest(
+      "GET",
+      `/v3/app_store/hub/app/search?${params.toString()}`,
+      undefined,
+      this.timeoutMs,
+      { kind: "json", limitBytes: MAX_STORE_JSON_BYTES },
+    );
+    if (!isRecord(body) || body.success === false) {
+      throw new AppError("ZIMAOS_UPSTREAM_ERROR", SEARCH_UPSTREAM_INVALID);
+    }
+    return body;
+  }
+
+  /** Guard already-normalized public metadata without returning credentials or doing I/O. */
+  assertStoreDiscoverySafe(item: StoreDiscoveryItem): void {
+    for (const value of Object.values(item)) {
+      for (const text of Array.isArray(value) ? value : [value]) {
+        if (typeof text !== "string") continue;
+        // Decode percent escapes for credential checks only; preserve public text unchanged.
+        const decoded = text.replace(/(?:%[0-9a-f]{2})+/gi, (encoded) =>
+          Buffer.from(encoded.replaceAll("%", ""), "hex").toString("utf8"),
+        );
+        if (
+          [text, decoded].some(
+            (candidate) =>
+              (this.password.length > 0 && candidate.includes(this.password)) ||
+              (this.accessToken !== null && candidate.includes(this.accessToken)) ||
+              /(?:password|passwd|token|api[_ -]?key|secret|authorization)\s*[:=]\s*\S/i.test(
+                candidate,
+              ) ||
+              /https?:\/\/[^\s/]+@/i.test(candidate),
+          )
+        ) {
+          throw new AppError(
+            "ZIMAOS_UPSTREAM_ERROR",
+            "Store metadata could not be returned safely.",
+          );
+        }
+      }
+    }
   }
 
   /** Active read-only readiness; at most four bounded I/O attempts, shared in flight. */

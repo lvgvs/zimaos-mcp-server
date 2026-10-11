@@ -386,3 +386,23 @@ guess origin from `store_app_id`; use a parallel weaker installer; release accep
 reservations merely because immediate readback is absent. Process-local protection is not upstream
 CAS, cross-replica coordination or durable retry recovery. Accepted/uncertain native reservations
 remain until restart (including after uninstall); safe recovery needs explicit state reconciliation.
+
+## 2026-10-11 — Discovery projects bounded catalog metadata, not installed configuration
+
+**Decision:** Phase 7 uses the existing canonical repo/app identity and enabled registered v2 HTTP
+trust boundary for read-only search/details. Keep English localization fixed and require nonempty
+bounded query text: the supported search rejects an empty query. Search covers a bounded upstream
+relevance window, sorts repo/app pairs deterministically and reports truncation instead of promising
+exhaustive browsing. Exact details project bounded identity/display metadata only, with no Compose,
+source/repository URLs or environment/port/volume configuration.
+
+**Reason:** Supported live reads plus current official build-output documentation verify useful
+catalog metadata without an application mutation or a new URL trust path. Duplicate app IDs require
+their repository identity. Advertised architecture/version metadata does not prove installation
+eligibility, native origin, installed state or update availability. Retain all stricter Phase 6
+installation selection/approval checks; discovery is not an alternate installer resolver.
+
+**Rejected alternatives:** Guess a browse endpoint after an empty-query rejection, fetch caller
+URLs, expose the raw detail object, or correlate installed state through installed Compose merely
+to add an optional discovery field. Installed-state/compatible claims and unverified size/dependency
+fields are omitted; Phase 5 update detection and later capabilities remain outside this phase.
