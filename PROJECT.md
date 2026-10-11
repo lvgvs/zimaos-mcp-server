@@ -1555,20 +1555,16 @@ to implement it during the current phase. Historical phases keep their original 
 - **Phase 7 — App Store Discovery: COMPLETE.** `search_app_store` and
   `get_app_store_details` were delivered through protected PR #28. The specification below
   preserves the original assignment; separate v0.3.0 authorization covers release operations only.
-- **Phase 8 — System Diagnostics & Management: CURRENT / AUTHORIZED.** Deliver three bounded
-  protected PRs in order, merging each before beginning the next: 8A live system resources and
-  verified read-only OS-update availability/status; 8B bounded system logs and meaningful supported
-  read-only notifications; 8C supported `restart_device` and conditionally verified OS-update
-  installation. Phase 8A is COMPLETE / MERGED. Phase 8B is COMPLETE as the manager-accepted
-  researched system-logs DEFER / generic-notifications NO-GO result below; Phase 8C remains next
-  and may begin only after clean protected Phase 8B delivery. Expose only verified supported
-  CPU/memory/storage/temperature/health data.
-  Notifications and OS-update installation may be explicitly deferred if evidence is insufficient.
-  Independent default-off system-control and OS-update permissions, one mutation attempt and no
-  ambiguous retry are required for 8C. No network diagnostics, Files or app-update investigation.
-  First branch `feat/system-diagnostics` also carries this reconciliation and the separate tiny
-  canonical-runtime-version `/health` maintenance fix. No version bump, tag, Release, release
-  asset or stable/latest promotion is authorized; normal trusted-main development publication remains.
+- **Phase 8 — System Diagnostics & Management: COMPLETE.** Protected PRs #31/#33/#34 delivered
+  `get_system_resources`, `get_os_update_status`, guarded one-shot `restart_device` and canonical
+  runtime version in `/health`. Public inventory is 21 tools. Default-off independent
+  `ALLOW_SYSTEM_CONTROL`; no ambiguous retry or completion claim. System logs DEFER; generic
+  notifications NO-GO pending authoritative supported evidence; OS installation DEFER without
+  placeholder tool/permission. No network diagnostics, Files or app-update investigation.
+  Separate parent-only manager release authorization delivered v0.4.0 from protected preparation
+  PR #35, exact trusted-main candidate UAT, annotated tagging and digest-only promotion/publication.
+  This does not retroactively widen the original development authorization or start another phase.
+  Release identity and historical immutability are recorded in docs/RELEASE and Git/Release/GHCR.
 - **Phase 9 — Network Diagnostics: APPROVED NEXT / NOT STARTED.** Interface/network inventory,
   IP/subnet/gateway, DNS, routes, Wi-Fi, firewall and connectivity troubleshooting are excluded
   from Phase 8 and require a separate kickoff.

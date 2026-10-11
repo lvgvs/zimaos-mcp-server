@@ -4,12 +4,12 @@
 
 Ayrıntılı sözleşmeler README’deki kısa listeyi tamamlar; ek izin vermez.
 
-## Sistem tanılama (geliştirme)
+## Sistem tanılama
 
 Sistem tanılama, yalnızca `{}` kabul eden iki kimlik doğrulamalı salt okunur araç sunar; ek alanlar
 reddedilir. Tüm değişiklik izinleri kapalı kalabilir. ZimaOS yenileme/kontrol işlemi, abonelik
 değişikliği, durum sıfırlama, kurulum, yeniden başlatma veya uygulama güncellemesi yapılmaz.
-Bu araçlar v0.3.0 içinde yoktur.
+Bu araçlar v0.4.0 ve sonraki sürümlerde mevcuttur.
 
 - `get_system_resources`, mevcutsa `cpu.utilizationPercent` (0–100) ve
   `cpu.logicalProcessors` (1–4096); `memory.totalBytes`, `usedBytes`, `availableBytes`,

@@ -19,9 +19,9 @@ The server is the only component that holds ZimaOS credentials. It does not expo
 arbitrary shell execution, the Docker socket, privileged container access, or direct
 ZimaOS internal-file/database manipulation.
 
-**Current release: [v0.3.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.3.0).**
-Development main/`edge` also includes device restart, system resource and OS-update reads and a `/health`
-version field that are not in v0.3.0. The Tool Reference below describes current main.
+**Current release: [v0.4.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.4.0).**
+The release includes all 21 tools below, including guarded device restart, system resource and
+OS-update reads, plus the canonical runtime version in `/health`.
 
 ## Capabilities
 
@@ -196,7 +196,7 @@ CPU/memory values are samples; system storage covers only the system filesystem,
 Temperature and health verdicts are not exposed. `updateAvailable` follows the Installer notice,
 not version comparison or installation eligibility; `idle` does not prove completion.
 Sequential OS reads are non-atomic. Raw notes/messages and approximate progress are excluded.
-See [diagnostic fields, bounds and semantics](docs/TOOL-USAGE.md#system-diagnostics-development).
+See [diagnostic fields, bounds and semantics](docs/TOOL-USAGE.md#system-diagnostics).
 
 ### Device restart
 
@@ -287,7 +287,7 @@ testing is separate and never depends on committed credentials.
 
 ## Documentation
 
-- [Releases](https://github.com/lvgvs/zimaos-mcp-server/releases) and [v0.3.0 notes](docs/RELEASE-NOTES-v0.3.0.md).
+- [Releases](https://github.com/lvgvs/zimaos-mcp-server/releases) and [v0.4.0 notes](docs/RELEASE-NOTES-v0.4.0.md).
 - [Tool usage and safety semantics](docs/TOOL-USAGE.md).
 
 - [`PROJECT.md`](PROJECT.md) — approved product scope and phase boundaries.

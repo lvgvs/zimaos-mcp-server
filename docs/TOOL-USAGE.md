@@ -4,11 +4,11 @@
 
 Detailed contracts supplement the concise README inventory; they do not grant additional permissions.
 
-## System diagnostics (development)
+## System diagnostics
 
 System diagnostics provides two authenticated read-only tools, each accepting only `{}`; additional arguments
 are rejected. All mutation flags may remain disabled. No ZimaOS refresh/check action, subscription
-change, status reset, install, restart or app update is performed. These tools are not in v0.3.0.
+change, status reset, install, restart or app update is performed. These tools are available in v0.4.0 and later.
 
 - `get_system_resources` returns available `cpu.utilizationPercent` (0–100) and
   `cpu.logicalProcessors` (1–4096); `memory.totalBytes`, `usedBytes`, `availableBytes`,
