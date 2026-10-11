@@ -20,81 +20,18 @@ ZimaOS kimlik bilgilerini tutan tek bileşen bu sunucudur. Ürün; keyfî shell 
 Docker socket erişimi, ayrıcalıklı container erişimi veya ZimaOS'un dahili
 dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
-## Proje durumu
+**Güncel sürüm: [v0.3.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.3.0).**
+Geliştirme main/`edge`, v0.3.0’da bulunmayan sistem kaynakları ve işletim sistemi güncelleme
+okumalarını ve `/health` sürüm alanını da içerir. Aşağıdaki Araç Referansı güncel main’i anlatır.
 
-**Seçilen sürüm: `v0.3.0`; ilk kararlı sürüm: `v0.1.0`.** Phase 6 yerel kurulum ve Phase 7 keşif tamamlandı. Phase 8A kaynak ve işletim sistemi güncelleme okumaları geliştirme kaynağında uygulanmıştır; yayınlanan v0.3.0 çıktısında yoktur. Phase 8B/8C başlamadı. Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
-sıfırdan Custom App kurulumu, modern riskli işlem onayı ve onarımı, hata durumları,
-yükseltme, yeniden başlatma/VM reboot kalıcılığı ve temiz yeniden kurulum dahil tamamlandı.
-Yayın durumunun kaynağı bu belge değil, Git etiketleri, GitHub Releases ve GHCR alias kayıtlarıdır.
+## Yetenekler
 
-`edge`, yalnızca CI ile doğrulanmış geliştirme sürümlerini takip eder. `latest` / `stable`, onaylı
-kararlı sürüm promotion işlemiyle yönetilir; hedeflerini sürüm kaydıyla doğrulayın ve tam olarak
-sabit deployment için digest kullanın. Runtime UAT kanıtı, sonraki yalnızca dokümantasyon
-değişikliği içeren sürüm kaynağı çıktılarından ayrıdır.
-
-Güncel geliştirme durumu için [`STATUS.md`](STATUS.md), onaylı kapsam ve güvenlik
-sınırları için [`PROJECT.md`](PROJECT.md) dosyasına bakın.
-
-**v0.2.0 özelliği:** yerel App Store kurulumu bu kaynak kodunda uygulanmıştır; `v0.1.0` içinde
-yoktur. Yayın, tam olarak seçilen adayın sürüm doğrulama kapılarına bağlıdır;
-[`v0.2.0 sürüm notlarına`](docs/RELEASE-NOTES-v0.2.0.md) bakın. Phase 5 güncellemeleri ON HOLD / Outcome B DEFER durumundadır.
-
-## Neler yapabilir?
-
-### Salt okunur
-
-- Kurulu uygulamaları listeleme ve tek bir uygulamayı inceleme.
-- Güvenilir App Store kataloglarında arama ve tam depo/uygulama girdisini inceleme.
-- Uygulama/container sağlık durumunu ve sınırlandırılmış son logları okuma.
-- Bir uygulamaya ait container/service bilgisini listeleme.
-- Temel ZimaOS sistem bilgisini okuma.
-- Örneklenmiş CPU/bellek/sistem depolama ölçümlerini ve işletim sistemi güncelleme bildirimi/kurucu durumunu okuma.
-- Compose'u kurulum yapmadan doğrulama.
-- Mevcut bir uygulamanın interpolate edilmiş Compose'unu ve fingerprint'ini okuma.
-- Mevcut uygulama için önerilen Compose değişikliğini uygulamadan doğrulama.
-
-### Değişiklik yapan işlemler
-
-Değişiklik yapan yetkiler birbirinden bağımsız ve varsayılan olarak kapalıdır:
-
-| Yetenek                               | MCP araçları                           | Gerekli değişken      | Varsayılan |
-| ------------------------------------- | -------------------------------------- | --------------------- | ---------- |
-| Geri döndürülebilir uygulama kontrolü | `start_app`, `stop_app`, `restart_app` | `ALLOW_APP_CONTROL`   | `false`    |
-| Compose kurulumu                      | `install_app_from_compose`             | `ALLOW_APP_INSTALL`   | `false`    |
-| Yerel App Store kurulumu              | `install_app_from_store`               | `ALLOW_APP_INSTALL`   | `false`    |
-| Uygulama kaldırma                     | `uninstall_app`                        | `ALLOW_APP_UNINSTALL` | `false`    |
-| Mevcut uygulama Compose düzenleme     | `edit_app_compose`                     | `ALLOW_APP_EDIT`      | `false`    |
-
-Salt okunur araçlar bu değişkenlerin hiçbirinden değişiklik yapma yetkisi devralmaz.
-
-## Güvenlik modeli
-
-- **MCP kimlik doğrulaması zorunludur.** Her MCP isteği `MCP_AUTH_TOKEN` ile eşleşen
-  `Authorization: Bearer <token>` başlığını taşımalıdır.
-- **Varsayılan MCP sırrı yoktur.** `MCP_AUTH_TOKEN` en az 32 karakter olmalıdır.
-- **ZimaOS kimlik bilgileri MCP istemcilerine döndürülmez.**
-- **Değişiklik izinleri bağımsızdır ve varsayılan olarak kapalıdır.**
-- **Riskli Compose işlemleri fail-closed davranır.** Riski artıran kurulum/düzenleme
-  istekleri değişiklikten önce modern MCP onay akışını gerektirir.
-- **Kabul edilen install/edit/uninstall denemelerinde en fazla bir değişiklik isteği
-  gönderilir.** Belirsiz sonuçlar otomatik olarak tekrar denenmez.
-- **Shell, SSH control plane, Docker socket, privileged sunucu modu veya ZimaOS dahili
-  depolamasına doğrudan müdahale yoktur.**
-
-Sunucu TLS'i kendisi sonlandırmaz. Güvenilir bir LAN/VPN'de veya doğru yapılandırılmış bir
-HTTPS reverse proxy arkasında kullanın; düz HTTP portunu doğrudan internete açmayın.
-Bearer kimlik doğrulaması, taşıma katmanı şifrelemesi değildir.
-
-### Riskli işlem onayı
-
-Riski artıran Compose kurulum/düzenleme istekleri modern istemcilerde yerel MCP
-`input_required` / form elicitation akışını kullanır. Onay durumu kısa ömürlü, imzalı, tam
-içeriğe bağlı ve tek kullanımlıktır. Sunucu değişiklikten hemen önce güncel durumu yeniden
-kontrol eder.
-
-Bu mekanizma, açıklamanın gerçekten bir insana gösterildiğini kriptografik olarak
-kanıtlayamaz; onay arayüzünü doğru şekilde göstermek MCP istemcisinin sorumluluğudur.
-Bekleyen onay durumu process-local'dır ve sunucu yeniden başlatıldığında kaybolur.
+- Kurulu Compose uygulamalarını, container’ları, sağlık durumunu ve sınırlı logları inceleme.
+- Güvenilir App Store kataloglarında arama ve tam depo/uygulama kimliklerini inceleme.
+- Sistem bilgisi, örneklenmiş kaynaklar ve işletim sistemi güncelleme bildirimi/kurucu durumunu okuma.
+- Önerilen değişiklikler dahil Compose’u uygulamadan okuma ve doğrulama.
+- Uygulama başlatma/durdurma/yeniden başlatma, kurulum, kaldırma ve Compose düzenlemeyi ayrı ayrı açma.
+  Tüm değişiklik izinleri varsayılan olarak `false` olur; salt okunur araçlar kapalıyken de çalışır.
 
 ## ZimaOS kurulumu
 
@@ -113,20 +50,21 @@ Compose dosyası, container'ın ZimaOS API'sine host networking, Docker socket, 
 mode veya host mount kullanmadan ulaşabilmesi için `host.docker.internal:host-gateway`
 kullanır.
 
-> **Runtime UAT kanıtı:** normal kullanıcı akışıyla sıfırdan ZimaOS Custom App kurulumu ve temiz
-> yeniden kurulum, [sürüm süreci ve kanıtlarında](docs/RELEASE.md) kaydedilen tam digest üzerinde geçti.
-> Sürüm alias'ları onaylı sürüm promotion işlemini izler; yayın kayıtlarını doğrulayın ve digest kullanın.
+Kaynak deposu ve GHCR paketi herkese açıktır; registry kimlik bilgileri gerekmez.
+YAML’a registry kimlik bilgileri eklemeyin veya desteklenen kurulum akışını host-shell
+kontrolüyle değiştirmeyin. Tam olarak sabit deployment için şablondaki geliştirme imajını
+sürüm/yayın kaydındaki `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` ile değiştirin.
 
-### İmaj erişimi ve ilk kurulum UAT
+### Docker ile yerelde çalıştırma
 
-Kanonik kaynak deposu ve GHCR paketi herkese açıktır. Saklanan sürümlerin inceleme/temizliği
-tamamlanmış ve anonim imaj çekme erişimi doğrulanmıştır; bu onaylı yol için registry kimlik
-bilgileri gerekmez. Normal kullanıcı akışıyla sıfırdan Custom App kurulum UAT'si, kanonik
-deployment YAML'ı ve tam olarak sabit aday digest'i kullanılarak geçti; temiz yeniden
-kurulumda üretilmiş eski `x-casaos` / `store_app_id` metadata'sı yeniden kullanılmadı.
-YAML'a registry kimlik bilgileri eklemeyin veya UAT'yi atlamak için host shell komutları kullanmayın.
-Tam olarak sabit UAT/deployment için şablondaki geliştirme imajını yöneticinin inceleyip verdiği
-`ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` referansıyla değiştirin.
+```bash
+docker build -t zimaos-mcp-server:local .
+
+docker run --rm \
+  --env-file /path/to/your.env \
+  -p 3900:3000 \
+  zimaos-mcp-server:local
+```
 
 ## Yapılandırma
 
@@ -167,38 +105,6 @@ MCP istemcisini şu başlığı gönderecek şekilde yapılandırın:
 Authorization: Bearer <MCP_AUTH_TOKEN>
 ```
 
-Endpoint, modern MCP `2026-07-28` ve stateless legacy istemcileri destekler. Legacy
-istemciler salt okunur araçları ve izin verilen risksiz işlemleri kullanabilir; riskli
-kurulum/düzenleme istekleri ise fail-closed davranır. Riskli işlem onayı, form elicitation
-ve yerel `input_required` / `requestState` çok turlu istek akışını destekleyen modern bir
-istemci gerektirir; legacy onay shim'i veya metinle onaylama bypass'ı yoktur.
-
-**Inspector Web arayüzü:** Inspector sayfasını tarayıcının çalıştığı makinedeki
-`http://localhost` / loopback adresinden veya güvenilir HTTPS üzerinden açın. LAN IP'si
-üzerindeki düz HTTP, tarayıcı için güvenli bağlam değildir. Inspector 2.9.0, istek takibi
-için `crypto.randomUUID()` gerektirir; bu API kullanılamadığında modern discovery, bu
-sunucuya hiçbir istek ulaşmadan başarısız olup "the server did not offer pinned protocol
-version" hatasını gösterebilir. Bu gereksinim uzak MCP endpoint'ine değil, Inspector
-sayfasının origin'ine aittir. Tarayıcı konsolunda `window.isSecureContext` ve
-`typeof crypto.randomUUID` değerlerini kontrol edin; tarayıcı güvenliğini devre dışı
-bırakmayın. Modern Inspector bağlantıları için `--protocol-era modern` seçeneğini açıkça
-belirtin.
-
-`/health`, degraded yanıtlar dahil `status`, `service` ve `ready` yanında paket bilgisinden
-türetilen kanonik `version` alanını içerir. Kimlik doğrulaması gerektirmez ve container health/readiness kontrolleri
-içindir; MCP endpoint'i değildir. Desteklenen, kimlik doğrulamalı ZimaOS cihaz bilgisi
-API'sini aktif olarak kontrol eder. Zaten çalışan sunucuda HTTP 200 hazır, HTTP 503 ise
-upstream erişilemezliği veya kimlik doğrulama hatası dahil degraded readiness anlamındadır.
-Eşzamanlı kontroller sınırlı upstream işlemini paylaşır.
-Docker, yapılandırılan container iç `PORT` değerini kontrol eder ve degraded durumunu
-unhealthy sayar; bu, her uygulama API'sinin çalıştığı garantisi değildir.
-
-İlk başlatmada hatalı ZimaOS kimlik bilgileri veya erişilemeyen `ZIMAOS_URL`, MCP/health
-HTTP listener açılmadan fail-fast davranışına neden olur. Bu başlangıç hatalarında
-`/health` 503 yerine connection refused görülmesi beklenir. Gizli bilgi içermeyen
-`zimaos_login_failed` log kodunu kontrol edip yapılandırmayı düzeltin; hatalı parolayla
-tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
-
 ## Araç referansı
 
 | Araç                                     | Değişiklik yapar mı? | Not                                                                                         |
@@ -222,113 +128,101 @@ tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
 | `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                  |
 | `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.               |
 
-## Sistem tanılama (geliştirme)
+## İzinler ve güvenlik
 
-Phase 8A, yalnızca `{}` kabul eden iki kimlik doğrulamalı salt okunur araç ekler; ek alanlar
-reddedilir. Tüm değişiklik izinleri kapalı kalabilir. ZimaOS yenileme/kontrol işlemi, abonelik
-değişikliği, durum sıfırlama, kurulum, yeniden başlatma veya uygulama güncellemesi yapılmaz.
-Bu araçlar v0.3.0 içinde yoktur.
+- **MCP kimlik doğrulaması zorunludur.** Her MCP isteği `MCP_AUTH_TOKEN` ile eşleşen
+  `Authorization: Bearer <token>` başlığını taşımalıdır.
+- **Varsayılan MCP sırrı yoktur.** `MCP_AUTH_TOKEN` en az 32 karakter olmalıdır.
+- **ZimaOS kimlik bilgileri MCP istemcilerine döndürülmez.**
+- **Değişiklik izinleri bağımsızdır ve varsayılan olarak kapalıdır.**
+- **Riskli Compose işlemleri fail-closed davranır.** Riski artıran kurulum/düzenleme
+  istekleri değişiklikten önce modern MCP onay akışını gerektirir.
+- **Kabul edilen install/edit/uninstall denemelerinde en fazla bir değişiklik isteği
+  gönderilir.** Belirsiz sonuçlar otomatik olarak tekrar denenmez.
+- **Shell, SSH control plane, Docker socket, privileged sunucu modu veya ZimaOS dahili
+  depolamasına doğrudan müdahale yoktur.**
 
-- `get_system_resources`, mevcutsa `cpu.utilizationPercent` (0–100) ve
-  `cpu.logicalProcessors` (1–4096); `memory.totalBytes`, `usedBytes`, `availableBytes`,
-  `freeBytes`, `usedPercent` (0–100); `systemStorage.totalBytes`, `usedBytes`,
-  `availableBytes` döndürür. Bayt sayaçları negatif olmayan güvenli tamsayılardır. Eksik alanlar
-  ve boş gruplar atlanır, sıfırla doldurulmaz. Geçersiz sayısal kanıt fail-closed davranır.
-  Değerler upstream örnekleridir; anlık ölçüm veya ortak zamanlı snapshot garantisi değildir.
-  Yuvarlanmış yüzdeler bayt oranlarıyla tam eşleşmeyebilir. Kullanılabilir bellek boş bellek
-  değildir; dosya sisteminde kullanılabilir alan, toplam eksi kullanılan alana eşit olmak
-  zorunda değildir. Depolama yalnızca sistem dosya sistemini kapsar, tüm disk/havuzları değil.
-  Sıfır sensör yokluğu anlamına gelebildiğinden sıcaklık atlanır; upstream depolama sağlık
-  anlamı makine/havuz sağlık kararı için yeterli değildir. Ağ, GPU, güç, yol veya disk kimliği
-  verisi döndürülmez.
-- `get_os_update_status`, `currentVersion`, `latestVersion`, `notice`, `updateAvailable`,
-  `installerStatus` ve `betaSubscription` döndürür. `notice`, `no-update`, `normal-update`,
-  `important-update` veya `force-update` olur; `updateAvailable` yalnızca `no-update` için false'tur.
-  Bu, Installer'ın bildirdiği sınıflandırmadır; sürüm karşılaştırması veya kurulum uygunluğu
-  garantisi **değildir**. `installerStatus`, `idle`, `installing` veya `installError` olur;
-  idle tamamlanmayı kanıtlamaz. `betaSubscription`, `enabled` veya `disabled` olur, kanal
-  uygunluğu kararı değildir. Ardışık beş okuma atomik değildir; aralarında durum değişebilir.
-  Sürümler, isteğe bağlı ön sürüm son ekiyle noktayla ayrılmış üç bileşenli biçimde en fazla
-  64 ASCII karakterdir; hatalı, tanınmayan veya kimlik bilgisi taşıyan kanıt fail-closed davranır.
-  Sürüm notları, ham mesajlar ve arayüzün yaklaşık adım bazlı ilerlemesi döndürülmez.
-- Her tanılama yanıtı 64 KiB ile sınırlıdır; zaman aşımı tüm gövdeyi kapsar ve yönlendirmeler
-  reddedilir. Upstream hataları, yanlış no-update/sağlıklı sonucu değil normalize edilmiş hata döndürür.
+Sunucu TLS'i kendisi sonlandırmaz. Güvenilir bir LAN/VPN'de veya doğru yapılandırılmış bir
+HTTPS reverse proxy arkasında kullanın; düz HTTP portunu doğrudan internete açmayın.
+Bearer kimlik doğrulaması, taşıma katmanı şifrelemesi değildir.
 
-## App Store keşfi
+### Riskli işlem onayı
 
-Phase 7 keşfi seçilen **v0.3.0** kaynağına dahildir; v0.2.0 içinde yoktur. İki araç da normal MCP
-kimlik doğrulaması gerektirir, tüm değişiklik izinleri kapalıyken çalışır ve yalnızca desteklenen
-ZimaOS okumalarını (gerektiğinde kimlik doğrulamasıyla birlikte) yapar. Depoları yönetmez ve
-istemcinin verdiği URL'lerden veri indirmez.
+Riski artıran Compose kurulum/düzenleme istekleri modern istemcilerde yerel MCP
+`input_required` / form elicitation akışını kullanır. Onay durumu kısa ömürlü, imzalı, tam
+içeriğe bağlı ve tek kullanımlıktır. Sunucu değişiklikten hemen önce güncel durumu yeniden
+kontrol eder.
 
-- `search_app_store`, yalnızca `{ "query": "arama metni", "limit": 20 }` kabul eder.
-  `query` zorunlu, başı/sonu kırpılan, boş olmayan düz metindir: kırpmadan önce en fazla
-  256 UTF-16 kod birimi olabilir; kontrol karakterleri ve DEL reddedilir. `limit` isteğe
-  bağlıdır; 1–50 arasında tamsayıdır, varsayılanı 20'dir. Doğrulanan upstream API boş
-  sorguyla gezinmeyi desteklemez.
-- Arama `{ "apps": [...], "truncated": false }` döndürür. Her uygulama tam `repo_id` ve
-  `app_id` ile mevcutsa `name`, `version`, `tagline`, `category`, `architectures` alanlarını
-  içerir. ZimaOS'un bulanık aramasını sabit İngilizce yerelleştirmeyle kullanır, her biri
-  60 girdilik en fazla beş sayfa okur ve limiti uygulamadan önce bu sınırlı alaka penceresini
-  depo/uygulama kimliğine göre sıralar. `truncated`, limit veya pencere nedeniyle sonuçların
-  dışarıda kaldığını belirtir; katalog genelinde sıralama veya eksiksizlik garantisi değildir.
-  Farklı depolardaki aynı uygulama kimliği ayrı kalır; yinelenen tam çiftler, başarısız depolar
-  veya tutarsız sayfalar fail-closed davranır.
-- `get_app_store_details`, yalnızca `{ "repo_id": "registered-repo-id",
-"app_id": "com.example.app" }` kabul eder; aynı kimlik/özet alanlarıyla birlikte mevcutsa
-  `description`, `author`, `developer`, `release_notes` döndürür. İki araç da bulunmayan
-  isteğe bağlı alanları atlar. Ayrıntılar ham Compose, yapılandırma, kaynak URL'leri, kurulu
-  olma durumu, güncelleme uygunluğu veya uyumluluk kararı içermez. Bildirilen mimariler
-  kurulum uygunluğu garantisi değildir; mevcut kurulum aracı güvenlik sözleşmesini bağımsız
-  olarak yeniden doğrular.
-- Görüntüleme metinleri UTF-16 kod birimiyle sınırlıdır: ad 120, sürüm 80, kısa açıklama
-  512, kategori 128, açıklama 12.000, yazar/geliştirici ayrı ayrı 256, sürüm notları 8.000.
-  Mimariler en fazla sekiz benzersiz, sıralı, küçük harfli alfanümerik/alt çizgi etiketidir;
-  her biri en fazla 32 karakterdir. Hatalı veya kimlik bilgisi taşıyan seçili metadata
-  sessizce kırpılmaz veya kısmen döndürülmez; fail-closed davranır. Katalog açıklamaları
-  güvenilmeyen içeriktir, talimat değildir.
+Bu mekanizma, açıklamanın gerçekten bir insana gösterildiğini kriptografik olarak
+kanıtlayamaz; onay arayüzünü doğru şekilde göstermek MCP istemcisinin sorumluluğudur.
+Bekleyen onay durumu process-local'dır ve sunucu yeniden başlatıldığında kaybolur.
 
-## Yerel App Store kurulumu
+## Önemli kullanım bilgileri
 
-`install_app_from_store`, yalnızca iki zorunlu string alan kabul eder:
+### App Store keşfi ve kurulumu
 
-```json
-{ "repo_id": "registered-repo-id", "app_id": "com.example.app" }
-```
+Arama boş olmayan metin gerektirir; boş sorguyla gezinme desteklenmez. Ayrıntı veya kurulum
+için dönen `repo_id` ve `app_id` çiftini birlikte kullanın; görünen adları veya URL’leri değil.
+Arama sınırlı ve bulanıktır, İngilizce yerelleştirme kullanır; `truncated`, katalog genelinde
+eksiksizlik değil dışarıda kalan sonuçları belirtir. Katalog metni güvenilmeyen veridir, talimat
+değildir; bildirilen mimari kurulum garantisi değildir. Keşif kurulu olma veya güncelleme
+uygunluğu durumunu bildirmez.
 
-Host'un kayıtlı App Store deposu/kataloğundaki tam kimlikleri kullanın; görünen adları veya
-URL'leri değil. Depo kimlikleri 128, kanonik küçük harfli ters alan adı biçimindeki uygulama
-kimlikleri 192 karakterle sınırlıdır. Ek alanlar reddedilir. İstemci tarafından verilen Compose,
-depo/Compose URL'si, mimari override, sürüm, force, update veya downgrade seçeneği yoktur.
-v0.3.0'da tam kimlikleri `search_app_store` ve `get_app_store_details` ile alın;
-keşif içermeyen önceki sürümlerde normal App Store arayüzünü/kataloğunu kullanın.
-[`v0.3.0 sürüm notlarına`](docs/RELEASE-NOTES-v0.3.0.md) bakın.
-Depo yönetimi MCP aracı sunulmaz.
+Yerel kurulum yalnızca etkin kayıtlı v2 HTTP depolarını, Compose sınıfındaki girdileri ve
+sunucunun seçtiği amd64/arm64 varyantlarını destekler. URL, sürüm, mimari, force, update veya
+downgrade override’ı yoktur. Store kökeni risk onayını atlamaz. Mevcut kimlik çakışmaları veya
+okunamayan/belirsiz ilişkilendirme kanıtı kurulumu engeller; güncelleme başlatmaz.
+Kabul edilen/belirsiz yerel kimlik rezervasyonları kaldırma sonrasında da sunucu yeniden başlayana
+kadar kalır; belirsiz sonuçtan sonra yeniden başlatmadan önce gerçek host durumunu doğrulayın.
 
-- Etkin kayıtlı **v2 HTTP depolarını**, **Compose sınıfındaki** girdileri ve sunucunun seçtiği
-  tam **amd64/arm64** Compose varyantlarını destekler. Desteklenmeyen sınıf, hatalı ayrıntı,
-  kimlik/mimari uyuşmazlığı veya kanonik olmayan yol fail-closed davranır; alternatif indirme yoktur.
-- Doğrulanmış `x-casaos.id` korunur; seçilen `x-casaos.repo_id` yalnızca yoksa eklenir.
-  Deterministik son baytlar analiz edilir, dry-run ile doğrulanır, riskliyse onaylanır ve değiştirilmeden
-  gönderilir. Store kökeni modern onayı atlamaz. `uncontrolled=false` ve port kontrolü içeride zorunludur;
-  `ALLOW_APP_INSTALL` açıldığında iki kurulum aracı da açılır.
-- Dry-run öncesinde desteklenen ilişkilendirme okumalarıyla en fazla 128 kurulu uygulama taranır.
-  Mevcut kanonik katalog kimliği, depo veya proje adından bağımsız olarak çakışır. Okunamayan, hatalı
-  veya belirsiz ilişkilendirme kanıtı ve sınırı aşan listeler kurulumu engeller; güncelleme başlatmaz.
-  İlişkilendirme okumaları içeride yalnızca kimlik metadata'sını sunar; kimlik bilgisi içeren ham Compose,
-  mevcut herkese açık okuma yolunda engellenmeye devam eder.
-- Compose kurulumu ile process-local sıralama/ad rezervasyonlarını paylaşır; yerel katalog kimliklerini
-  de rezerve eder. Kabul edilen veya belirsiz denemeler, kaldırma sonrasında da sunucu yeniden başlayana
-  kadar rezerve kalır; kesin ret rezervasyonları bırakır. Belirsiz sonuçtan sonra yeniden başlatmadan
-  önce gerçek host durumunu doğrulayın. Rezervasyonlar sınırlıdır ve sınır dolunca fail-closed davranır;
-  kalıcı veya process'ler arası kilit değildir ve harici aktör yarışlarını engelleyemez.
-- En fazla bir gerçek kurulum POST'u gönderir. `accepted`, asenkron kabul demektir; tamamlanma değildir.
-  Bir anlık liste okuması ve tam proje görünüyorsa en fazla bir container okuması ile bir sağlık probu,
-  `reconciliation: observed|pending|unknown` ve isteğe bağlı `appId`, `containerCount`, `health` üretir.
-  Görünürlük, çalışan container'lar veya sağlık durumu gözlemdir; işlemin bütünüyle tamamlandığını kanıtlamaz.
-  Bu araçta polling, değişiklik tekrar denemesi veya rollback yoktur.
+Girdi/çıktı sınırları, kimlik doğrulama, kontrollü kurulum ve sınırlı uzlaştırma için
+[App Store sözleşmeleri ve güvenlik ayrıntılarına](docs/TOOL-USAGE.tr.md#app-store-keşfi) bakın.
 
-## Önemli davranışlar ve sınırlamalar
+### Sistem tanılama
+
+İki tanılama aracı yalnızca `{}` kabul eder; yenileme, abonelik değişikliği, durum sıfırlama,
+kurulum veya yeniden başlatma değil okuma yapar. Eksik ölçümler atlanır, sıfır/sağlıklı varsayılanla
+doldurulmaz. CPU/bellek değerleri örnektir; sistem depolama havuzları değil yalnızca sistem dosya
+sistemini kapsar. Sıcaklık ve sağlık kararları sunulmaz. `updateAvailable`, sürüm karşılaştırması
+veya kurulum uygunluğuna değil Installer bildirimine dayanır; `idle` tamamlanmayı kanıtlamaz.
+Ardışık işletim sistemi okumaları atomik değildir. Ham notlar/mesajlar ve yaklaşık ilerleme atlanır.
+[Tanılama alanları, sınırları ve semantiğine](docs/TOOL-USAGE.tr.md#sistem-tanılama-geliştirme) bakın.
+
+### Hazır olma ve başlatma
+
+`/health`, degraded yanıtlar dahil `status`, `service` ve `ready` yanında paket bilgisinden
+türetilen kanonik `version` alanını içerir. Kimlik doğrulaması gerektirmez ve container health/readiness kontrolleri
+içindir; MCP endpoint'i değildir. Desteklenen, kimlik doğrulamalı ZimaOS cihaz bilgisi
+API'sini aktif olarak kontrol eder. Zaten çalışan sunucuda HTTP 200 hazır, HTTP 503 ise
+upstream erişilemezliği veya kimlik doğrulama hatası dahil degraded readiness anlamındadır.
+Eşzamanlı kontroller sınırlı upstream işlemini paylaşır.
+Docker, yapılandırılan container iç `PORT` değerini kontrol eder ve degraded durumunu
+unhealthy sayar; bu, her uygulama API'sinin çalıştığı garantisi değildir.
+
+İlk başlatmada hatalı ZimaOS kimlik bilgileri veya erişilemeyen `ZIMAOS_URL`, MCP/health
+HTTP listener açılmadan fail-fast davranışına neden olur. Bu başlangıç hatalarında
+`/health` 503 yerine connection refused görülmesi beklenir. Gizli bilgi içermeyen
+`zimaos_login_failed` log kodunu kontrol edip yapılandırmayı düzeltin; hatalı parolayla
+tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
+
+## Uyumluluk ve sınırlamalar
+
+Endpoint, modern MCP `2026-07-28` ve stateless legacy istemcileri destekler. Legacy
+istemciler salt okunur araçları ve izin verilen risksiz işlemleri kullanabilir; riskli
+kurulum/düzenleme istekleri ise fail-closed davranır. Riskli işlem onayı, form elicitation
+ve yerel `input_required` / `requestState` çok turlu istek akışını destekleyen modern bir
+istemci gerektirir; legacy onay shim'i veya metinle onaylama bypass'ı yoktur.
+
+**Inspector Web arayüzü:** Inspector sayfasını tarayıcının çalıştığı makinedeki
+`http://localhost` / loopback adresinden veya güvenilir HTTPS üzerinden açın. LAN IP'si
+üzerindeki düz HTTP, tarayıcı için güvenli bağlam değildir. Inspector 2.9.0, istek takibi
+için `crypto.randomUUID()` gerektirir; bu API kullanılamadığında modern discovery, bu
+sunucuya hiçbir istek ulaşmadan başarısız olup "the server did not offer pinned protocol
+version" hatasını gösterebilir. Bu gereksinim uzak MCP endpoint'ine değil, Inspector
+sayfasının origin'ine aittir. Tarayıcı konsolunda `window.isSecureContext` ve
+`typeof crypto.randomUUID` değerlerini kontrol edin; tarayıcı güvenliğini devre dışı
+bırakmayın. Modern Inspector bağlantıları için `--protocol-era modern` seçeneğini açıkça
+belirtin.
 
 - `accepted`, ZimaOS'un asenkron isteği kabul ettiği anlamına gelir; işlemin
   tamamlandığını **kanıtlamaz**.
@@ -360,17 +254,6 @@ Depo yönetimi MCP aracı sunulmaz.
 
 Yayın sözleşmesi ve kaydedilen UAT için [sürüm süreci ve kanıtlarına](docs/RELEASE.md) bakın.
 
-## Docker ile yerelde çalıştırma
-
-```bash
-docker build -t zimaos-mcp-server:local .
-
-docker run --rm \
-  --env-file /path/to/your.env \
-  -p 3900:3000 \
-  zimaos-mcp-server:local
-```
-
 ## Geliştirme
 
 Node.js 22 LTS (22.13.0 veya daha yeni) ya da desteklenen daha yeni bir LTS runtime kullanın.
@@ -388,7 +271,10 @@ npm run build
 Otomatik testler mock/fake bileşenler ve yerel HTTP test sunucuları kullanır. Canlı ZimaOS
 entegrasyon testleri ayrıdır ve commit edilmiş kimlik bilgilerine bağlı değildir.
 
-## Proje belgeleri
+## Belgeler
+
+- [Sürümler](https://github.com/lvgvs/zimaos-mcp-server/releases) ve [v0.3.0 notları](docs/RELEASE-NOTES-v0.3.0.md).
+- [Araç kullanımı ve güvenlik semantiği](docs/TOOL-USAGE.tr.md).
 
 - [`PROJECT.md`](PROJECT.md) — onaylı ürün kapsamı ve faz sınırları.
 - [`STATUS.md`](STATUS.md) — güncel geliştirme/sürüm durumu ve tarihsel checkpoint'ler.
