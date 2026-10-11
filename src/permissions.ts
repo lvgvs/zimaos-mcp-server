@@ -29,6 +29,8 @@ export interface PermissionLayerOptions {
   allowAppUninstall?: boolean;
   /** Independent, default-off existing-app Compose edit permission. */
   allowAppEdit?: boolean;
+  /** Independent, default-off device restart permission. */
+  allowSystemControl?: boolean;
 }
 
 export class PermissionLayer {
@@ -36,12 +38,24 @@ export class PermissionLayer {
   private readonly allowAppInstall: boolean;
   private readonly allowAppUninstall: boolean;
   private readonly allowAppEdit: boolean;
+  private readonly allowSystemControl: boolean;
 
   constructor(options: PermissionLayerOptions) {
     this.allowAppControl = options.allowAppControl;
     this.allowAppInstall = options.allowAppInstall ?? false;
     this.allowAppUninstall = options.allowAppUninstall ?? false;
     this.allowAppEdit = options.allowAppEdit ?? false;
+    this.allowSystemControl = options.allowSystemControl ?? false;
+  }
+
+  /** Assert the independent default-off grant before any device-restart I/O. */
+  assertCanRestartDevice(): void {
+    if (!this.allowSystemControl) {
+      throw new AppError(
+        "SYSTEM_CONTROL_DISABLED",
+        "Device restart is disabled. Set ALLOW_SYSTEM_CONTROL=true to enable it.",
+      );
+    }
   }
 
   /** True when application-control operations are permitted. */

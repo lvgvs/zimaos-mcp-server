@@ -1,6 +1,158 @@
 # Status
 
-## Current execution — Phase 8B researched DEFER / NO-GO delivery (2026-10-11)
+## Current execution — Phase 8C acceptance and protected delivery (2026-10-11)
+
+Repository: <https://github.com/lvgvs/zimaos-mcp-server>. Preparation branch
+`feat/system-mutations`, baseline `b532e957cfe5b061993e0662d75a6abb6c3699f5`.
+The containing protected PR is the Phase 8C delivery unit; Git/GitHub own its final head/merge
+identity and exact-head CI/CodeQL/publication results, recorded in the external delivery handoff.
+No release/version/tag/asset or v0.3.0/stable/latest promotion is authorized.
+
+- Phase 8A COMPLETE / MERGED: PR #31, `948760842318a65ae7de1f62fced1fd80e04fc13`.
+- Phase 8B COMPLETE / MERGED: PR #33, `b532e957cfe5b061993e0662d75a6abb6c3699f5`;
+  logs DEFER, generic notifications NO-GO pending authoritative version-applicable evidence.
+- Phase 8C acceptance complete: only `restart_device` delivered; OS installation DEFERRED.
+  Phase 8 completion is the successful protected merge of this delivery unit, not a release.
+- Exact surface: **21 MCP tools**. Restart requires strict `{}`, independent default-off
+  `ALLOW_SYSTEM_CONTROL`, one PUT `/v1/sys/state/restart` with no body; no redirect/auth replay.
+  Accepted HTTP 200 requires success exactly true/200 AND the exact asynchronous phrase.
+  Output is accepted/unknown, accepted boolean, completion always unverified, retrySafe false.
+  Pre-write login failure causes zero PUTs; 401 clears session, 403 retains it, neither retries.
+  No installer placeholder/permission, shutdown/arbitrary state/host shell/network/Files scope.
+- Positive parent-owned UAT sent **exactly one** restart PUT. HTTP 200 numeric-success envelope
+  and exact phrase yielded accepted/unverified/retrySafe false. No connection-loss-before-response
+  was observed. Manager independently confirms actual VM reboot from terminal uptime approximately
+  four minutes and `/proc/uptime` approximately 273–280 seconds; this is manager evidence, not
+  agent shell access or synchronous tool completion. User is disabling temporary terminal access.
+- The old-token monitor observed loss of authenticated reachability but did not establish the
+  return/boot identity: it retained the pre-reboot token. Fresh login proved ZimaOS recovery.
+  Do not interpret its failed samples as a reliable reboot duration or replay the write.
+  Exact local non-root development image
+  `sha256:5dc03ed9a4ebaf050d2f27fa4255e14e88d741db361c2cdc176990eb25ca39b5`
+  recovered health 200/version 0.3.0 and authenticated 21-tool discovery including restart.
+  This test container ran outside the rebooting VM; it is distinct from the unchanged older
+  preexisting VM MCP deployment, whose health is ready/reachable. That deployment rejected the
+  integration-file MCP token; authenticated discovery there is not claimed. No config was changed
+  to repair that denial. Manager explicitly accepts VM health plus exact development discovery
+  for delivery with this limitation documented; older VM authenticated discovery is not a gate.
+- All four preexisting apps were enumerated/protected. Pre/post inventory/status/health/container
+  identities and Compose fingerprints matched; retained native fixtures match the retained release
+  checkpoint, which remains byte-identical. The older checkpoint's MCP configuration fingerprint
+  differs from its historical value but exactly matches the accepted pre-8C read-only baseline and
+  remained unchanged across this reboot. No unrelated application/configuration mutation occurred:
+  guarded traffic contains one restart, auth/reads and zero other mutations. Two preflight harness
+  failures sent zero restart PUTs; the subsequent attempt was the sole real write.
+- OS installation DEFER: UI POST alone leaves eligibility, target/channel/preconditions,
+  acceptance/completion/progress/reboot/failure/data effects and ambiguity reconciliation unresolved.
+  RESEARCH/DECISIONS record precise reopening evidence; no real OS installation occurred.
+- Final locked dev install, formatting, ESLint, production/test TypeScript, **844/844 mocked tests
+  across 48 files**, production build, Docker build, canonical Compose,
+  whitespace checks and production/full npm audits passed (zero vulnerabilities).
+  Independent review with no blocking findings remains accepted; no new runtime implementation
+  was added afterward. Complete final diff, secret-value/private-fixture scans, paired rendered
+  README semantic parity and exact 21-tool inventories passed. Staged secret scan and exact-head
+  remote gates are verified at delivery, not inferred from this preparation snapshot.
+  Final comment-only 401/403 clarification changed the local image bytes; no runtime behavior
+  changed. Final non-root image `sha256:763d9324ab7ad2d9f4d4e396c8a2de5d244f1c33101421493bc73148af0fac1b`
+  separately passed exact-artifact read-only UAT: health 200/503 canonical 0.3.0, authenticated
+  21-tool discovery/default-off restart denial, independent resource/update projections,
+  four protected apps unchanged, 36 GETs/two auth POSTs/zero non-auth mutations. The sole real
+  restart used the earlier local image recorded above; it was not repeated for this final image.
+- Roadmap after the containing merge: Phase 5 ON HOLD; Phase 6 COMPLETE; Phase 7 COMPLETE;
+  Phase 8 COMPLETE; Phase 9 Network Diagnostics NOT STARTED; Phase 10 Files NOT STARTED.
+  Stop after verified merge/publication; no later kickoff or release. Quota at resumed recovery:
+  NORMAL, session 81%, weekly 69% remaining; recheck before delivery.
+
+## Historical Phase 8C restart integration checkpoint (2026-10-11)
+
+Preparation branch `feat/system-mutations`, HEAD/base
+`b532e957cfe5b061993e0662d75a6abb6c3699f5`; changes remain uncommitted, no Phase 8C PR yet.
+Phase 8A/8B COMPLETE / MERGED; 8B adds no runtime capability. Phase 8C worktree now exposes
+21 tools including strict-empty-input `restart_device`, with independent default-off
+`ALLOW_SYSTEM_CONTROL`, fixed supported PUT `/v1/sys/state/restart`, bounded one-shot transport
+and no auth replay/redirect following. No shutdown/arbitrary state/host-control fallback.
+Parent reviewed the implementation child's actual diff and rejected its broadened acceptance
+contract: it accepted success-only/message-only envelopes and omitted numeric-success acceptance.
+Four observed failing parent regressions preceded the correction; 29/29 client tests now pass.
+`retrySafe` is a literal false type, completion always unverified. Wire permission/schema/route
+tests pass. Child full-suite/extra optional work was not requested; parent reran actual gates.
+
+Parent gates: explicit locked dev install, format/lint, production/test TypeScript, **843/843
+mocked tests across 48 files**, production build, Docker build and deployment Compose validation
+passed. Exact non-root local image `zimaos-mcp-phase8c:local`, image ID
+`sha256:5dc03ed9a4ebaf050d2f27fa4255e14e88d741db361c2cdc176990eb25ca39b5`, passed authenticated
+read-only VM acceptance: restart default-off denial, 21-tool discovery, independent diagnostic
+field checks, existing reads, health 200/503 version, four protected app inventories/health/
+containers/Compose fingerprints unchanged. 36 GETs, two auth POSTs, zero non-authentication
+mutations or unexpected traffic; temporary container/relay/env cleaned up. No positive restart
+mutation/completion UAT or OS install has occurred. This read-only pass does not complete 8C.
+
+Paired README Capabilities/configuration/Tool Reference/restart caveats and default-off deployment
+examples are updated; release distinction and prominent AI disclosure retained. Rendered paired
+docs reviewed; mechanical source-derived inventory checks confirm both Tool References exactly
+match all 21 registrations, including the grouped app controls. Privacy checks and complete final
+diff review remain pending. Independent read-only reviewer returned no blocking findings; parent
+accepts that conclusion against the reviewed implementation and actual tests. The exact phrase
+AND permitted literal-success predicate is intentional; per-invocation one-shot does not claim
+cross-invocation serialization. Parent added 403 session-retention coverage: 403 is permission
+denial, not token expiry, whereas 401 invalidates the session without replay. Latest focused
+client/wire run: 32/32 tests across two files and both TypeScript checks pass. The earlier full
+843/843 run predates this additional test; a final full rerun remains required. Reviewer reported
+four calls while runtime metadata reports five; no edits or live actions were delegated.
+Installer route is established but safe eligibility/target/concurrency/acceptance/completion
+semantics remain unresolved; no installer mutation tool/permission added. Next: recheck quota,
+finish conditional installer disposition and bounded restart live acceptance, then final
+gates/privacy/protected PR delivery. No version bump/release/tag/stable/latest promotion.
+Phase 5 ON HOLD; Phase 9/10 NOT STARTED. Latest quota CAUTION: session 15%, weekly 72% remaining,
+independently evaluated. The bounded review/test checkpoint is complete; do not begin a large
+live-mutation/delivery package without a fresh quota check and enough budget for safe readback.
+No child remains pending and no live mutation or partial remote operation needs recovery.
+
+### Historical Phase 8C research/preparation checkpoint
+
+Phase 8B COMPLETE / MERGED in [PR #33](https://github.com/lvgvs/zimaos-mcp-server/pull/33):
+system logs DEFER, generic notifications NO-GO pending new authoritative version-applicable
+evidence. Parent-owned AGENTS/paired README completeness maintenance is retained; public surface
+remains 20 tools with no new permissions. Clean synchronized main baseline:
+`b532e957cfe5b061993e0662d75a6abb6c3699f5`. Exact-head main CI/CodeQL and normal development
+publication passed; anonymous SHA/edge manifest identity matched. v0.3.0/stable/latest unchanged.
+Merged branch was safely removed locally/remotely. Local 810/810 mocked tests and full
+format/lint/production-test TypeScript/build/diff/secret/privacy gates passed; no added live UAT.
+
+Manager authorizes Phase 8C after this delivery. Preparation branch: `feat/system-mutations`,
+at the baseline above. Fresh quota NORMAL: session 39% remaining, weekly 76%, independently
+evaluated. Begin bounded research only for supported `restart_device` and conditionally verified
+OS-update installation; exact current API/effects/response semantics must precede implementation.
+Independent default-off permissions, one mutation attempt and no ambiguous automatic retry are
+mandatory. No Phase 8C runtime implementation, live mutation or UAT yet. Bounded public-source
+research may be delegated without credentials, VM requests, Git writes or README authorship;
+parent verifies decisive evidence and owns architecture/security/public contracts and live actions.
+Do not reopen 8B without genuinely new authoritative evidence. Phase 9/10 NOT STARTED;
+Phase 5 ON HOLD and retained fixtures protected. Next: verify supported mutation contracts and
+safe result/completion boundaries, then checkpoint the smallest justified implementation or defer.
+
+Phase 8C follow-up checkpoint: parent reviewed the original research worker and corrected its
+unsupported `/v1` absence claim against the preserved public generated wrapper and actual
+Settings UI call. Fixed supported restart request is PUT `/v1/sys/state/restart`, no body;
+licensed first-party legacy handler supplies an acceptance-envelope lead, not current-runtime
+completion proof. Installer POST `/v2/installer/install` is a real UI operation, but safe
+eligibility/selected target/concurrency/acceptance/completion remain unresolved. Findings are
+persisted in `docs/RESEARCH.md`; no live mutation was performed.
+
+Parent added configuration/permission scaffolding for independent default-off
+`ALLOW_SYSTEM_CONTROL` and `SYSTEM_CONTROL_DISABLED`, using observed RED → GREEN tests.
+Focused configuration/permission gates: 54/54 mocked tests across three files passed.
+No restart tool is registered yet; public inventory remains 20 at this checkpoint. One bounded
+child is implementing only the fixed one-shot client method and focused transport tests;
+all config/MCP/service/docs/live-UAT/Git decisions remain parent-owned. Exact pending result
+contract distinguishes accepted versus unknown, always unverified completion and `retrySafe:false`;
+no auth replay, redirects, host shell or arbitrary target. Child acceptance, wire integration,
+paired public documentation, full gates, exact-artifact acceptance and protected delivery remain
+pending. Previously preserved verification/delivery task labels referred to completed 8A/8B work;
+do not repeat their completed UAT or PR. Zero-mutation read-only UAT alone cannot establish an
+8C restart mutation's behavior. Latest quota NORMAL: session 27%, weekly 74% remaining.
+
+## Historical Phase 8B researched DEFER / NO-GO delivery checkpoint (2026-10-11)
 
 Policy/README maintenance is COMPLETE / MERGED in [PR #32](https://github.com/lvgvs/zimaos-mcp-server/pull/32).
 Clean synchronized main baseline: `eaf746832138863bcf4b3008e24647bfdbba1b63`; exact-head

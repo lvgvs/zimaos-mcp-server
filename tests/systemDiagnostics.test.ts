@@ -31,7 +31,7 @@ describe("system diagnostics through MCP", () => {
     await client.connect(ct);
     try {
       const { tools } = await client.listTools();
-      expect(tools).toHaveLength(20);
+      expect(tools).toHaveLength(21);
       for (const name of ["get_system_resources", "get_os_update_status"]) {
         expect(tools.find((t) => t.name === name)).toMatchObject({
           annotations: { readOnlyHint: true, destructiveHint: false },

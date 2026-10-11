@@ -31,6 +31,12 @@ interface NativeReadOptions {
   kind: "json" | "text";
   /** Hard byte bound for the whole streamed body. */
   limitBytes: number;
+  /**
+   * Opt-in exact HTTP status gate: when set, any other status (including
+   * non-200 2xx such as 201) is rejected with a fixed safe error instead of
+   * being parsed as a payload. Existing callers omit it and retain behavior.
+   */
+  expectedStatus?: number;
 }
 
 // Hard bounds so a hostile/verbose catalog payload cannot grow memory or MCP
@@ -48,6 +54,8 @@ const SEARCH_INPUT_INVALID = "The store search page request is invalid.";
 const SEARCH_UPSTREAM_INVALID = "The store search response is malformed; retry later.";
 const ARCHITECTURE_INVALID = "The app management info response is malformed.";
 const COMPOSE_DETAIL_INVALID = "The store compose detail is invalid.";
+const DEVICE_RESTART_STATUS_UNEXPECTED =
+  "The device restart response had an unexpected status.";
 
 export interface ZimaOsClientOptions {
   /** Base URL of the ZimaOS host, e.g. "http://192.0.2.5:8080". No trailing slash. */
@@ -142,6 +150,28 @@ export interface ComposeUninstallResult {
   status: "accepted" | "rejected" | "upstream_error";
   /** True only on an explicit accepted envelope or verified async message. Never implies completion. */
   accepted: boolean;
+}
+
+/**
+ * Normalized result of a single fixed device-restart request.
+ *
+ * This is data, not an error: an ambiguous upstream failure is a valid
+ * outcome that callers must interpret, not an exception.
+ */
+export interface DeviceRestartResult {
+  /**
+   * - "accepted": the device restart request was acknowledged (only an API
+   *   request acknowledgment, never observed restart completion).
+   * - "unknown": the mutation outcome could not be confirmed. This does NOT
+   *   mean the device did not restart and does NOT mean it did.
+   */
+  status: "accepted" | "unknown";
+  /** True only on an explicitly acknowledged acceptance. Never implies completion. */
+  accepted: boolean;
+  /** Always "unverified": restart completion is never observed from this response. */
+  completion: "unverified";
+  /** Always false: a failed/ambiguous one-shot attempt is never safe to auto-retry. */
+  retrySafe: false;
 }
 
 /**
@@ -872,6 +902,78 @@ export class ZimaOsClient {
     return body;
   }
 
+  /**
+   * Perform ONE fixed device-restart request:
+   * PUT /v1/sys/state/restart with no body, authenticated with the cached
+   * token (logging in once first only when no session is held).
+   *
+   * The restart is NON-IDEMPOTENT in effect: re-sending it after an ambiguous
+   * outcome could race or repeat a still-running restart. This method NEVER
+   * retries after the attempt — not on 401/403/429/5xx, timeout, network
+   * failure, redirect, or any other outcome — and it never re-authenticates
+   * to retry. HTTP 401 drops the cached session for future explicit requests;
+   * HTTP 403 retains it. Neither condition replays the PUT.
+   *
+   * Acceptance is a request acknowledgment only, never observed completion.
+   * Accepted ONLY on an HTTP 200 bounded JSON envelope whose `success` is
+   * exactly `true` or `200` AND whose `data` is exactly the sourced async phrase
+   * "The operation will be completed shortly." (HTTP 200 only — a 201 or any
+   * other status is unknown). Every other mutation response, transport error,
+   * body failure, or timeout yields the fixed unknown result; upstream text
+   * (which may echo secrets) is never reflected.
+   *
+   * Pre-mutation login failures throw the safe existing errors and cause
+   * zero PUTs.
+   */
+  async restartDeviceOnce(): Promise<DeviceRestartResult> {
+    const UNKNOWN: DeviceRestartResult = {
+      status: "unknown",
+      accepted: false,
+      completion: "unverified",
+      retrySafe: false,
+    };
+    if (this.accessToken === null) {
+      // No session yet: establish one BEFORE any mutation traffic, so a
+      // failed login never leaves an ambiguous attempt behind.
+      await this.login();
+    }
+    try {
+      const body = await this.rawRequest(
+        "PUT",
+        "/v1/sys/state/restart",
+        undefined,
+        true,
+        undefined,
+        undefined,
+        this.timeoutMs,
+        { kind: "json", limitBytes: 64 * 1024, expectedStatus: 200 },
+      );
+      if (
+        isRecord(body) &&
+        (body["success"] === true || body["success"] === 200) &&
+        body["data"] === "The operation will be completed shortly."
+      ) {
+        return {
+          status: "accepted",
+          accepted: true,
+          completion: "unverified",
+          retrySafe: false,
+        };
+      }
+      return UNKNOWN;
+    } catch (err) {
+      if (err instanceof AppError && err.code === "ZIMAOS_AUTH_FAILED") {
+        // Stale/expired token: drop it so later calls re-authenticate, but do
+        // NOT retry the restart (a duplicate PUT could race a live restart).
+        this.invalidateSession();
+      }
+      // Never retry, re-login, or replay after the attempt: every outcome —
+      // 4xx, 5xx, body/timeout/network failure, redirect, non-200 status —
+      // is the fixed unknown result, and no raw payload is reflected.
+      return UNKNOWN;
+    }
+  }
+
   // ------------------------------------------------- catalog reads (GETs) --
   //
   // Bounded, authenticated, native catalog READ transport (Phase 6 slice).
@@ -1298,6 +1400,17 @@ export class ZimaOsClient {
     }
     if (!response.ok) {
       return rejectBody(fromHttpStatus(response.status));
+    }
+    if (
+      options.expectedStatus !== undefined &&
+      response.status !== options.expectedStatus
+    ) {
+      // An exact-status gate: a matching class but wrong status (e.g. 201 where
+      // 200 is required) is a rejected, sanitized outcome — never parsed as an
+      // accepted payload.
+      return rejectBody(
+        new AppError("ZIMAOS_UPSTREAM_ERROR", DEVICE_RESTART_STATUS_UNEXPECTED),
+      );
     }
 
     // A numeric content-length above the bound is rejected up front (non-numeric

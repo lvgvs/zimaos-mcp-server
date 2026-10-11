@@ -214,6 +214,7 @@ describe("MCP tools (mocked services)", () => {
           "list_app_containers",
           "list_apps",
           "restart_app",
+          "restart_device",
           "search_app_store",
           "start_app",
           "stop_app",
