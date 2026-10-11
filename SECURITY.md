@@ -4,8 +4,9 @@
 
 Security fixes target the current development line on `main` and its CI-verified images.
 
-Use GitHub Releases and their Git tags to identify published fixes. Publication of `v0.1.0`
-does not itself promise maintenance or backports for additional release lines.
+Use GitHub Releases and their Git tags to identify published fixes. Publishing a release
+does not imply long-term maintenance or backports for older or parallel release lines.
+Any maintenance or backport commitment must be explicitly stated.
 
 ## Reporting a vulnerability
 

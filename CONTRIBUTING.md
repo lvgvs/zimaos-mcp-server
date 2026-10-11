@@ -1,60 +1,96 @@
 # Contributing
 
-Thanks for your interest in `zimaos-mcp-server`.
+Bug reports, focused fixes, regression tests, documentation improvements and translation
+corrections are welcome. For a new capability or a significant API change, open an issue
+to discuss the proposal before implementing it. Small, well-scoped pull requests are
+easier to review in this security-sensitive project.
 
-This project is security-sensitive and uses a clean-room implementation policy, so small, well-scoped changes with clear tests are preferred.
+Read the [README](README.md) for supported capabilities and configuration, and the
+[tool usage guide](docs/TOOL-USAGE.md) for detailed safety contracts. To report a
+vulnerability, follow [SECURITY.md](SECURITY.md) rather than posting details publicly.
 
-## Before opening a pull request
+## Prerequisites and setup
 
-- Read [README.md](README.md), [PROJECT.md](PROJECT.md), and [AGENTS.md](AGENTS.md).
-- For behavior that depends on ZimaOS APIs, prefer current official ZimaSpace/IceWhaleTech documentation and compatible official OpenAPI/SDK sources.
-- Do not copy, port, translate, or derive implementation code from the historical `IceWhaleTech/ZimaOS-MCP` repository unless its reuse status is explicitly re-evaluated and approved.
-- Do not add SSH, arbitrary shell execution, Docker socket access, privileged runtime access, direct ZimaOS internal-file/database mutation, or undocumented control-plane APIs.
-- Keep changes focused. New capability families require explicit project-scope approval.
+- Git and npm.
+- Node.js 22 LTS (22.13.0 or newer), or a supported newer LTS runtime. CI uses Node.js 22.
+- Docker with the Compose plugin if your change affects container packaging or deployment.
 
-## Development setup
-
-Use Node.js 22 LTS (22.13.0 or newer) or a supported newer LTS runtime.
+Fork the repository on GitHub, then clone your fork and create a working branch.
+Replace `YOUR_USERNAME` with your GitHub username:
 
 ```bash
-npm ci --no-audit --no-fund
+git clone https://github.com/YOUR_USERNAME/zimaos-mcp-server.git
+cd zimaos-mcp-server
+git switch -c fix/your-change
+npm ci --include=dev --no-audit --no-fund
+```
+
+Automated tests use mocks/fakes and local HTTP servers; they do not require a ZimaOS
+device or credentials. To run the server against your own ZimaOS instance, follow the
+README's configuration and local Docker instructions. Live integration testing is
+separate from CI; only test mutations on a disposable system you are authorized to use.
+Never commit credentials, bearer tokens, private environment files or sensitive logs.
+
+## Development checks
+
+Run these checks before submitting a change:
+
+```bash
 npm run format:check
 npm run lint
 npm run typecheck
 npx tsc -p tsconfig.test.json --noEmit
 npm test
 npm run build
+git diff --check
+```
+
+`npm run format` applies Prettier formatting; review its diff before committing.
+`npm test` runs the Vitest suite, while the two TypeScript checks cover production and
+test code separately. `npm run build` emits the production code into `dist/`.
+
+For packaging or deployment changes, also run:
+
+```bash
 docker build -t zimaos-mcp-server:local .
 docker compose -f deploy/zimaos/docker-compose.yml config --quiet
 ```
 
-Live ZimaOS integration testing uses local secret material and is intentionally separate from CI. Never add real credentials, tokens, or private environment files to a commit.
+## API and security expectations
 
-## Pull requests
+- Add regression tests for changed behavior, including invalid inputs and failure paths.
+- Preserve MCP authentication, independent default-off mutation permissions, bounded outputs
+  and secret-safe errors. Asynchronous acceptance must not be described as completion;
+  ambiguous mutation outcomes must not be automatically retried.
+- Use supported ZimaOS APIs. Do not introduce SSH control, arbitrary shell execution,
+  Docker socket access, privileged runtime access or direct internal-file/database mutation.
+- Cite current official ZimaSpace/IceWhaleTech API documentation or compatible licensed
+  OpenAPI/SDK sources when changing upstream behavior. This is a clean-room implementation:
+  do not copy, port, translate or derive code from `IceWhaleTech/ZimaOS-MCP`, whose reuse
+  license is unclear. New dependencies must have compatible licenses.
+- Treat MCP tool names, input/output schemas, permissions and error semantics as public
+  contracts. Explain compatibility implications in the PR rather than silently changing them.
 
-Do not push normal implementation, documentation or maintenance changes directly to `main`.
-Start a short-lived feature/fix/docs branch from current `main` and open a PR targeting `main`.
-For agent work, commits and branch pushes remain Hermes/local Git / GPT-6.1 Sol owned;
-the ChatGPT technical manager may review/propose content but must not write, commit or push
-directly to the repository.
+## Documentation
 
-A pull request should:
+Update relevant user, contributor or security guidance in the same PR as the behavior it
+describes. If either README changes, update **both** [README.md](README.md) and
+[README.tr.md](README.tr.md), keeping their structure, examples, warnings and technical
+meaning equivalent. Keep paired tool-usage documents consistent when changing their contracts.
+Keep the Tool Reference complete and preserve the prominent AI-development disclosure.
 
-- explain the problem and the chosen approach;
-- add or update tests for changed behavior;
-- preserve default-off mutation permissions and secret-redaction behavior;
-- keep public documentation accurate;
-- pass all required CI checks on its latest revision before merge;
-- stay up to date with `main` when required and have every review conversation resolved.
+Read the rendered documentation as its intended audience, not just as Markdown source.
+Check links, stale release/lifecycle claims and contradictions; keep internal development
+instructions out of user and contributor guidance. Clearly label historical references.
 
-Merge using **Squash only**, with no owner/admin bypass. No human-approval count is required
-while there is only one maintainer; CI, conversation resolution and existing manager gates
-still apply. After merging, verify the merged PR, safely fast-forward local `main`, confirm
-`main == origin/main` and a clean worktree, and verify exact-head main CI/GHCR when applicable.
-Remove the merged working branch when appropriate only after confirming no work would be lost.
+## Submitting a pull request
 
-If either public README changes, update **both** [README.md](README.md) and [README.tr.md](README.tr.md) in the same change and keep their meaning equivalent.
+Commit your focused change on a feature/fix/docs branch and push it to your fork. Use a
+descriptive commit message, such as `fix: reject invalid input` or `docs: clarify setup`.
+Open a pull request targeting `main`; do not push changes directly to `main`.
 
-## Security issues
-
-Do not open a public issue containing vulnerability details. Follow [SECURITY.md](SECURITY.md).
+Explain the problem, approach, compatibility implications and checks you actually ran.
+Include reproduction steps for bugs, without credentials or private system details.
+Keep your branch up to date with `main` when requested and address review conversations.
+All required CI checks must pass on the latest revision before merge. Maintainers merge
+using **Squash only**, without bypassing checks or unresolved conversations.

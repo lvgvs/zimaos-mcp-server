@@ -1,6 +1,32 @@
 # Status
 
-## Current execution — published v0.4.0 / lifecycle reconciliation (2026-10-11)
+## Current execution — public documentation quality audit (2026-10-11)
+
+Parent-only docs/policy cleanup on `docs/public-docs-audit`, from clean synchronized
+`2358bf46fd087dc910b53981cdab5584ed3961e8`;
+<https://github.com/lvgvs/zimaos-mcp-server>. Classified all 17 tracked Markdown documents:
+public user/contributor/security guidance, intentionally historical release notes/changelog,
+and internal governance/research/engineering records. No Code of Conduct or issue/PR templates
+are present. Local per-occurrence search/classification evidence is retained outside source.
+
+CONTRIBUTING rewritten for human setup/checks/PRs; SECURITY maintenance wording is version-independent,
+with no LTS/backport promise. Paired READMEs distinguish release Compose from development edge and
+user docs from engineering references; paired usage guidance includes v0.3.0 and later. RELEASE
+labels historical engineering records and removes obsolete handoff/duplicated installation prose.
+AGENTS adds permanent audience ownership and parent-owned rendered human-reader editorial review.
+Historical public release notes, technical contracts and near-top AI disclosures are preserved.
+
+Local format/lint/production+test typechecks, 844/844 mocked tests in 48 files, production build,
+Compose validation and diff whitespace checks passed. Parent reviewed complete source diff and
+rendered public docs; paired README semantics, unchanged 21-tool inventory/disclosures and 55
+relative links/anchors verified. Release/asset/digest and historical immutability readbacks passed.
+Protected delivery/staged privacy results are recorded in the containing PR/final handoff; no new
+live UAT or VM action is needed. No runtime/tool/permission/dependency/version/workflow/deployment changes,
+manual image build/promotion, tag/Release/asset mutation or stable/latest change. Manager explicitly
+permits existing CI/development publication automation only. v0.4.0 readback verified before edits.
+Phase 5 ON HOLD; Phase 8 COMPLETE; Phase 9/10 NOT STARTED. Finish this bounded docs PR and stop.
+
+## Historical published v0.4.0 / lifecycle reconciliation (2026-10-11)
 
 Repository: <https://github.com/lvgvs/zimaos-mcp-server>. Preparation branch
 `docs/v0.4.0-publication`, baseline/release source `c4909c474345fd331ec5fdfd8bf2cc9e334659f6`.

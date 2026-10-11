@@ -82,7 +82,7 @@ Host'un kayıtlı App Store deposu/kataloğundaki tam kimlikleri kullanın; gör
 URL'leri değil. Depo kimlikleri 128, kanonik küçük harfli ters alan adı biçimindeki uygulama
 kimlikleri 192 karakterle sınırlıdır. Ek alanlar reddedilir. İstemci tarafından verilen Compose,
 depo/Compose URL'si, mimari override, sürüm, force, update veya downgrade seçeneği yoktur.
-v0.3.0'da tam kimlikleri `search_app_store` ve `get_app_store_details` ile alın;
+v0.3.0 ve sonraki sürümlerde tam kimlikleri `search_app_store` ve `get_app_store_details` ile alın;
 keşif içermeyen önceki sürümlerde normal App Store arayüzünü/kataloğunu kullanın.
 [`v0.3.0 sürüm notlarına`](RELEASE-NOTES-v0.3.0.md) bakın.
 Depo yönetimi MCP aracı sunulmaz.
