@@ -406,3 +406,20 @@ installation selection/approval checks; discovery is not an alternate installer 
 URLs, expose the raw detail object, or correlate installed state through installed Compose merely
 to add an optional discovery field. Installed-state/compatible claims and unverified size/dependency
 fields are omitted; Phase 5 update detection and later capabilities remain outside this phase.
+
+## 2026-10-11 — Phase 8A returns bounded evidence, not inferred health or update eligibility
+
+**Decision:** Add exactly two authenticated read-only tools with strict empty inputs:
+`get_system_resources` and `get_os_update_status`. Project numeric CPU/memory/system-filesystem
+samples only; omit missing metrics, unverified temperature/health, pools and network fields.
+OS `updateAvailable` derives solely from the supported Installer notice classification; include
+bounded release versions, installer enum and beta-subscription enum but no raw notes/messages.
+
+**Reason:** Current generated API wrappers and guarded live GETs establish these narrow contracts.
+Zero temperature may mean no sensor; a storage-health boolean cannot prove machine/pool health.
+Version inequality does not establish update eligibility, idle does not establish completion,
+and UI step-based progress is not measured progress. Sequential reads are explicitly non-atomic.
+
+**Rejected alternatives:** Compare versions for eligibility, trigger a refresh/check mutation in
+a read tool, return raw diagnostics, or widen Phase 8A to storage/network management. No new
+permission, dependency or release is required; later system mutations retain independent gates.

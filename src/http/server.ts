@@ -22,6 +22,7 @@ import { sha256Hex } from "../approval/intent.js";
 import { createPendingInstallRequestStateCodec } from "../approval/requestState.js";
 import type { AppConfig } from "../config.js";
 import { logger } from "../logging.js";
+import { VERSION } from "../version.js";
 import { createMcpServer, type ToolDeps } from "../mcp/tools.js";
 
 /** Hard cap on MCP request bodies (tool calls are small JSON). */
@@ -132,6 +133,7 @@ export function createHttpServer(options: HttpServerOptions): http.Server {
         status: ready ? "ok" : "degraded",
         service: "zimaos-mcp-server",
         ready,
+        version: VERSION,
       });
       return;
     }

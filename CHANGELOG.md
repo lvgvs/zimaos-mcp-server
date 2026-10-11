@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Authenticated read-only `get_system_resources` for available sampled CPU, memory and system
+  filesystem counters, with bounded numeric projection and no network/temperature/health verdict.
+- Authenticated read-only `get_os_update_status` for supported Installer release versions,
+  notice classification, installer state and beta subscription; no refresh or update action.
+
+### Fixed
+
+- `/health` includes the canonical package-derived runtime version in both ready and degraded
+  responses, preserving readiness and HTTP 200/503 semantics.
+
+### Known limitations
+
+- OS availability is upstream notice evidence, not version comparison or guaranteed install
+  eligibility. Sequential reads are not atomic; idle is not completion. Positive update/failure
+  states are mocked, not live transition UAT. Phase 8B/8C and Phase 9/10 are not included.
+
 ## [0.3.0] - 2026-10-11
 
 ### Added

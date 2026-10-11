@@ -112,6 +112,40 @@ export function createMcpServer(deps: ToolDeps): McpServer {
   // ------------------------------------------------------------- read-only --
 
   server.registerTool(
+    "get_os_update_status",
+    {
+      title: "Read OS update notice and installer status",
+      description:
+        "Read current/latest release versions, upstream update notice classification, installer status and beta subscription. updateAvailable reflects notice only, not version comparison or guaranteed installation eligibility. Sequential snapshots are not atomic; idle is not completion. Does not trigger a check/refresh, subscribe, reset, install or restart. No release notes, raw messages or approximate progress.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+      inputSchema: z.strictObject({}),
+    },
+    guard(async () => textResult(JSON.stringify(await deps.system.getOsUpdateStatus()))),
+  );
+
+  server.registerTool(
+    "get_system_resources",
+    {
+      title: "Read sampled system resources",
+      description:
+        "Return available sampled aggregate CPU utilization, logical processor count, memory bytes/percentage and system-filesystem capacity bytes. Missing metrics are omitted. No temperature, machine/pool health, other storage pools or network data; no hardware control.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+      inputSchema: z.strictObject({}),
+    },
+    guard(async () => textResult(JSON.stringify(await deps.system.getSystemResources()))),
+  );
+
+  server.registerTool(
     "search_app_store",
     {
       title: "Search trusted App Store catalogs",

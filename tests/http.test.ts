@@ -12,6 +12,7 @@ import { Socket, type AddressInfo } from "node:net";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import type { AppConfig } from "../src/config.js";
 import { createHttpServer } from "../src/http/server.js";
+import { VERSION } from "../src/version.js";
 import { PermissionLayer } from "../src/permissions.js";
 import type { ToolDeps } from "../src/mcp/tools.js";
 import type * as McpNode from "@modelcontextprotocol/node";
@@ -242,17 +243,23 @@ describe("HTTP transport (mocked services)", () => {
   it("serves /health without authentication and reflects readiness", async () => {
     const res = await fetch(`${running.baseUrl}/health`);
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { status: string; ready: boolean };
-    expect(body.ready).toBe(true);
-    expect(body.status).toBe("ok");
+    expect(await res.json()).toEqual({
+      status: "ok",
+      service: "zimaos-mcp-server",
+      ready: true,
+      version: VERSION,
+    });
 
     // Flip readiness and confirm the probe degrades.
     running.setReady(false);
     const degraded = await fetch(`${running.baseUrl}/health`);
     expect(degraded.status).toBe(503);
-    const body2 = (await degraded.json()) as { status: string; ready: boolean };
-    expect(body2.ready).toBe(false);
-    expect(body2.status).toBe("degraded");
+    expect(await degraded.json()).toEqual({
+      status: "degraded",
+      service: "zimaos-mcp-server",
+      ready: false,
+      version: VERSION,
+    });
     running.setReady(true);
   });
 
