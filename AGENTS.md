@@ -237,6 +237,26 @@ must supplement, not replace, that inventory. Avoid repeating contracts across l
 move excessive detail into linked dedicated documentation while preserving user-facing safety
 and usage caveats. Keep both languages semantically equivalent.
 
+### Capabilities summary
+
+The README `Capabilities` section is the complete human-readable high-level summary of
+the current public product surface. It explains what users can do in natural product terms;
+the Tool Reference remains the exact canonical inventory of public MCP tools. Group related
+tools into understandable capabilities rather than requiring one bullet per tool, but never
+omit a major delivered capability merely to keep the section short. A reader of this early
+summary should understand the major things the product can actually do. Completeness and
+clarity take priority over artificial brevity.
+
+When a PR/subphase adds, removes or materially changes a public capability, update Capabilities
+in that same PR when the high-level summary is affected, and update Tool Reference in that same
+PR when the exact tool inventory is affected. Keep both READMEs semantically equivalent and
+accurate about current release versus development availability; do not claim undelivered features.
+
+Capabilities is not a development log. Avoid phase numbers, internal milestone terminology,
+implementation history and exact low-level limits documented elsewhere. Detailed contracts
+belong in Tool Reference, Important Usage or linked dedicated documentation. Preserve the
+prominent near-top AI development disclosure under the existing policy below.
+
 ### Intentional AI disclosure exception
 
 The prominent near-top AI development disclosure in both READMEs is manager-approved ethical

@@ -423,3 +423,25 @@ and UI step-based progress is not measured progress. Sequential reads are explic
 **Rejected alternatives:** Compare versions for eligibility, trigger a refresh/check mutation in
 a read tool, return raw diagnostics, or widen Phase 8A to storage/network management. No new
 permission, dependency or release is required; later system mutations retain independent gates.
+
+## 2026-10-11 — Phase 8B does not expose unverified logs or generic notifications
+
+**Decision:** Manager accepts Phase 8B as a researched mixed result: system logs DEFER;
+generic notifications NO-GO unless future authoritative version-applicable evidence establishes
+a real supported meaningful generic notification surface. Add neither `get_system_logs` nor
+`get_notifications`, and no runtime permission. The public inventory remains 20 tools.
+
+**Reason:** The known CasaOS log contract is a ZIP archive, not a verified current ZimaOS
+bounded-log API; exact CasaOS/legacy ZimaOS candidates returned 404. Those observations do not
+prove ZimaOS lacks logs. MessageBus YSK display cards are not established generic persistent
+notification history; transient notices, read/unread and completeness semantics are unproven.
+
+**Rejected alternatives:** Host shell/journalctl, SSH, arbitrary/internal filesystem access,
+Docker shortcuts or guessed endpoints for logs; relabeling UI cards/banners/toasts as generic
+notifications. Neither would satisfy the supported-API product boundary.
+
+**Reopening evidence:** Logs require an authoritative version-applicable supported bounded ZimaOS
+log contract. Notifications require authoritative version-applicable evidence of a concrete
+supported generic notification primitive with meaningful history/persistence, read effects and
+completeness semantics. Preserve findings in RESEARCH; no 8B reopening during 8C without new
+evidence. Phase 8C begins only after clean protected delivery of this accepted 8B outcome.

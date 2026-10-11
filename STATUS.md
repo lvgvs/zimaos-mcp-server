@@ -1,6 +1,62 @@
 # Status
 
-## Current execution — parent-only policy/README maintenance (2026-10-11)
+## Current execution — Phase 8B researched DEFER / NO-GO delivery (2026-10-11)
+
+Policy/README maintenance is COMPLETE / MERGED in [PR #32](https://github.com/lvgvs/zimaos-mcp-server/pull/32).
+Clean synchronized main baseline: `eaf746832138863bcf4b3008e24647bfdbba1b63`; exact-head
+CI/CodeQL and development GHCR publication passed. Both READMEs retain all 20 tools and prominent
+AI disclosure; detailed bilingual contracts are linked. No runtime/release/VM changes occurred.
+Preparation branch: `feat/system-logs-notifications`, HEAD/baseline
+`eaf746832138863bcf4b3008e24647bfdbba1b63`. Manager accepts Phase 8B as COMPLETE with a mixed
+researched result: system logs DEFER, generic notifications NO-GO pending future authoritative
+version-applicable evidence. Phase 8A remains COMPLETE / MERGED. No runtime tools or permission
+flags are added by 8B; public inventory remains exactly 20. This containing docs/research PR
+also preserves the parent-only AGENTS/paired README completeness correction below.
+Bounded Qwen public-source research returned and received targeted parent primary-source review;
+no credentials, live VM requests, Git ownership or README authorship were delegated. The worker
+exceeded the eight-minute time bound; no duplicate was launched. Parent corrected its core-base
+and binary-as-text assumptions: the pinned CasaOS log handler emits ZIP under `/v2/casaos`, not
+a proven current ZimaOS text-log contract. Current-runtime guarded research recorded three GETs,
+two logins and zero non-authentication mutations/unexpected requests: legacy ZimaOS and exact
+first-party CasaOS log candidates both 404, MessageBus card list 200 with an empty array.
+Two additional public asset GETs established
+no system-log route in the inspected Settings dialog. Findings and exact sources are in RESEARCH.
+No product implementation or live 8B MCP UAT yet; retained fixtures were not modified.
+System logs reopen only with authoritative version-applicable supported ZimaOS API evidence
+establishing a bounded log contract; 404 observations do not establish that ZimaOS lacks logs.
+Generic notifications are NO-GO unless future authoritative version-applicable evidence proves
+a real supported meaningful generic notification primitive, with history/persistence, read effects
+and completeness semantics. UI cards, banners, transient messages and toasts are not substitutes.
+No host shell, SSH, filesystem/internal-path access, guessed routes or Docker shortcut is allowed.
+No additional live VM UAT is required: the guarded reads are research, not feature acceptance.
+Protected delivery needs parent complete-diff review, local gates, exact-head CI/CodeQL, resolved
+conversations, Squash merge/readback, synchronized clean main and development-publication checks.
+After clean merge, begin authorized Phase 8C: supported restart and conditionally verified OS-update
+installation with independent default-off gates and no ambiguous automatic retries. No release or
+version/tag/stable/latest change is authorized. Phase 9 Network and Phase 10 Files NOT STARTED;
+Phase 5 ON HOLD. No unresolved product blocker/manual action; Git/GitHub and the PR handoff own
+final delivery identities, not a recursive status commit. Parent complete-diff review and paired
+rendered EN/TR semantic review passed. Local formatting, ESLint, production/test TypeScript,
+810/810 mocked tests across 45 files, production build and whitespace checks passed; no new live
+UAT or Docker runtime build is required for this documentation-only outcome. Secret/privacy scans
+and exact-head remote checks remain protected-delivery gates.
+
+### Historical parent-only Capabilities correction checkpoint (2026-10-11)
+
+Manager amendment applied on the existing Phase 8B branch: AGENTS now distinguishes the complete
+human-readable Capabilities summary from the exact Tool Reference inventory and requires affected
+paired sections to change in the same PR/subphase. Both README summaries now cover installed-app
+inspection, native registered App Store discovery/installation, Compose install/read/validation,
+controlled lifecycle/edit/uninstall operations, delivered system reads and independent default-off
+mutation permissions. Parent reviewed complete policy/README diffs and rendered EN/TR summaries for
+semantic parity. Tool Reference, AI disclosures and release/development distinctions are unchanged;
+no undelivered capability is claimed. Formatting/whitespace and documentation-only scope checks
+passed. No runtime/contracts/permissions/version or VM changes; no live UAT, separate PR, child
+interruption or duplicate delegation. At this checkpoint the existing read-only research was still
+running; its later review/disposition is recorded above. This correction belongs to the containing
+Phase 8B delivery.
+
+## Historical parent-only policy/README maintenance (2026-10-11)
 
 Phase 8A is COMPLETE / MERGED in [PR #31](https://github.com/lvgvs/zimaos-mcp-server/pull/31).
 Clean synchronized starting main: `948760842318a65ae7de1f62fced1fd80e04fc13`; its exact-head

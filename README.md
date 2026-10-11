@@ -25,12 +25,21 @@ version field that are not in v0.3.0. The Tool Reference below describes current
 
 ## Capabilities
 
-- Inspect installed Compose apps, containers, health and bounded logs.
-- Search trusted App Store catalogs and inspect exact repository/app identities.
-- Read system information, sampled resources and OS-update notice/installer status.
-- Read and validate Compose, including proposed changes, without applying them.
-- Opt in separately to app start/stop/restart, installation, uninstall and Compose editing.
-  All mutation permissions default to `false`; read tools work with them disabled.
+- **Inspect installed applications:** list Compose apps and read normalized app details,
+  containers/services, available health information and bounded recent app logs.
+- **Discover and install from the App Store:** search trusted registered catalogs, inspect
+  exact repository/app entries and install directly from supported registered entries.
+- **Work with Compose:** install applications from caller-provided Compose, read existing
+  application Compose, validate new Compose before installation and validate proposed
+  existing-app Compose changes before applying them.
+- **Manage installed applications:** start, stop and restart apps; edit existing application
+  Compose under its safety, stale-state and risk controls; and uninstall apps with the
+  existing configuration-retention request and documented retention limitations.
+- **Read system diagnostics:** inspect ZimaOS system information, sampled CPU/memory and
+  system-filesystem resources, and supported OS-update notices and installer status.
+- **Choose mutation permissions independently:** all mutation capabilities are behind
+  separate default-off permissions; read-only capabilities remain available with those
+  permissions disabled.
 
 ## ZimaOS installation
 
