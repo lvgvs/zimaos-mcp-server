@@ -21,7 +21,7 @@ ZimaOS internal-file/database manipulation.
 
 ## Project status
 
-**Selected next stable release: `v0.2.0`; first stable release: `v0.1.0`.** Phase 1–3 functionality is implemented and Phase 4 external runtime
+**Selected release: `v0.3.0`; first stable release: `v0.1.0`.** Phase 6 native installation and Phase 7 discovery are complete; Phase 8 is not started. Phase 1–3 functionality is implemented and Phase 4 external runtime
 UAT is complete, including fresh Custom App installation, modern risky approval and repair,
 failure modes, upgrade, restart/reboot persistence, and clean reinstall. Publication state is
 authoritative in Git tags, GitHub Releases and GHCR aliases, not this source document.
@@ -214,7 +214,7 @@ ZimaOS-side rate limiting.
 
 ## App Store discovery
 
-Phase 7 discovery is development functionality; it is **not in v0.2.0**. Both tools require
+Phase 7 discovery is included in the selected **v0.3.0** source, not v0.2.0. Both tools require
 normal MCP authentication, work with all mutation flags disabled, and perform only supported
 ZimaOS reads (plus authentication when needed). They do not manage repositories or fetch
 caller-supplied URLs.
@@ -254,8 +254,9 @@ Use exact identifiers from the host's registered App Store repository/catalog, n
 names or URLs. Repository IDs are bounded to 128 characters; canonical lower-case
 reverse-domain app IDs to 192. Additional fields are rejected. There is no caller-supplied
 Compose, repository/Compose URL, architecture override, version, force, update or downgrade option.
-Use `search_app_store` and `get_app_store_details` to obtain exact identities in development
-source, or the normal App Store UI/catalog in released versions without discovery.
+Use `search_app_store` and `get_app_store_details` to obtain exact identities in v0.3.0,
+or the normal App Store UI/catalog in earlier releases without discovery. See
+[`v0.3.0 release notes`](docs/RELEASE-NOTES-v0.3.0.md).
 No repository-management MCP tool is provided.
 
 - Supports enabled registered **v2 HTTP repositories**, **Compose-class** entries and exact

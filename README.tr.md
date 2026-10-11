@@ -22,7 +22,7 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
 ## Proje durumu
 
-**Seçilen sonraki kararlı sürüm: `v0.2.0`; ilk kararlı sürüm: `v0.1.0`.** Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
+**Seçilen sürüm: `v0.3.0`; ilk kararlı sürüm: `v0.1.0`.** Phase 6 yerel kurulum ve Phase 7 keşif tamamlandı; Phase 8 başlamadı. Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
 sıfırdan Custom App kurulumu, modern riskli işlem onayı ve onarımı, hata durumları,
 yükseltme, yeniden başlatma/VM reboot kalıcılığı ve temiz yeniden kurulum dahil tamamlandı.
 Yayın durumunun kaynağı bu belge değil, Git etiketleri, GitHub Releases ve GHCR alias kayıtlarıdır.
@@ -220,7 +220,7 @@ tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
 
 ## App Store keşfi
 
-Phase 7 keşfi geliştirme işlevselliğidir; **v0.2.0 içinde yoktur**. İki araç da normal MCP
+Phase 7 keşfi seçilen **v0.3.0** kaynağına dahildir; v0.2.0 içinde yoktur. İki araç da normal MCP
 kimlik doğrulaması gerektirir, tüm değişiklik izinleri kapalıyken çalışır ve yalnızca desteklenen
 ZimaOS okumalarını (gerektiğinde kimlik doğrulamasıyla birlikte) yapar. Depoları yönetmez ve
 istemcinin verdiği URL'lerden veri indirmez.
@@ -264,8 +264,9 @@ Host'un kayıtlı App Store deposu/kataloğundaki tam kimlikleri kullanın; gör
 URL'leri değil. Depo kimlikleri 128, kanonik küçük harfli ters alan adı biçimindeki uygulama
 kimlikleri 192 karakterle sınırlıdır. Ek alanlar reddedilir. İstemci tarafından verilen Compose,
 depo/Compose URL'si, mimari override, sürüm, force, update veya downgrade seçeneği yoktur.
-Geliştirme kaynağında tam kimlikleri `search_app_store` ve `get_app_store_details` ile alın;
-keşif içermeyen yayınlanmış sürümlerde normal App Store arayüzünü/kataloğunu kullanın.
+v0.3.0'da tam kimlikleri `search_app_store` ve `get_app_store_details` ile alın;
+keşif içermeyen önceki sürümlerde normal App Store arayüzünü/kataloğunu kullanın.
+[`v0.3.0 sürüm notlarına`](docs/RELEASE-NOTES-v0.3.0.md) bakın.
 Depo yönetimi MCP aracı sunulmaz.
 
 - Etkin kayıtlı **v2 HTTP depolarını**, **Compose sınıfındaki** girdileri ve sunucunun seçtiği

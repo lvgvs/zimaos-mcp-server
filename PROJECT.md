@@ -1552,8 +1552,9 @@ to implement it during Phase 7. Historical phases keep their original numbering 
   availability detection belongs with Phase 5 when it resumes, not Phase 7.
 - **Phase 6 — Native App Store Installation: COMPLETE.** Existing `install_app_from_store`,
   resolver, catalog trust and installation safety semantics remain Phase 6 capabilities.
-- **Phase 7 — App Store Discovery: CURRENT / AUTHORIZED.** Only `search_app_store` and
-  `get_app_store_details`, specified below, are authorized for current implementation.
+- **Phase 7 — App Store Discovery: COMPLETE.** `search_app_store` and
+  `get_app_store_details` were delivered through protected PR #28. The specification below
+  preserves the original assignment; separate v0.3.0 authorization covers release operations only.
 - **Phase 8 — System Diagnostics & Management: APPROVED NEXT / NOT STARTED.** Richer live
   resources, supported CPU/memory/storage/temperature/health and troubleshooting network
   information; reliable supported OS update availability/check/status; bounded secret-safe
