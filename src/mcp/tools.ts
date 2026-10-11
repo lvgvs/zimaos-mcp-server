@@ -33,6 +33,8 @@ import { AppError } from "../errors.js";
 import type { PermissionLayer } from "../permissions.js";
 import type { AppService } from "../zimaos/appService.js";
 import type { SystemService } from "../zimaos/systemService.js";
+import { assertStoreSelection } from "../zimaos/storeCatalog.js";
+import { validateStoreSearchInput } from "../zimaos/storeDiscovery.js";
 import { VERSION } from "../version.js";
 
 export interface ToolDeps {
@@ -108,6 +110,94 @@ export function createMcpServer(deps: ToolDeps): McpServer {
   );
 
   // ------------------------------------------------------------- read-only --
+
+  server.registerTool(
+    "search_app_store",
+    {
+      title: "Search trusted App Store catalogs",
+      description:
+        "Search enabled registered v2 HTTP Compose catalogs using upstream fuzzy search. Returns bounded identity/display metadata sorted by repository/app identity within at most 300 upstream matches; truncated marks omitted results. Requires nonempty text, not an arbitrary URL. No installation or installed-state lookup.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+      inputSchema: z.strictObject({
+        query: z
+          .string()
+          .min(1)
+          .max(256)
+          .refine(
+            (query) => {
+              try {
+                validateStoreSearchInput({ query });
+                return true;
+              } catch {
+                return false;
+              }
+            },
+            {
+              message: "Search text must be nonempty and contain no control characters.",
+            },
+          ),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .optional()
+          .describe("Maximum returned results (default 20; maximum 50)."),
+      }),
+    },
+    guard(async (args) =>
+      textResult(JSON.stringify(await deps.apps.searchAppStore(args))),
+    ),
+  );
+
+  server.registerTool(
+    "get_app_store_details",
+    {
+      title: "Inspect one trusted App Store entry",
+      description:
+        "Return bounded public metadata for an exact enabled registered v2 HTTP Compose repository/app pair. Advertised architectures are not a promise of installation eligibility. No Compose, configuration, arbitrary source URLs, installed-state or update lookup.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+      inputSchema: z
+        .strictObject({
+          repo_id: z.string().min(1).max(128),
+          app_id: z.string().min(1).max(192),
+        })
+        .refine(
+          (selection) => {
+            try {
+              assertStoreSelection({
+                repoId: selection.repo_id,
+                appId: selection.app_id,
+              });
+              return true;
+            } catch {
+              return false;
+            }
+          },
+          { message: "The canonical store identity is invalid." },
+        ),
+    },
+    guard(async (args) =>
+      textResult(
+        JSON.stringify(
+          await deps.apps.getAppStoreDetails({
+            repoId: String(args["repo_id"]),
+            appId: String(args["app_id"]),
+          }),
+        ),
+      ),
+    ),
+  );
 
   server.registerTool(
     "list_apps",

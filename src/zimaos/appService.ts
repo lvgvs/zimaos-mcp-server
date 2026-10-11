@@ -9,6 +9,9 @@
 import { AppError, isRecord } from "../errors.js";
 import { resolveStoreCompose } from "./storeResolver.js";
 import { assertStoreSelection, type StoreSelection } from "./storeCatalog.js";
+import { getAppStoreDetails, searchAppStore } from "./storeDiscoveryService.js";
+import type { StoreSearchResult } from "./storeDiscoveryService.js";
+import type { StoreDiscoveryDetail } from "./storeDiscovery.js";
 
 import type {
   HealthProbeResult,
@@ -569,6 +572,16 @@ export class AppService {
     );
     if (install.status !== "accepted") return install;
     return { ...install, ...(await this.observeNativeInstall(preflight.name)) };
+  }
+
+  /** Bounded read-only store search (Phase 7); no MCP wiring here. */
+  async searchAppStore(input: unknown): Promise<StoreSearchResult> {
+    return searchAppStore(this.client, input);
+  }
+
+  /** Bounded read-only store detail (Phase 7); no MCP wiring here. */
+  async getAppStoreDetails(selection: StoreSelection): Promise<StoreDiscoveryDetail> {
+    return getAppStoreDetails(this.client, selection);
   }
 
   private async listNativeInstalledApps(): Promise<AppInfo[]> {

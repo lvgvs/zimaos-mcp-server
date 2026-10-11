@@ -1402,14 +1402,15 @@ must validate those facts, bounded ambiguous-outcome reads and one mutation atte
 Guaranteed rollback is not required, but its actual limitations must be disclosed. Preserve the
 independent default-off update gate if subsequently implemented; do not expose force as a workaround.
 
-Native catalog installation remains separate future scope. The tested Compose-class entries used
+Historical pre-Phase 6 finding: native catalog installation was separate future scope. The tested Compose-class entries used
 trusted catalog/detail lookup, architecture-appropriate catalog Compose and canonical association
 metadata with the supported Compose POST, including explicit `uncontrolled=false`; no distinct
 store-install mutation API was observed. A bounded extension/thin store-aware frontend over the
 existing installer appears sufficient for these entries, but the current MCP installer does not
 perform trusted catalog resolution/association and omits that explicit option. Arbitrary supplied
 Compose is not universally equivalent to native installation. A future `install_app_from_store`
-capability is plausible, not authorized for implementation by this correction.
+capability was plausible, not authorized for implementation by that Phase 5 correction. Phase 6
+subsequently implemented the separately authorized native installer below; this did not resume Phase 5.
 
 The earlier temporary native fixtures were removed through the supported uninstall path with
 `delete_config_folder=false`; that historical cleanup remains valid. After PR #24, the manager
@@ -1421,6 +1422,12 @@ starts automatically. Phase 6 Native App Store Installation was separately manag
 on 2026-10-10; it proceeds independently and does not resume Phase 5.
 
 # Phase 6 — Native App Store Installation
+
+**Status: COMPLETE.** The existing `install_app_from_store` capability was delivered through
+protected main and released in v0.2.0. Git tags, GitHub Releases, GHCR and `docs/RELEASE.md`
+remain authoritative for exact release identities. The original specification and historical
+acceptance evidence below are preserved; its preparation-only merge/release restrictions describe
+the original assignment, not the current lifecycle state.
 
 ## Objective and authorization (2026-10-10)
 
@@ -1532,4 +1539,91 @@ and supported cleanup/absence. An initial UAT harness envelope mistake was clean
 explicitly authorized one corrected new lifecycle after verified absence. Each lifecycle sent one
 real install and one cleanup, not an ambiguous retry. Phase 5 baselines/checkpoint remained unchanged.
 Risky native approvals are covered with mocks/authenticated local HTTP, not dangerous live fixtures.
-Final exact-head PR checks and manager review remain the delivery gate; no merge/release is authorized.
+The original delivery gate was final exact-head PR checks and manager review before merge/release;
+that gate was subsequently completed under separate manager authorization.
+
+# Approved near-term phase map
+
+Completion of a phase never automatically starts the next. Future scope below is not permission
+to implement it during Phase 7. Historical phases keep their original numbering and contracts.
+
+- **Phase 5 — update_app: ON HOLD / Outcome B DEFER.** Preserve the resume trigger and safety
+  contract above; sufficient upstream evidence may resume the same Phase 5. Reliable update
+  availability detection belongs with Phase 5 when it resumes, not Phase 7.
+- **Phase 6 — Native App Store Installation: COMPLETE.** Existing `install_app_from_store`,
+  resolver, catalog trust and installation safety semantics remain Phase 6 capabilities.
+- **Phase 7 — App Store Discovery: CURRENT / AUTHORIZED.** Only `search_app_store` and
+  `get_app_store_details`, specified below, are authorized for current implementation.
+- **Phase 8 — System Diagnostics & Management: APPROVED NEXT / NOT STARTED.** Richer live
+  resources, supported CPU/memory/storage/temperature/health and troubleshooting network
+  information; reliable supported OS update availability/check/status; bounded secret-safe
+  system logs and meaningful supported notifications. `restart_device` and OS update installation
+  are approved in principle only after supported current APIs and clear semantics are verified.
+  Exact tools, contracts and permissions will be fixed at kickoff; no Phase 8 implementation now.
+- **Phase 9 — Files: APPROVED LATER / NOT STARTED.** Future file management requires its own
+  supported-API security design for path grants/canonicalization, read/write authority,
+  symlink/path escape and destructive behavior. No detailed contract or implementation now.
+
+Later candidates, without implementation authorization or additional numbered phases: richer
+installed-app status/details; low-priority, uncommitted semantic app-settings helpers; later
+multi-token evaluation; granular grants as relevant capability families require them.
+
+# Phase 7 — App Store Discovery
+
+## Goal and authorized surface
+
+Provide safe authenticated read-only discovery: search/browse currently registered, enabled,
+supported repositories, inspect one exact catalog app, then optionally use the existing Phase 6
+`install_app_from_store`. Implement only `search_app_store` and `get_app_store_details`.
+
+Prefer compact `search_app_store({query?, limit?})` with bounded text/count inputs, empty-query
+browse if verified useful, deterministic stable ordering and distinguishable repo/app pairs.
+Search only trustworthy currently exposed catalog metadata. `get_app_store_details({repo_id,
+app_id})` uses the existing Phase 6 canonical identity/trust boundary. Public fields and bounds
+must be fixed from authoritative current supported API and read-only VM evidence, not guessed.
+Optional metadata and installed-state reporting are included only when verified safely.
+
+## Trust, safety and evidence
+
+Require normal MCP authentication but no app mutation permission. Generate zero application
+mutation traffic: no installation, update/version/architecture override, editing or controls.
+Use registered/enabled supported repositories only, validate identifiers and reject malformed or
+ambiguous evidence. Callers never provide arbitrary catalog/repository/Compose URLs. Duplicate
+app IDs across repositories remain distinguishable. Exclude credentials, raw/interpolated Compose,
+unrelated configuration and arbitrary upstream repository URLs from normalized bounded outputs.
+Normalize errors without raw payloads or internal stack traces. Reuse safe typed catalog primitives
+minimally; preserve every Phase 6 installation safety/approval/permission boundary.
+
+Initial live research and final UAT are read-only through supported APIs; protect all existing
+applications and retained Phase 5 fixtures. Verify repository, catalog/detail, localization,
+architecture and optional installed-state behavior. Do not implement update-availability detection.
+Do not install merely to prove discovery/installer identity compatibility. Preserve clean-room
+source exclusions and record decisive findings in `docs/RESEARCH.md`.
+
+## Execution and acceptance
+
+Hermes/Sol owns scope, architecture/security decisions, final review, live-UAT interpretation,
+paired README authorship and Git/PR/merge. Bounded Qwen/local research, implementation, testing
+and debugging are authorized; no child becomes the parent or owns Git. No broad refactor or new
+dependency without justification. Thin MCP handlers delegate to typed catalog/AppService APIs.
+
+Cover bounded browse/search, deterministic multi-repository duplicate identities, disabled and
+unsupported repositories, malformed/ambiguous entries, exact detail failures, architecture and
+optional-metadata normalization, secret exclusion and zero mutation. Existing tools/permissions
+must remain unchanged, with exactly two additional tools discoverable. Run all local format/lint,
+production/test TypeScript, full mocked tests, production/Docker builds, canonical Compose,
+diff/privacy gates and EN/TR README parity. Read-only live MCP UAT must search a real benign entry,
+inspect its returned exact pair, cross-check direct supported API fields, verify installed state
+if implemented, and demonstrate zero mutation plus Phase 6 identity compatibility/discovery.
+
+Deliver the roadmap reconciliation and feature through one protected-main PR on
+`feat/app-store-discovery`; Squash merge is authorized only after clean parent review, all local
+gates/read-only UAT, exact-head CI/CodeQL and resolved conversations, with quota permitting.
+Verify synchronized clean main and normal trusted-main development GHCR publication, safely
+remove the feature branch, then stop. No package-version change, Git tag, stable/latest promotion,
+GitHub Release or release Compose asset is authorized. Phase 5, Phase 8, Phase 9 and later
+candidates remain outside this implementation.
+
+Stop for unsupported discovery evidence, unsafe/ambiguous identity, necessary arbitrary URL or
+secret exposure, a broad Phase 6 safety refactor, update involvement, materially contradictory
+live behavior, unresolved material product/security decisions or the permanent quota guard.
