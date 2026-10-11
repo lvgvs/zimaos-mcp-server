@@ -26,12 +26,22 @@ okumalarını ve `/health` sürüm alanını da içerir. Aşağıdaki Araç Refe
 
 ## Yetenekler
 
-- Kurulu Compose uygulamalarını, container’ları, sağlık durumunu ve sınırlı logları inceleme.
-- Güvenilir App Store kataloglarında arama ve tam depo/uygulama kimliklerini inceleme.
-- Sistem bilgisi, örneklenmiş kaynaklar ve işletim sistemi güncelleme bildirimi/kurucu durumunu okuma.
-- Önerilen değişiklikler dahil Compose’u uygulamadan okuma ve doğrulama.
-- Uygulama başlatma/durdurma/yeniden başlatma, kurulum, kaldırma ve Compose düzenlemeyi ayrı ayrı açma.
-  Tüm değişiklik izinleri varsayılan olarak `false` olur; salt okunur araçlar kapalıyken de çalışır.
+- **Kurulu uygulamaları inceleme:** Compose uygulamalarını listeleme; normalize edilmiş
+  uygulama ayrıntılarını, container/service bilgilerini, mevcut sağlık bilgilerini ve
+  sınırlandırılmış son uygulama loglarını okuma.
+- **App Store'dan keşif ve kurulum:** güvenilir kayıtlı kataloglarda arama, tam depo/uygulama
+  girdilerini inceleme ve desteklenen kayıtlı girdilerden doğrudan uygulama kurma.
+- **Compose ile çalışma:** çağıranın sağladığı Compose ile uygulama kurma, mevcut uygulama
+  Compose'unu okuma, yeni Compose'u kurulumdan önce ve mevcut uygulama için önerilen Compose
+  değişikliklerini uygulamadan önce doğrulama.
+- **Kurulu uygulamaları yönetme:** uygulamaları başlatma, durdurma ve yeniden başlatma;
+  mevcut uygulama Compose'unu güvenlik, eski durum ve risk kontrolleri altında düzenleme;
+  mevcut yapılandırmayı koruma isteği ve belgelenmiş saklama sınırlamalarıyla uygulama kaldırma.
+- **Sistem tanılama bilgilerini okuma:** ZimaOS sistem bilgilerini, örneklenmiş CPU/bellek ve
+  sistem dosya sistemi kaynaklarını, desteklenen işletim sistemi güncelleme bildirimlerini
+  ve kurucu durumunu inceleme.
+- **Değişiklik izinlerini bağımsız seçme:** tüm değişiklik yetenekleri ayrı, varsayılan olarak
+  kapalı izinlerin arkasındadır; salt okunur yetenekler bu izinler kapalıyken de kullanılabilir.
 
 ## ZimaOS kurulumu
 

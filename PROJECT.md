@@ -1559,7 +1559,10 @@ to implement it during the current phase. Historical phases keep their original 
   protected PRs in order, merging each before beginning the next: 8A live system resources and
   verified read-only OS-update availability/status; 8B bounded system logs and meaningful supported
   read-only notifications; 8C supported `restart_device` and conditionally verified OS-update
-  installation. Expose only verified supported CPU/memory/storage/temperature/health data.
+  installation. Phase 8A is COMPLETE / MERGED. Phase 8B is COMPLETE as the manager-accepted
+  researched system-logs DEFER / generic-notifications NO-GO result below; Phase 8C remains next
+  and may begin only after clean protected Phase 8B delivery. Expose only verified supported
+  CPU/memory/storage/temperature/health data.
   Notifications and OS-update installation may be explicitly deferred if evidence is insufficient.
   Independent default-off system-control and OS-update permissions, one mutation attempt and no
   ambiguous retry are required for 8C. No network diagnostics, Files or app-update investigation.
@@ -1576,6 +1579,34 @@ to implement it during the current phase. Historical phases keep their original 
 Later candidates, without implementation authorization or additional numbered phases: richer
 installed-app status/details; low-priority, uncommitted semantic app-settings helpers; later
 multi-token evaluation; granular grants as relevant capability families require them.
+
+# Phase 8B — Researched DEFER / NO-GO outcome (2026-10-11)
+
+Manager accepts Phase 8B as complete without runtime additions: zero new MCP tools, zero new
+runtime permissions, unchanged public tool count of 20. Source/live findings remain in
+`docs/RESEARCH.md`; guarded probes are research evidence, not feature UAT or product failures.
+
+- **System logs — DEFER.** No supported version-applicable bounded ZimaOS system-log contract
+  was verified. The CasaOS ZIP endpoint is not a proven current ZimaOS contract; exact CasaOS
+  and legacy ZimaOS candidates were unavailable on the VM. This does not establish that ZimaOS
+  lacks logs. Reopen only when authoritative version-applicable ZimaOS evidence establishes a
+  supported, bounded system-log API contract. No shell, SSH, journalctl, arbitrary filesystem,
+  internal undocumented paths, guessed routes or Docker/host-control substitute.
+- **Generic notifications — NO-GO unless future authoritative version-applicable evidence proves
+  a real supported meaningful generic notification surface.** The project found no evidence of
+  a generic persistent notification-history primitive suitable for a public MCP tool. MessageBus
+  display cards and an empty card response do not establish an inbox/history or complete stored
+  notices; read/unread/history/completeness semantics remain unestablished. Future concrete
+  supported evidence may reopen evaluation as a new capability; cards, banners, transient UI
+  messages and toasts must not be relabeled generic notifications without that evidence.
+
+Deliver the accepted research outcome and already-authorized parent AGENTS/paired README
+Capabilities correction together on `feat/system-logs-notifications` through protected main,
+exact-head CI/CodeQL and Squash merge. No runtime/tool/permission/version or release changes;
+no additional live UAT. Following clean merged delivery, Phase 8C is authorized only for supported
+`restart_device`, conditionally verified OS-update installation, independent default-off mutation
+permissions and no ambiguous automatic retries. Do not reopen 8B during 8C without genuinely new
+authoritative version-applicable evidence. Phase 9/10 remain NOT STARTED; Phase 5 remains ON HOLD.
 
 # Phase 7 — App Store Discovery
 

@@ -1556,3 +1556,89 @@ and supported interpolated-Compose fingerprints. Final pass: 36 GETs, two auth P
 non-authentication mutations or unexpected requests. Existing reads/default-off denial and
 ready/degraded health version semantics passed. Local test container, relay and temporary env
 file were cleaned up; the VM configuration and retained Phase 5 fixtures were not changed.
+
+## Phase 8B — reviewed source leads and read-only contract checkpoint (2026-10-11)
+
+### Parent verification and corrections to delegated research
+
+The bounded public-source worker returned a scratch evidence report; it is evidence, not an
+accepted implementation contract. The execution used 18 reported calls and about 24 minutes,
+exceeding the requested eight-minute bound. No tracked edits or live VM work were delegated.
+Parent independently verified the decisive pinned primary sources and corrected two material
+inferences: a binary schema does not mean text, and the CasaOS core specification does not use
+the ZimaOS base URL.
+
+- First-party CasaOS revision `0d3b2f444ec0193193cf03eef6d43c6e35b0183e` specifies
+  `GET /health/logs` under **`/v2/casaos`**, returning `application/octet-stream` with binary
+  schema and no selector, pagination or line bound. Its handler builds a ZIP of service logs;
+  this is not a bounded plain-text log read. No frontend/backend code is copied into the product.
+  Sources: [specification](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/api/casaos/openapi.yaml),
+  [handler](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/route/v2/health.go).
+  The first-party repository is Apache-2.0; its pinned LICENSE was retrieved.
+- A legacy community specification names `/v2/zimaos/health/logs`; this is a compatibility
+  research lead only, not current first-party authority or licensed implementation input.
+  Source: [legacy source revision](https://github.com/DeniskaAbr/IceWhale-OpenAPI/tree/171ff461ce14ee36f59f9de4cc37dc2a1725bad3).
+  The parent has not established equivalence between either source revision and the current VM.
+- First-party Apache-2.0 MessageBus revision `ba87168fcfa4ac5ff7a114f66a139eb5fe427646`
+  specifies `GET /v2/message_bus/ysk`: a displayable card list, not arbitrary event history.
+  Its pinned specification matches the worker's saved copy. The handler/service read the card
+  repository without marking read or deleting cards. No read/unread field is documented;
+  absence of such a concept is not proof about every shipped backend's side effects.
+  Short-notice cards are expressly not stored by this source's upsert path, so this list is
+  not a complete notification feed. Event-type registry reads describe types, not occurrences.
+  Sources: [specification](https://github.com/IceWhaleTech/CasaOS-MessageBus/blob/ba87168fcfa4ac5ff7a114f66a139eb5fe427646/api/message_bus/openapi.yaml),
+  [handler](https://github.com/IceWhaleTech/CasaOS-MessageBus/blob/ba87168fcfa4ac5ff7a114f66a139eb5fe427646/route/ysk.go),
+  [service](https://github.com/IceWhaleTech/CasaOS-MessageBus/blob/ba87168fcfa4ac5ff7a114f66a139eb5fe427646/service/ysk.go).
+  Card types/render types and content titles are documented; actual current nonempty card
+  semantics and privacy-safe projection remain unverified. WebSocket/Socket.IO delivery is a
+  separate subscription model, not an established stateless history-read contract.
+
+### Current-runtime observations, not feature acceptance
+
+A bounded deny-by-default authenticated probe permitted only the two exact candidate GETs and
+the existing login POST. `/v2/zimaos/health/logs` returned HTTP 404; `/v2/message_bus/ysk`
+returned HTTP 200 with `{data:[]}`. A separate guarded probe of the exact first-party
+`/v2/casaos/health/logs` route also returned HTTP 404. Combined authenticated counts:
+three GETs, two authentication POSTs, zero
+non-authentication mutations and zero unexpected requests. No applications or retained fixtures
+were changed. These are research observations, not product MCP UAT or full fixture-preservation
+acceptance. A single 404 does not prove that ZimaOS lacks system logs; an empty card list does
+not prove that notifications are unavailable or meaningful.
+
+Preserved public v1.7.1 generated API wrappers independently include `getYskCard` with GET `/ysk`;
+the inspected system wrapper and Settings dialog contain no established system-log read route.
+The Settings dialog was fetched via two unauthenticated same-origin public GETs, without UI
+interaction or state changes. This bounded asset inspection is not exhaustive API discovery.
+
+### Research gate at handoff, subsequently resolved by manager disposition
+
+No current supported bounded system-log source has been established. The legacy path failed on
+the current VM, and the exact first-party CasaOS path also returned 404; its source describes
+an archive under a different base.
+Do not replace this gap with arbitrary host paths, shell, Docker access, invented query selectors
+or binary-as-text output. Version-applicable authoritative route/format/bounds evidence is needed
+before fixing the public system-log contract. The notification card route is reachable, but
+meaningful current-card semantics, incomplete-feed labeling and secret-safe fields still need
+review before choosing a small card-list capability or an explicit notification defer. No new
+MCP tool, public notification/log contract or Phase 8B implementation is claimed here.
+
+### Manager-accepted Phase 8B disposition (2026-10-11)
+
+The manager accepts the evidence and completes Phase 8B as a researched mixed DEFER / NO-GO
+result, not a runtime feature delivery. System logs are **DEFERRED** until authoritative
+version-applicable ZimaOS evidence provides a supported bounded system-log API contract.
+Neither current-route 404 is evidence that ZimaOS definitely lacks logs; the gap is this project's
+verified contract, not a product failure. No `get_system_logs` is implemented.
+
+Generic notifications are **NO-GO unless future authoritative version-applicable evidence proves
+a real supported meaningful generic notification surface exists**. The project found no evidence
+of a generic persistent notification-history primitive suitable for a public MCP tool. Display
+cards, UI banners, short/transient messages and toasts are not substitutes. Reopening requires a
+concrete supported primitive with meaningful history/persistence, read effects and completeness
+semantics, not a hidden-history inference from `{data:[]}`. No `get_notifications` is implemented.
+
+Phase 8B adds zero runtime MCP tools and zero runtime permission flags; inventory stays 20.
+No shell, SSH, journalctl, arbitrary/internal filesystem, guessed-route or Docker/host-control
+fallback is authorized. Guarded probes remain research evidence; no additional feature UAT is
+required. Following protected docs/research delivery, Phase 8C is next; do not reopen these
+capabilities without genuinely new authoritative version-applicable evidence.
