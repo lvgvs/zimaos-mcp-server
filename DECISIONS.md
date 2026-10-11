@@ -445,3 +445,39 @@ log contract. Notifications require authoritative version-applicable evidence of
 supported generic notification primitive with meaningful history/persistence, read effects and
 completeness semantics. Preserve findings in RESEARCH; no 8B reopening during 8C without new
 evidence. Phase 8C begins only after clean protected delivery of this accepted 8B outcome.
+
+## 2026-10-11 — device restart uses a separate one-shot boundary
+
+**Decision:** Expose only fixed supported PUT `/v1/sys/state/restart` behind independent
+default-off `ALLOW_SYSTEM_CONTROL`. The tool accepts only an empty object. Authenticate before
+the write when needed, then bypass the client's read/dry-run reauthentication-and-retry helper.
+Never follow redirects or replay the write. Bound the response to 64 KiB. Recognized HTTP 200
+envelopes require literal success `true` or `200` and the exact sourced asynchronous data phrase;
+everything else after dispatch is unknown, without payload reflection. The returned completion
+is always unverified and `retrySafe` is always false. Current-runtime acknowledgment and separate
+recovery observations are recorded in RESEARCH; legacy source alone is not completion evidence.
+
+**Reason:** Device restart interrupts every application and connection. A dropped connection,
+timeout or upstream error can follow a dispatched restart; treating that as safe failure or
+automatically replaying the write could cause repeated disruption. API acknowledgment and
+subsequent reachability do not independently prove reboot completion.
+
+**Rejected alternatives:** App-control permission implicitly enabling system restart, arbitrary
+caller-selected system state/shutdown/URL, auth-replay helpers, host shell or Docker shortcuts,
+generic success-only/message-only acceptance and automatic retries. OS installation has only a
+verified UI route lead so far; safe mutation eligibility/target/completion semantics are still
+unresolved and no installer mutation tool or permission is added at this checkpoint.
+
+## 2026-10-11 — defer OS installation without a verified safety contract
+
+**Decision:** Deliver device restart independently; defer OS installation and ship no installer
+tool or unused permission flag. Reopen only when authoritative version-applicable evidence
+establishes eligibility, target/channel selection, request/preconditions, acceptance/completion,
+progress, reboot/failure/data effects and ambiguous-outcome reconciliation, with a genuine suitable
+update candidate and safe authorized UAT.
+
+**Reason:** A supported UI POST and availability/status reads do not establish these material
+mutation semantics. A real installation must not be used merely to discover the contract.
+
+**Rejected alternatives:** Infer eligibility from versions/notices, invent target/force/downgrade/
+URL/channel overrides, or block the independently justified restart capability.

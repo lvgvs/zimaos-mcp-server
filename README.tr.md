@@ -21,7 +21,7 @@ Docker socket erişimi, ayrıcalıklı container erişimi veya ZimaOS'un dahili
 dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
 **Güncel sürüm: [v0.3.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.3.0).**
-Geliştirme main/`edge`, v0.3.0’da bulunmayan sistem kaynakları ve işletim sistemi güncelleme
+Geliştirme main/`edge`, v0.3.0’da bulunmayan cihaz yeniden başlatma, sistem kaynakları ve işletim sistemi güncelleme
 okumalarını ve `/health` sürüm alanını da içerir. Aşağıdaki Araç Referansı güncel main’i anlatır.
 
 ## Yetenekler
@@ -40,6 +40,8 @@ okumalarını ve `/health` sürüm alanını da içerir. Aşağıdaki Araç Refe
 - **Sistem tanılama bilgilerini okuma:** ZimaOS sistem bilgilerini, örneklenmiş CPU/bellek ve
   sistem dosya sistemi kaynaklarını, desteklenen işletim sistemi güncelleme bildirimlerini
   ve kurucu durumunu inceleme.
+- **Cihazı yeniden başlatma:** ayrı, varsayılan olarak kapalı bir izinle ZimaOS'un
+  desteklenen API'si üzerinden yeniden başlatma isteme. Uygulamalar ve bağlantılar kesilir.
 - **Değişiklik izinlerini bağımsız seçme:** tüm değişiklik yetenekleri ayrı, varsayılan olarak
   kapalı izinlerin arkasındadır; salt okunur yetenekler bu izinler kapalıyken de kullanılabilir.
 
@@ -78,18 +80,19 @@ docker run --rm \
 
 ## Yapılandırma
 
-| Değişken              | Zorunlu | Açıklama                                                              |
-| --------------------- | ------- | --------------------------------------------------------------------- |
-| `ZIMAOS_URL`          | evet    | ZimaOS web/API temel adresi, ör. `http://host.docker.internal`.       |
-| `ZIMAOS_USERNAME`     | evet    | Desteklenen uygulama/sistem API'leri için kullanılacak ZimaOS hesabı. |
-| `ZIMAOS_PASSWORD`     | evet    | Bu ZimaOS hesabının parolası.                                         |
-| `MCP_AUTH_TOKEN`      | evet    | MCP istemcileri için Bearer token; en az 32 karakter, varsayılan yok. |
-| `ALLOW_APP_CONTROL`   | hayır   | Start/stop/restart işlemlerini açar; varsayılan `false`.              |
-| `ALLOW_APP_INSTALL`   | hayır   | Compose ve yerel App Store kurulumunu açar; varsayılan `false`.       |
-| `ALLOW_APP_UNINSTALL` | hayır   | Exact-id kaldırmayı açar; varsayılan `false`.                         |
-| `ALLOW_APP_EDIT`      | hayır   | Mevcut uygulama Compose düzenlemesini açar; varsayılan `false`.       |
-| `PORT`                | hayır   | Container iç HTTP portu; varsayılan `3000`.                           |
-| `LOG_LEVEL`           | hayır   | `debug`, `info`, `warn` veya `error`; varsayılan `info`.              |
+| Değişken               | Zorunlu | Açıklama                                                                                                 |
+| ---------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `ZIMAOS_URL`           | evet    | ZimaOS web/API temel adresi, ör. `http://host.docker.internal`.                                          |
+| `ZIMAOS_USERNAME`      | evet    | Desteklenen uygulama/sistem API'leri için kullanılacak ZimaOS hesabı.                                    |
+| `ZIMAOS_PASSWORD`      | evet    | Bu ZimaOS hesabının parolası.                                                                            |
+| `MCP_AUTH_TOKEN`       | evet    | MCP istemcileri için Bearer token; en az 32 karakter, varsayılan yok.                                    |
+| `ALLOW_APP_CONTROL`    | hayır   | Start/stop/restart işlemlerini açar; varsayılan `false`.                                                 |
+| `ALLOW_APP_INSTALL`    | hayır   | Compose ve yerel App Store kurulumunu açar; varsayılan `false`.                                          |
+| `ALLOW_APP_UNINSTALL`  | hayır   | Exact-id kaldırmayı açar; varsayılan `false`.                                                            |
+| `ALLOW_APP_EDIT`       | hayır   | Mevcut uygulama Compose düzenlemesini açar; varsayılan `false`.                                          |
+| `ALLOW_SYSTEM_CONTROL` | hayır   | Bağlantıları kesen cihaz yeniden başlatmayı açar; varsayılan `false`, uygulama izinlerinden bağımsızdır. |
+| `PORT`                 | hayır   | Container iç HTTP portu; varsayılan `3000`.                                                              |
+| `LOG_LEVEL`            | hayır   | `debug`, `info`, `warn` veya `error`; varsayılan `info`.                                                 |
 
 Tam örnek için [`.env.example`](.env.example) dosyasına bakın. Gerçek kimlik bilgilerini
 veya tokenları commit etmeyin.
@@ -117,26 +120,27 @@ Authorization: Bearer <MCP_AUTH_TOKEN>
 
 ## Araç referansı
 
-| Araç                                     | Değişiklik yapar mı? | Not                                                                                         |
-| ---------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
-| `list_apps`                              | hayır                | Kurulu Compose uygulamalarını listeler.                                                     |
-| `get_app`                                | hayır                | Tek uygulama için normalize edilmiş ayrıntılar.                                             |
-| `search_app_store`                       | hayır                | Etkin kayıtlı v2 HTTP Compose kataloglarında sınırlı arama.                                 |
-| `get_app_store_details`                  | hayır                | Güvenilir tam depo/uygulama çifti için herkese açık metadata.                               |
-| `get_app_health`                         | hayır                | ZimaOS'un sunduğu ölçüde uygulama/container sağlık bilgisi.                                 |
-| `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.                            |
-| `list_app_containers`                    | hayır                | Bir uygulamaya ait container/service bilgisi.                                               |
-| `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                                |
-| `get_system_resources`                   | hayır                | Mevcut örneklenmiş CPU/bellek/sistem dosya sistemi ölçümleri; ağ veya sağlık kararı yoktur. |
-| `get_os_update_status`                   | hayır                | İşletim sistemi sürümleri, bildirim sınıfı, kurucu durumu ve beta aboneliği.                |
-| `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                                  |
-| `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin.               |
-| `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.                      |
-| `start_app` / `stop_app` / `restart_app` | evet                 | `ALLOW_APP_CONTROL=true` gerekir.                                                           |
-| `install_app_from_compose`               | evet                 | `ALLOW_APP_INSTALL=true` gerekir; riskli değişiklikler onay ister.                          |
-| `install_app_from_store`                 | evet                 | Aynı kurulum izni; yalnızca kayıtlı katalog kimlikleriyle kontrollü, tek denemelik kurulum. |
-| `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                  |
-| `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.               |
+| Araç                                     | Değişiklik yapar mı? | Not                                                                                          |
+| ---------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------- |
+| `list_apps`                              | hayır                | Kurulu Compose uygulamalarını listeler.                                                      |
+| `get_app`                                | hayır                | Tek uygulama için normalize edilmiş ayrıntılar.                                              |
+| `search_app_store`                       | hayır                | Etkin kayıtlı v2 HTTP Compose kataloglarında sınırlı arama.                                  |
+| `get_app_store_details`                  | hayır                | Güvenilir tam depo/uygulama çifti için herkese açık metadata.                                |
+| `get_app_health`                         | hayır                | ZimaOS'un sunduğu ölçüde uygulama/container sağlık bilgisi.                                  |
+| `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.                             |
+| `list_app_containers`                    | hayır                | Bir uygulamaya ait container/service bilgisi.                                                |
+| `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                                 |
+| `get_system_resources`                   | hayır                | Mevcut örneklenmiş CPU/bellek/sistem dosya sistemi ölçümleri; ağ veya sağlık kararı yoktur.  |
+| `get_os_update_status`                   | hayır                | İşletim sistemi sürümleri, bildirim sınıfı, kurucu durumu ve beta aboneliği.                 |
+| `restart_device`                         | evet                 | `ALLOW_SYSTEM_CONTROL=true` gerekir; tek yeniden başlatma isteği, kabul tamamlanma değildir. |
+| `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                                   |
+| `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin.                |
+| `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.                       |
+| `start_app` / `stop_app` / `restart_app` | evet                 | `ALLOW_APP_CONTROL=true` gerekir.                                                            |
+| `install_app_from_compose`               | evet                 | `ALLOW_APP_INSTALL=true` gerekir; riskli değişiklikler onay ister.                           |
+| `install_app_from_store`                 | evet                 | Aynı kurulum izni; yalnızca kayıtlı katalog kimlikleriyle kontrollü, tek denemelik kurulum.  |
+| `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                   |
+| `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.                |
 
 ## İzinler ve güvenlik
 
@@ -197,6 +201,18 @@ sistemini kapsar. Sıcaklık ve sağlık kararları sunulmaz. `updateAvailable`,
 veya kurulum uygunluğuna değil Installer bildirimine dayanır; `idle` tamamlanmayı kanıtlamaz.
 Ardışık işletim sistemi okumaları atomik değildir. Ham notlar/mesajlar ve yaklaşık ilerleme atlanır.
 [Tanılama alanları, sınırları ve semantiğine](docs/TOOL-USAGE.tr.md#sistem-tanılama-geliştirme) bakın.
+
+### Cihazı yeniden başlatma
+
+`restart_device` yalnızca `{}` kabul eder ve yapılandırılmış ZimaOS host'unun bir kez yeniden
+başlatılmasını ister. `ALLOW_SYSTEM_CONTROL` iznini yalnızca tüm uygulamalar ve bağlantıların
+kesilmesine izin vermek istiyorsanız açın; uygulama izinleri bu yetkiyi açmaz. Sunucu kimlik
+doğrulama reddi, zaman aşımı veya bağlantı kesilmesi dahil hiçbir durumda yazmayı otomatik
+tekrarlamaz. `status:"accepted"`, API'nin isteği kabulüdür; yeniden başlatmanın tamamlanması
+değildir. `status:"unknown"`, yeniden başlatma zaten gerçekleşmiş olsa da dönebilir.
+`completion` her zaman `"unverified"`, `retrySafe` her zaman `false` değerindedir. Başka bir
+açık çağrı düşünmeden önce host durumunu bağımsız olarak doğrulayın. Kapatma, keyfî sistem
+durumu, shell veya işletim sistemi kurulum işlemi sunulmaz.
 
 ### Hazır olma ve başlatma
 

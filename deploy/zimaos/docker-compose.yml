@@ -82,6 +82,9 @@ services:
       # Existing-app Compose edits are independently gated; disabled by default.
       - ALLOW_APP_EDIT=false
 
+      # Device restart interrupts all applications/connections; independent and default-off.
+      - ALLOW_SYSTEM_CONTROL=false
+
       # Log verbosity: debug | info | warn | error.
       - LOG_LEVEL=info
 

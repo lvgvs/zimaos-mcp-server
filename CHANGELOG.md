@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Authenticated `restart_device`, independently gated by default-off `ALLOW_SYSTEM_CONTROL`;
+  one fixed supported API write, no automatic retry and no reboot-completion claim.
 - Authenticated read-only `get_system_resources` for available sampled CPU, memory and system
   filesystem counters, with bounded numeric projection and no network/temperature/health verdict.
 - Authenticated read-only `get_os_update_status` for supported Installer release versions,
@@ -22,7 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - OS availability is upstream notice evidence, not version comparison or guaranteed install
   eligibility. Sequential reads are not atomic; idle is not completion. Positive update/failure
-  states are mocked, not live transition UAT. Phase 8B/8C and Phase 9/10 are not included.
+  states are mocked, not live transition UAT. OS installation, network diagnostics and Files
+  are not implemented. Restart acknowledgment is not completion; unknown outcomes are unsafe
+  to automatically retry.
 
 ## [0.3.0] - 2026-10-11
 

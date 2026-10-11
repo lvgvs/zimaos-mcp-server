@@ -1642,3 +1642,111 @@ No shell, SSH, journalctl, arbitrary/internal filesystem, guessed-route or Docke
 fallback is authorized. Guarded probes remain research evidence; no additional feature UAT is
 required. Following protected docs/research delivery, Phase 8C is next; do not reopen these
 capabilities without genuinely new authoritative version-applicable evidence.
+
+## Phase 8C — system-mutation contract research (2026-10-11)
+
+### Reviewed worker result and decisive parent corrections
+
+The read-only worker left only an initialized scratch checkpoint, not a completed evidence
+report. Its final response is a lead, not an accepted contract. Runtime metadata reports four
+tool calls while the worker claims eight internal calls; this discrepancy is not resolved.
+Parent did not accept the worker's claim that the preserved generated bundle lacks `/v1`:
+direct bounded extraction establishes `/v1`, the required `state` argument, PUT
+`/sys/state/{state}`, and enum values `restart`/`off`. Effective restart request:
+**PUT `/v1/sys/state/restart`**, no request body. Shutdown/restore are not authorized tools.
+
+Current-runtime evidence is the preserved v1.7.1 public generated wrapper
+`vendor-api-system-DTFfJb9G.js` and Settings dialog `SettingsDialog-Cpgt0zUg.js`, with provenance
+recorded in the Phase 8A/8B findings above. The Settings dialog invokes
+`setSystemState("restart")` once and later polls user-service reachability; this demonstrates
+the normal UI operation, not a guaranteed reboot-completion signal. No frontend implementation
+is copied into the product, and frontend/backend revision equivalence is not claimed.
+
+Separately, the licensed first-party CasaOS revision
+`0d3b2f444ec0193193cf03eef6d43c6e35b0183e` registers PUT `/sys/state/:state` under `/v1`.
+Its handler dispatches `restart` to reboot and returns HTTP 200 with a Result envelope whose
+data is `The operation will be completed shortly.`. This is an acceptance lead, not proof that
+the current ZimaOS backend returns the same envelope or completes a reboot.
+Sources: [route registration](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/route/v1.go),
+[handler](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/route/v1/system.go).
+The pinned Apache-2.0 license was verified in Phase 8B. No legacy source is copied or ported.
+
+### Installer mutation lead and unresolved safety semantics
+
+The same preserved generated wrapper defines parameterless POST `/install` under
+`/v2/installer`, i.e. POST `/v2/installer/install`, without a body. The Settings dialog calls
+`installUpdate()` and navigates to the Update page on HTTP success. These facts identify an
+actual UI mutation, not safe eligibility, selected release/channel, concurrency, acceptance,
+rollback or completion semantics. Existing read-only notice/status observations do not fill
+those gaps. No install/reset/subscription mutation was sent, no OS-update installation feature
+is claimed, and no arbitrary host-control substitute is permitted.
+
+No Phase 8C live mutation or UAT has been performed at this research checkpoint. Restart
+implementation must use its fixed supported route and an independent default-off system
+permission, send at most one write per invocation, never reauthenticate/replay after a mutation
+response, and distinguish acceptance from unknown outcome and unverified completion. A
+disconnect or timeout during reboot cannot safely be called a failed restart or retried.
+
+### Restart integration and read-only artifact acceptance checkpoint
+
+Parent rejected the implementation worker's broader success-only/phrase-only interpretation.
+Observed failing regressions demonstrate the difference; corrected acceptance requires HTTP 200,
+success exactly `true` or `200`, AND the exact sourced data phrase. All other post-dispatch
+outcomes remain unknown. The status gate is opt-in to the existing bounded transport; unrelated
+reads retain their behavior. Parent ran 843/843 mocked tests across 48 files, strict production/
+test TypeScript and full local build/container/Compose gates successfully.
+
+Exact local non-root Docker artifact passed guarded read-only MCP acceptance, including default-off
+restart denial and 21-tool discovery. Independent resource/update projections and health version
+passed; four protected application inventories/status/health/container and interpolated-Compose
+fingerprints were unchanged. Counts: 36 GETs, two authentication POSTs, zero non-authentication
+mutations or unexpected requests. This proves default-off/read integration, **not** positive
+restart acceptance or completion. No restart/Installer mutation was sent. Current-runtime restart
+reply/completion characterization remains pending; no repeated mutation is authorized merely to
+make an ambiguous result look successful.
+
+### Final OS-installation disposition — DEFER
+
+Preserved evidence establishes only the parameterless UI request POST
+`/v2/installer/install`, the read-only notice/status enums and approximate UI progress.
+It does not establish actual install eligibility, selected target/version and beta-channel
+interaction, concurrency/preconditions, the backend acceptance/error contract, reliable
+progress/completion observation, reboot timing, failure/rollback behavior, data/configuration
+effects or safe reconciliation of an ambiguous attempt. Notice availability is not eligibility;
+idle is not completion. Therefore OS installation is DEFERRED under the conditional authorization.
+No real installation is used to discover those semantics, no placeholder tool or `ALLOW_OS_UPDATE`
+flag is shipped, and restart acceptance is independent of this defer.
+
+Reopen only with authoritative version-applicable evidence closing those material semantics,
+followed by a genuine applicable update on a suitable disposable VM and explicit safe live-UAT
+coverage. Any future installer needs its own default-off grant and one mutation attempt without
+ambiguous replay; no force/downgrade/URL/channel override or host-control substitute is authorized.
+
+### Single positive restart and recovery evidence
+
+The parent dispatched exactly one guarded restart through the authenticated local production
+development image. Current v1.7.1 returned HTTP 200, keys data/message/success, numeric success
+200 and the exact sourced asynchronous data phrase. The unchanged strict predicate returned
+accepted, completion unverified and retrySafe false. No mutation replay or real OS installation
+occurred. Two earlier harness preflight assertion failures sent zero PUTs; no post-attempt retry.
+
+The original-token reachability monitor did not prove reboot duration or recovery: fresh login
+was needed to verify the returned service. Separate supported reads confirmed ZimaOS recovery,
+complete four-app inventory/status/health/container/Compose preservation and byte-identical retained
+checkpoint. Native fixture fingerprints matched their retained checkpoint; preexisting MCP
+configuration matched the accepted immediate baseline rather than its older release-era fingerprint.
+The exact development MCP image recovered healthy/version 0.3.0 and 21-tool discovery including
+restart; it ran locally outside the VM, not as a changed VM app. The older VM MCP health was ready,
+but rejected the integration-file MCP token, so its authenticated discovery is not claimed.
+
+Manager independently confirmed actual reboot via ZimaOS terminal uptime approximately four
+minutes and `/proc/uptime` approximately 273–280 seconds. This supplied evidence is accepted and
+separate from API acknowledgment, agent-observed recovery or a product completion guarantee.
+No agent shell/SSH operation was used; the user is disabling temporary terminal access again.
+Guarded traffic confirms one restart and zero unrelated app/configuration writes. Full final
+mocked suite is 844 tests / 48 files; the final Docker build retains the tested local image ID.
+The later comment-only clarification of 401 versus 403 changes the build bytes without changing
+behavior; a separate final-image guarded read-only run passed the same diagnostic/health/schema/
+21-tool default-off assertions, 36 GETs/two auth POSTs/zero mutations and four-app preservation.
+No second restart was attempted. Manager explicitly accepts unchanged VM health plus exact local
+development discovery for delivery, documenting the older deployment's authentication limitation.

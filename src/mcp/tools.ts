@@ -109,6 +109,27 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     },
   );
 
+  // ----------------------------------------------------------- system write --
+  server.registerTool(
+    "restart_device",
+    {
+      title: "Request device restart",
+      description:
+        "Disruptive: request one ZimaOS device restart, interrupting all applications and connections. Requires independent ALLOW_SYSTEM_CONTROL=true. Sends one fixed supported API write, never retries or reauthenticates to replay it. accepted is request acknowledgment only; completion is always unverified. Unknown outcome may already have restarted the device: do not automatically retry. No shutdown, arbitrary state, shell or OS installation.",
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+      inputSchema: z.strictObject({}),
+    },
+    guard(async () => {
+      deps.permissions.assertCanRestartDevice();
+      return textResult(JSON.stringify(await deps.system.restartDevice()));
+    }),
+  );
+
   // ------------------------------------------------------------- read-only --
 
   server.registerTool(
