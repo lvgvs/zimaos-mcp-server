@@ -1,7 +1,8 @@
 # Release process and evidence
 
-`v0.1.0` remains the first stable release, dated 2026-10-09 in the changelog. `v0.2.0` is the
-selected next stable release line; package and lockfile versions for this source are `0.2.0`.
+`v0.1.0` remains the first stable release, dated 2026-10-09 in the changelog. `v0.2.0` is historical;
+`v0.3.0` is the selected release line through completed Phase 7. Package and lockfile versions
+for this source are `0.3.0`.
 Publication state is authoritative in Git tags, GitHub Releases
 and GHCR version/alias readback, not in this source document. This is a release-process contract
 and evidence record, not an assertion that a tag, Release or alias exists.
@@ -11,12 +12,23 @@ with Squash-only merging.
 The GHCR package is also PUBLIC after retained-version exposure review/cleanup; anonymous pull
 access is verified. Phase 4 external runtime UAT, including fresh normal-user Custom App installation
 and clean reinstall, is complete on the separately recorded runtime-tested digest below.
-Public v0.2.0 notes are in [release notes](RELEASE-NOTES-v0.2.0.md); retain the
+Public v0.3.0 notes are in [release notes](RELEASE-NOTES-v0.3.0.md); retain the
+[v0.2.0 notes](RELEASE-NOTES-v0.2.0.md) and
 [first-release notes](RELEASE-NOTES-v0.1.0.md) as historical evidence. Do not change package
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
 corresponding explicit manager approval.
 
 ## Artifact contract
+
+The parent-only v0.3.0 release preparation uses a protected Squash PR. Its exact resulting main
+artifact must pass digest-pinned Custom App deployment/UAT before an annotated tag or promotion.
+All preexisting VM apps remain protected; no Phase 5 update fixture or later phase is involved.
+The changelog date is the intended same-day publication date; if publication crosses a date
+boundary, reconcile it on a protected branch and select/retest the new exact candidate before tagging.
+The reviewed notes and digest-pinned `zimaos-mcp-server-v0.3.0-compose.yaml` are published as the
+GitHub Release body/asset. Generated assets and dynamic publication identifiers are not committed
+to source; Git/Release/GHCR and the final PR handoff own exact evidence. No post-release metadata
+commit is required merely to record those identifiers.
 
 `ghcr-publish` follows successful **push** CI on canonical `main`, never PR CI. It checks out the
 exact CI source commit. In normal development this is the Squash-merged main commit, not the

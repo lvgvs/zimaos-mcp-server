@@ -1,5 +1,34 @@
 # Status
 
+## v0.3.0 release preparation — parent-only (2026-10-11)
+
+Phase 7 COMPLETE / MERGED in PR #28, canonical baseline
+`42fc857688b01ed295ad62d2c5f883428600c73f`. Its exact-head CI/CodeQL and development publication
+passed; the independently cross-checked read-only MCP UAT passed without app mutations.
+Preparation branch: `release/v0.3.0`; repository <https://github.com/lvgvs/zimaos-mcp-server>.
+Package/lock version is 0.3.0, with runtime MCP version still derived from package metadata.
+Paired READMEs, changelog and v0.3.0 notes describe only completed product scope. Phase 5 stays
+ON HOLD / Outcome B DEFER; Phase 6 COMPLETE; Phase 8 and later NOT STARTED.
+
+Release gates, exact-head CI/CodeQL, the Squash-merged main candidate and exact-digest VM UAT
+govern publication. All preexisting applications are protected, including retained Phase 5 fixtures.
+Only the release test deployment may be created/restarted/removed. No install solely to prove
+catalog identity compatibility, no update UAT and no child delegation. Annotated tagging and
+digest-only promotion are authorized only after the candidate passes. Publication evidence belongs
+in Git/Release/GHCR and the final release PR handoff, not a recursive metadata source commit.
+Parent release-preparation gates passed: clean explicit-dev dependency install, formatting, ESLint,
+production/test TypeScript, 741/741 mocked tests across 41 files, production/Docker build,
+canonical Compose, version/lock consistency and whitespace review. Non-root production-image MCP
+initialization reports 0.3.0 independently of working directory. Runtime/full npm audits report
+zero vulnerabilities; locked dependency licenses remain unchanged and compatible. Paired rendered
+EN/TR README contracts were reviewed; promotion workflow remains digest-copy only, no rebuild.
+No release candidate VM UAT is claimed by this preparation checkpoint. Exact-head remote gates,
+candidate UAT and publication results are recorded in the release PR handoff. No product/security
+blocker or manual action.
+
+The following Phase 7 section preserves its historical implementation/preparation evidence;
+its delivery-pending wording is superseded by PR #28 and the release checkpoint above.
+
 ## Phase 7 — App Store Discovery
 
 **Current milestone:** Phase 7 implementation and read-only MCP UAT complete; protected-main

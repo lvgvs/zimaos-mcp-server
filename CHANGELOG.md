@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-11
+
+### Added
+
+- Read-only `search_app_store` for bounded fuzzy search of enabled registered v2 HTTP Compose
+  catalogs, with deterministic identity ordering and explicit truncation.
+- Read-only `get_app_store_details` for bounded allowlisted metadata from an exact `repo_id` /
+  `app_id` pair, compatible with the existing native installer selection contract.
+
+### Security
+
+- Fail-closed repository/filter/pagination validation and credential screening, including
+  UTF-8 percent-encoded credentials, without exposing Compose, configuration or source URLs.
+- Discovery requires MCP authentication but no mutation permission and sends no app mutations.
+
+### Known limitations
+
+- Search requires a nonempty query and examines at most 300 upstream matches in fixed English
+  localization; it is not exhaustive catalog browsing.
+- Discovery does not report installed state, update availability or installation compatibility.
+- `update_app` remains unavailable / Phase 5 ON HOLD / Outcome B DEFER. Phase 8 system diagnostics,
+  OS management, network diagnostics, system logs/notifications and Files are not included.
+
 ## [0.2.0] - 2026-10-10
 
 ### Added
