@@ -97,6 +97,11 @@ minimum BuildKit provenance and an SBOM. It creates `sha-<full-commit>` from tha
 Reruns reuse that commit tag and skip building. Auth/network errors during registry inspection fail
 closed; they are not evidence that the tag is absent. Conflicting immutable-tag promotion fails.
 
+Normal trusted-main publication continues after ordinary main merges, including docs-only merges:
+existing CI may publish `sha-<FULL_MAIN_SHA>` and advance `edge`. This is development publication,
+not a release mutation; restrictions on release operations do not by themselves prohibit it.
+It must never modify GitHub Releases, release assets or historical version artifacts.
+
 Only the current `main` head advances `edge`; delayed older builds cannot replace that alias.
 Pinned base digests and cleaned install caches reduce drift, but rebuild byte equality is not a
 product guarantee. Administrators can still alter/delete GHCR tags. For exact UAT/deployment pin
@@ -104,9 +109,11 @@ product guarantee. Administrators can still alter/delete GHCR tags. For exact UA
 
 The stale pre-policy `latest` tag and pre-migration/private-history tagged artifacts were removed
 during owner-reviewed cleanup. Canonical artifacts and provenance/SBOM-related untagged versions
-were preserved. `stable` / `latest` are managed only by explicitly approved stable-version promotion;
-their live targets must be verified against the release record. The artifact policy does not delete old
-versions/tags automatically; further cleanup or visibility changes require maintainer approval.
+were preserved. `stable` / `latest` stay on the current stable release between releases and move
+only through an explicitly authorized, successful stable-release promotion, never normal development
+or docs-only publication. Their live targets must be verified against the release record. The
+artifact policy does not delete old versions/tags automatically; further cleanup or visibility
+changes require maintainer approval.
 
 ## Release promotion contract
 
@@ -119,6 +126,8 @@ It does **not** rebuild, create a Git tag, or publish a GitHub Release.
 
 - `v<version>` is write-once within the guarded workflow: same-digest retry is harmless;
   a different digest fails rather than silently replacing an existing version.
+  Published version tags/digests, including historical versions, remain immutable; an existing
+  published version must never be rebuilt or replaced under the same version tag.
 - Stable promotion also updates `stable` and `latest` to that digest.
 - Prerelease promotion updates `prerelease` only; it never updates stable/latest.
 - Workflow summaries identify source commit, artifact digest and promoted version.
