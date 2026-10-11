@@ -20,9 +20,9 @@ ZimaOS kimlik bilgilerini tutan tek bileşen bu sunucudur. Ürün; keyfî shell 
 Docker socket erişimi, ayrıcalıklı container erişimi veya ZimaOS'un dahili
 dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
-**Güncel sürüm: [v0.3.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.3.0).**
-Geliştirme main/`edge`, v0.3.0’da bulunmayan cihaz yeniden başlatma, sistem kaynakları ve işletim sistemi güncelleme
-okumalarını ve `/health` sürüm alanını da içerir. Aşağıdaki Araç Referansı güncel main’i anlatır.
+**Güncel sürüm: [v0.4.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.4.0).**
+Sürüm, aşağıdaki 21 aracın tamamını; korumalı cihaz yeniden başlatmayı, sistem kaynakları ve
+işletim sistemi güncelleme okumalarını ve `/health` içinde kanonik çalışma zamanı sürümünü içerir.
 
 ## Yetenekler
 
@@ -200,7 +200,7 @@ doldurulmaz. CPU/bellek değerleri örnektir; sistem depolama havuzları değil 
 sistemini kapsar. Sıcaklık ve sağlık kararları sunulmaz. `updateAvailable`, sürüm karşılaştırması
 veya kurulum uygunluğuna değil Installer bildirimine dayanır; `idle` tamamlanmayı kanıtlamaz.
 Ardışık işletim sistemi okumaları atomik değildir. Ham notlar/mesajlar ve yaklaşık ilerleme atlanır.
-[Tanılama alanları, sınırları ve semantiğine](docs/TOOL-USAGE.tr.md#sistem-tanılama-geliştirme) bakın.
+[Tanılama alanları, sınırları ve semantiğine](docs/TOOL-USAGE.tr.md#sistem-tanılama) bakın.
 
 ### Cihazı yeniden başlatma
 
@@ -299,7 +299,7 @@ entegrasyon testleri ayrıdır ve commit edilmiş kimlik bilgilerine bağlı de�
 
 ## Belgeler
 
-- [Sürümler](https://github.com/lvgvs/zimaos-mcp-server/releases) ve [v0.3.0 notları](docs/RELEASE-NOTES-v0.3.0.md).
+- [Sürümler](https://github.com/lvgvs/zimaos-mcp-server/releases) ve [v0.4.0 notları](docs/RELEASE-NOTES-v0.4.0.md).
 - [Araç kullanımı ve güvenlik semantiği](docs/TOOL-USAGE.tr.md).
 
 - [`PROJECT.md`](PROJECT.md) — onaylı ürün kapsamı ve faz sınırları.

@@ -1,10 +1,10 @@
 # Release process and evidence
 
-`v0.1.0` remains the first stable release, dated 2026-10-09 in the changelog. `v0.2.0` is historical;
-`v0.3.0` is the current published release. This release-preparation source has package and
-lockfile version `0.4.0`; v0.4.0 is an upcoming candidate, not yet published. It includes the
-completed system diagnostics and guarded restart work. Candidate notes are in
-[v0.4.0 notes](RELEASE-NOTES-v0.4.0.md).
+`v0.4.0` is the current published release; package and lockfile versions are `0.4.0`.
+It includes system diagnostics, guarded device restart and canonical `/health` version reporting.
+Public notes are in [v0.4.0 notes](RELEASE-NOTES-v0.4.0.md).
+`v0.1.0` remains the first stable release, dated 2026-10-09 in the changelog;
+v0.1.0/v0.2.0/v0.3.0 artifacts remain immutable historical releases.
 Publication state is authoritative in Git tags, GitHub Releases
 and GHCR version/alias readback. This document records the verified publication checkpoint below
 and the reusable release-process contract; later docs-only main commits do not change release identity.
@@ -20,7 +20,35 @@ Public v0.3.0 notes are in [release notes](RELEASE-NOTES-v0.3.0.md); retain the
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
 corresponding explicit manager approval.
 
-## Completed v0.3.0 publication checkpoint (2026-10-11)
+## Completed v0.4.0 publication checkpoint (2026-10-11)
+
+- Parent-only release preparation [PR #35](https://github.com/lvgvs/zimaos-mcp-server/pull/35)
+  was Squash merged at `c4909c474345fd331ec5fdfd8bf2cc9e334659f6`, the immutable release source.
+  Annotated tag object: `329714fa42d4806daabf178eea17251ffc23bb80`.
+- [GitHub Release v0.4.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.4.0)
+  is published, stable/non-prerelease, ID `409753404`.
+- Exact anonymous-pull/UAT-passed artifact:
+  `ghcr.io/lvgvs/zimaos-mcp-server@sha256:8110d55e28534adc6f352db659a98275973442220f281b43ac7b1dc4488e8e99`.
+  v0.4.0/stable/latest match it. Promotion reused the trusted-main artifact without rebuilding;
+  source/revision labels, subject-bound SLSA v1 provenance and SPDX SBOM verified.
+- Asset `zimaos-mcp-server-v0.4.0-compose.yaml`, ID `631100286`, SHA-256
+  `818d8dec70a7fce7c2d68ba247dbf941d2518f80b8b83a35ab5b8dfff219adc7`.
+  Anonymous downloaded bytes match the locally generated digest-pinned asset. Compose validates,
+  credential placeholders remain and every mutation permission, including system control, is false.
+- 844/844 mocked tests in 48 files and full local build/Docker/Compose/audit/privacy gates passed;
+  exact-head PR/main CI/CodeQL and publication/promotion passed. Exact-candidate non-root local
+  runtime UAT verified health 200/503/version 0.4.0, 21-tool authenticated discovery, diagnostics,
+  existing reads, App Store search/details and default-off restart denial. Read-only run: 40 GETs,
+  two auth POSTs, zero non-auth mutations. No fresh-user VM UI import is newly claimed.
+- Exactly one separately authorized candidate restart returned accepted/unverified/retrySafe false;
+  network loss and fresh authenticated recovery observed; manager independently confirmed actual
+  reboot. Candidate discovery/read/health recovered. All four preexisting apps/configurations and
+  retained Phase 5 fixtures preserved, zero unrelated mutations. Older VM MCP deployment unchanged.
+  No real OS installation. Disposable local test instances were removed.
+- Historical v0.1.0/v0.2.0/v0.3.0 Git tags, Releases, assets and image digests are unchanged.
+  Later docs-only main/edge artifacts are not this release source/image and are not promoted.
+
+## Historical completed v0.3.0 publication checkpoint (2026-10-11)
 
 - Release preparation [PR #29](https://github.com/lvgvs/zimaos-mcp-server/pull/29) was Squash merged.
   Immutable source/annotated-tag target: `02a4129ba6f4e23f2c94f9cde5efc2632b695bc5`;
