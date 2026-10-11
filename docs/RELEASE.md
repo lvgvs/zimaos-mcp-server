@@ -1,4 +1,9 @@
-# Release process and evidence
+# Release engineering records
+
+For maintainers: publication contracts and dated verification records. Historical test results
+apply only to the recorded source/image, not every later build. For user installation and
+configuration, follow the [README](../README.md#zimaos-installation); for contribution setup,
+follow [CONTRIBUTING.md](../CONTRIBUTING.md). Agent ownership/governance belongs in AGENTS.md.
 
 `v0.4.0` is the current published release; package and lockfile versions are `0.4.0`.
 It includes system diagnostics, guarded device restart and canonical `/health` version reporting.
@@ -9,16 +14,14 @@ Publication state is authoritative in Git tags, GitHub Releases
 and GHCR version/alias readback. This document records the verified publication checkpoint below
 and the reusable release-process contract; later docs-only main commits do not change release identity.
 
-The canonical source repository is PUBLIC after manager approval; normal development uses PRs
-with Squash-only merging.
-The GHCR package is also PUBLIC after retained-version exposure review/cleanup; anonymous pull
-access is verified. Phase 4 external runtime UAT, including fresh normal-user Custom App installation
-and clean reinstall, is complete on the separately recorded runtime-tested digest below.
+The source repository and GHCR package are public; normal development uses PRs with Squash-only
+merging. Anonymous pull access is verified. Historical external runtime acceptance, including
+fresh Custom App installation and clean reinstall, is recorded on its specific digest below.
 Public v0.3.0 notes are in [release notes](RELEASE-NOTES-v0.3.0.md); retain the
 [v0.2.0 notes](RELEASE-NOTES-v0.2.0.md) and
 [first-release notes](RELEASE-NOTES-v0.1.0.md) as historical evidence. Do not change package
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
-corresponding explicit manager approval.
+corresponding explicit maintainer approval.
 
 ## Completed v0.4.0 publication checkpoint (2026-10-11)
 
@@ -78,14 +81,12 @@ Any resulting development/edge artifact must not be promoted as or confused with
 
 ## Artifact contract
 
-The parent-only v0.3.0 preparation used a protected Squash PR and exact-digest deployment/UAT
-before annotated tagging/promotion. All preexisting VM apps were protected; no Phase 5 update
-or later-phase work was performed. The actual publication date matches the changelog.
-Reviewed notes and digest-pinned Compose were published as the Release body/asset; generated
-assets remain outside source. Git/Release/GHCR and the final PR handoff own exact live evidence.
-For future releases, if publication crosses the intended date boundary, reconcile on a protected
-branch and select/retest the new exact candidate before tagging. No metadata-only commit is
-required merely to duplicate identifiers; this post-release correction reconciles stale lifecycle prose.
+Release preparation uses a protected Squash PR and exact-digest deployment/acceptance testing
+before annotated tagging and promotion. Preserve unrelated test-system apps and data. The
+publication date must match the changelog. Publish reviewed notes and digest-pinned Compose
+as the Release body/asset; generated assets remain outside source. Git/Release/GHCR records
+identify the published artifact. If publication crosses the intended date boundary, reconcile
+on a protected branch and select/retest the new exact candidate before tagging.
 
 `ghcr-publish` follows successful **push** CI on canonical `main`, never PR CI. It checks out the
 exact CI source commit. In normal development this is the Squash-merged main commit, not the
@@ -105,13 +106,13 @@ The stale pre-policy `latest` tag and pre-migration/private-history tagged artif
 during owner-reviewed cleanup. Canonical artifacts and provenance/SBOM-related untagged versions
 were preserved. `stable` / `latest` are managed only by explicitly approved stable-version promotion;
 their live targets must be verified against the release record. The artifact policy does not delete old
-versions/tags automatically; further cleanup or visibility changes require manager approval.
+versions/tags automatically; further cleanup or visibility changes require maintainer approval.
 
 ## Release promotion contract
 
-After automated gates and real-user UAT, the manager chooses/approves the version, source commit
-and release notes. Public package visibility is already approved; any later visibility change
-requires separate approval. Hermes/local Git creates/pushes the approved version tag only then.
+After automated gates and real-user runtime acceptance tests, maintainers approve the version,
+source commit and release notes. Changes to package visibility require separate approval.
+Only then is the approved version tag created and pushed through local Git.
 The tag-driven `release-image` workflow validates `vMAJOR.MINOR.PATCH[-prerelease.identifiers]`
 (no build metadata), checks main ancestry, and requires an already published commit artifact.
 It does **not** rebuild, create a Git tag, or publish a GitHub Release.
@@ -123,16 +124,16 @@ It does **not** rebuild, create a Git tag, or publish a GitHub Release.
 - Workflow summaries identify source commit, artifact digest and promoted version.
 
 Mutable release aliases follow the approved promotion, not an automatically computed greatest
-SemVer. Rerunning an older release can roll those aliases back; it requires explicit manager
-rollback approval. Runtime-UAT verification is not a version-promotion operation.
+SemVer. Rerunning an older release can roll those aliases back; it requires explicit maintainer
+rollback approval. Runtime acceptance verification is not a version-promotion operation.
 
 Before approval: compare changelog/release notes with implemented features, verify licenses/secrets,
 inspect provenance/SBOM, and record exact-head CI/GHCR plus the UAT result. Update the changelog and
 package version before building the chosen release artifact, not after it is selected.
 
-## Completed external runtime UAT checkpoint (2026-10-08)
+## Historical external runtime acceptance record (2026-10-08)
 
-Source: manager/user-reported external UAT results, not new agent-run runtime tests.
+Source: user-reported external runtime acceptance results, not independently repeated tests.
 
 - **Reachable tree-equivalent runtime-tested source:** `c66254b218afd9436e5931e66518ece88ff58c5e`.
 - **Runtime-tested image:**
@@ -206,26 +207,17 @@ Modern `2026-07-28` clients support native `input_required` / `requestState` MRT
 Legacy clients retain read-only and permitted non-risky operations; risk-increasing install/edit
 fails closed, without legacy approval shims or text-confirmation bypasses.
 
-The runtime UAT evidence is complete. Publication of the source artifact, version tag and GitHub
-Release follows the explicit manager approval contract above. A docs-only checkpoint may publish a new exact-head
-image under normal CI; unchanged runtime code is not a claim that external UAT was rerun on that
-new digest. Keep the runtime-tested identity above distinct from the publication handoff.
+The historical runtime acceptance evidence above is complete for its recorded candidate.
+A docs-only commit may publish a new development image under normal CI; unchanged runtime code
+does not imply that acceptance tests were rerun on that new digest. Keep the tested artifact
+identity distinct from later publications.
 
-The protected-main squash merge containing the final durable-documentation checkpoint is the
-intended `v0.1.0` release source. Its exact SHA, trusted-main artifact digest and successful checks
-are verified in the release handoff before approved tag creation. Promotion reuses that existing
-artifact without rebuilding. Neither the earlier reconciliation baseline nor its image is the
-final release identity. Publication requires no follow-up source-content/status commit to record
-identifiers or switch pending-state prose to published-state prose; consult Git/Release/GHCR records.
+For the historical v0.1.0 publication, the final protected documentation merge was selected as
+release source; promotion reused its trusted-main artifact without rebuilding. The earlier
+runtime-tested candidate and its image were separate identities. Consult Git/Release/GHCR
+records for the published tag/source/digest rather than treating this historical test candidate
+as a current release target.
 
-## Normal-user installation procedure (verified by UAT)
-
-Use the verified public anonymous-pull path with a manager-reviewed digest-pinned candidate;
-no registry credentials are required or belong in the Compose template. No host SSH,
-Docker CLI, privileged workaround or on-host rebuild is an acceptable substitute for fresh UI UAT.
-
-Use ZimaOS **Custom App → Docker Compose/YAML import**, fill the four required variables,
-review the default-off mutation permissions, and install the digest-pinned canonical Compose.
-Do not reuse generated metadata from an old installation. This flow and subsequent connection /
-permission / mutation / repair / persistence gates passed the manager's UAT recorded above;
-do not repeat external UAT solely for this documentation checkpoint.
+User installation instructions are maintained in the [README](../README.md#zimaos-installation).
+Developer/API deployment tests do not substitute for fresh-user UI acceptance when that
+coverage is required; the dated records above state which path was actually tested.

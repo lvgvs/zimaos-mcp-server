@@ -50,7 +50,8 @@ The intended installation flow is ZimaOS's normal Custom App UI:
 1. Open the ZimaOS application interface.
 2. Choose **Install a customized application**.
 3. Choose **Docker Compose / YAML import**.
-4. Paste [`deploy/zimaos/docker-compose.yml`](deploy/zimaos/docker-compose.yml).
+4. Download the Compose YAML attached to your chosen [GitHub Release](https://github.com/lvgvs/zimaos-mcp-server/releases)
+   and paste its contents.
 5. Replace every `CHANGE_ME_...` placeholder.
 6. Review the default-off permission flags.
 7. Install.
@@ -60,8 +61,11 @@ ZimaOS API without host networking, Docker socket access, privileged mode, or ho
 
 The source repository and GHCR package are public; no registry credentials are required.
 Do not embed registry credentials in YAML or substitute host-shell control for the supported
-installation flow. For an exact deployment, replace the template's development image with
-`ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` from the release/publication record.
+installation flow. Release Compose assets pin the image digest for that release.
+The repository's [`deploy/zimaos/docker-compose.yml`](deploy/zimaos/docker-compose.yml)
+is a development template using `edge`; it is not a stable-release installation target.
+For an exact deployment, use `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` from your
+chosen release record.
 
 ### Run locally with Docker
 
@@ -266,7 +270,7 @@ For modern Inspector connections, select `--protocol-era modern` explicitly.
 - Builds pin the Node 22 base digest and publish revision/source labels, minimum provenance
   and an SBOM. Rebuilding the same source is **not** promised to reproduce identical bytes.
 
-See [release process and evidence](docs/RELEASE.md) for the publication contract and recorded UAT.
+See [maintainer release records](docs/RELEASE.md) for the publication contract and historical verification.
 
 ## Development
 
@@ -289,6 +293,14 @@ testing is separate and never depends on committed credentials.
 
 - [Releases](https://github.com/lvgvs/zimaos-mcp-server/releases) and [v0.4.0 notes](docs/RELEASE-NOTES-v0.4.0.md).
 - [Tool usage and safety semantics](docs/TOOL-USAGE.md).
+- [Contributing](CONTRIBUTING.md) — setup, checks and pull request guidance for contributors.
+- [Security policy](SECURITY.md) — vulnerability reporting and maintenance policy.
+- [Changelog](CHANGELOG.md) — user-facing release history.
+
+### Engineering references
+
+These records describe development history and maintainer/agent processes, not additional
+installation requirements or user capabilities.
 
 - [`PROJECT.md`](PROJECT.md) — approved product scope and phase boundaries.
 - [`STATUS.md`](STATUS.md) — current implementation/release status and historical
@@ -297,9 +309,6 @@ testing is separate and never depends on committed credentials.
 - [`docs/RESEARCH.md`](docs/RESEARCH.md) — verified API/protocol research and
   implementation implications.
 - [`AGENTS.md`](AGENTS.md) — repository operating rules for implementation agents.
-- [`CHANGELOG.md`](CHANGELOG.md) — user-facing release history.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution and development guidelines.
-- [`SECURITY.md`](SECURITY.md) — vulnerability reporting policy.
 
 ## License
 

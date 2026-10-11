@@ -76,7 +76,7 @@ Use exact identifiers from the host's registered App Store repository/catalog, n
 names or URLs. Repository IDs are bounded to 128 characters; canonical lower-case
 reverse-domain app IDs to 192. Additional fields are rejected. There is no caller-supplied
 Compose, repository/Compose URL, architecture override, version, force, update or downgrade option.
-Use `search_app_store` and `get_app_store_details` to obtain exact identities in v0.3.0,
+Use `search_app_store` and `get_app_store_details` to obtain exact identities in v0.3.0 and later,
 or the normal App Store UI/catalog in earlier releases without discovery. See
 [`v0.3.0 release notes`](RELEASE-NOTES-v0.3.0.md).
 No repository-management MCP tool is provided.

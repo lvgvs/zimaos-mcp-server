@@ -52,8 +52,8 @@ Hedef kurulum akışı ZimaOS'un normal Custom App arayüzüdür:
 1. ZimaOS uygulama arayüzünü açın.
 2. **Install a customized application** seçeneğini açın.
 3. **Docker Compose / YAML import** seçeneğini seçin.
-4. [`deploy/zimaos/docker-compose.yml`](deploy/zimaos/docker-compose.yml) içeriğini
-   yapıştırın.
+4. Seçtiğiniz [GitHub sürümüne](https://github.com/lvgvs/zimaos-mcp-server/releases) ekli
+   Compose YAML dosyasını indirin ve içeriğini yapıştırın.
 5. Tüm `CHANGE_ME_...` placeholder değerlerini değiştirin.
 6. Varsayılan olarak kapalı izin değişkenlerini gözden geçirin.
 7. Kurulumu başlatın.
@@ -64,8 +64,11 @@ kullanır.
 
 Kaynak deposu ve GHCR paketi herkese açıktır; registry kimlik bilgileri gerekmez.
 YAML’a registry kimlik bilgileri eklemeyin veya desteklenen kurulum akışını host-shell
-kontrolüyle değiştirmeyin. Tam olarak sabit deployment için şablondaki geliştirme imajını
-sürüm/yayın kaydındaki `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` ile değiştirin.
+kontrolüyle değiştirmeyin. Sürüm Compose dosyaları, ilgili sürümün imaj digest'ini sabitler.
+Depodaki [`deploy/zimaos/docker-compose.yml`](deploy/zimaos/docker-compose.yml), `edge`
+kullanan bir geliştirme şablonudur; kararlı sürüm kurulum hedefi değildir. Tam olarak sabit
+deployment için seçtiğiniz sürüm kaydındaki `ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>`
+referansını kullanın.
 
 ### Docker ile yerelde çalıştırma
 
@@ -278,7 +281,7 @@ belirtin.
 - Derlemeler Node 22 taban digest'ini sabitler; revision/source etiketleri, asgari provenance
   ve SBOM yayınlar. Aynı kaynağı yeniden derlemenin aynı baytları üretmesi **garanti edilmez**.
 
-Yayın sözleşmesi ve kaydedilen UAT için [sürüm süreci ve kanıtlarına](docs/RELEASE.md) bakın.
+Yayın sözleşmesi ve tarihsel doğrulamalar için [bakımcı sürüm kayıtlarına](docs/RELEASE.md) bakın.
 
 ## Geliştirme
 
@@ -301,6 +304,14 @@ entegrasyon testleri ayrıdır ve commit edilmiş kimlik bilgilerine bağlı de�
 
 - [Sürümler](https://github.com/lvgvs/zimaos-mcp-server/releases) ve [v0.4.0 notları](docs/RELEASE-NOTES-v0.4.0.md).
 - [Araç kullanımı ve güvenlik semantiği](docs/TOOL-USAGE.tr.md).
+- [Katkıda bulunma](CONTRIBUTING.md) — katkıda bulunanlar için kurulum, kontroller ve pull request yönergeleri.
+- [Güvenlik politikası](SECURITY.md) — güvenlik açığı bildirimi ve bakım politikası.
+- [Değişiklik günlüğü](CHANGELOG.md) — kullanıcıya yönelik sürüm geçmişi.
+
+### Mühendislik başvuru kaynakları
+
+Bu kayıtlar geliştirme geçmişini ve bakımcı/ajan süreçlerini açıklar; ek kurulum gereksinimleri
+veya kullanıcı yetenekleri tanımlamaz.
 
 - [`PROJECT.md`](PROJECT.md) — onaylı ürün kapsamı ve faz sınırları.
 - [`STATUS.md`](STATUS.md) — güncel geliştirme/sürüm durumu ve tarihsel checkpoint'ler.
@@ -308,9 +319,6 @@ entegrasyon testleri ayrıdır ve commit edilmiş kimlik bilgilerine bağlı de�
 - [`docs/RESEARCH.md`](docs/RESEARCH.md) — doğrulanmış API/protokol araştırmaları ve
   uygulama sonuçları.
 - [`AGENTS.md`](AGENTS.md) — implementation agent'ları için repo çalışma kuralları.
-- [`CHANGELOG.md`](CHANGELOG.md) — kullanıcıya yönelik sürüm değişiklik geçmişi.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — katkı ve geliştirme yönergeleri.
-- [`SECURITY.md`](SECURITY.md) — güvenlik açığı bildirim politikası.
 
 ## Lisans
 

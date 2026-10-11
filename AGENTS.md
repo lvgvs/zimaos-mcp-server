@@ -196,6 +196,31 @@ stricter discipline:
 
 Generated or disposable untracked artifacts may be recreated normally when appropriate.
 
+## Public-documentation audience and editorial quality
+
+Write README and public docs for users and ordinary GitHub visitors, CONTRIBUTING.md for
+human contributors, and SECURITY.md for human reporters/users and the actual support policy.
+Keep agent/process governance in AGENTS.md or clearly identified internal development docs.
+Do not leak parent/child roles, Qwen delegation, quotas, checkpoints, manager authorization,
+prompt mechanics, phase-execution control or release-agent mechanics into public guidance
+unless genuinely necessary for the human reader. CONTRIBUTING.md must never imply that
+humans are required to use Hermes, Sol, Qwen or another AI system.
+
+Every substantial public-doc PR and every release/post-release documentation reconciliation
+requires a **parent-owned human-reader editorial review** of the complete rendered public-doc
+diff, headings and links; mechanical checks alone are insufficient. Explicitly check for
+stale hard-coded release numbers, obsolete current/next-phase claims, stale development-versus-
+release wording, cross-document contradictions, audience mismatch, internal process jargon,
+and sentences that the next normal release would unnecessarily invalidate. Prefer durable,
+version-independent policy wording, especially in SECURITY.md; preserve intentionally
+historical version/phase references rather than blindly replacing them. Preserve the
+prominent near-top README AI-development disclosure under the existing policy below.
+
+This is not only a release gate: any PR materially changing public behavior, contributor
+workflow, security guidance, lifecycle wording or capability descriptions must update the
+relevant public docs in the same PR when appropriate. The localization/inventory rules below
+continue to apply; this editorial review supplements them without duplicating engineering logs.
+
 ## Public README localization and ownership
 
 `README.md` is the canonical English public README. `README.tr.md` is its Turkish translation.
