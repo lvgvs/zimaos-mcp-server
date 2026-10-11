@@ -479,6 +479,19 @@ is activated:
    when applicable. Remove the merged working branch locally/remotely when appropriate,
    only after confirming the merge and that no uncommitted or unique work would be lost.
 
+### Development publication versus release promotion
+
+Normal trusted-main CI may publish the immutable development artifact `sha-<FULL_MAIN_SHA>`
+and advance `edge` to the current canonical main artifact after ordinary merges, including
+docs-only merges. This is development publication, not a release mutation; a prohibition on
+release operations does not by itself prohibit this existing automation.
+Published version tags/digests (`vX.Y.Z`), including historical versions, remain immutable: never rebuild
+or replace an existing published version under the same version tag. `stable` / `latest` stay
+on the current stable release between releases and move only through an explicitly authorized,
+successful stable-release promotion. Normal development/docs-only publication must never move
+those aliases or modify GitHub Releases, release assets or historical version artifacts.
+Release approval and artifact contracts remain governed by [docs/RELEASE.md](docs/RELEASE.md).
+
 Before pushing a commit that claims a feature works, run the relevant:
 
 - formatter/linter;
