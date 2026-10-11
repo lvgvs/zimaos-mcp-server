@@ -1545,7 +1545,7 @@ that gate was subsequently completed under separate manager authorization.
 # Approved near-term phase map
 
 Completion of a phase never automatically starts the next. Future scope below is not permission
-to implement it during Phase 7. Historical phases keep their original numbering and contracts.
+to implement it during the current phase. Historical phases keep their original numbering and contracts.
 
 - **Phase 5 — update_app: ON HOLD / Outcome B DEFER.** Preserve the resume trigger and safety
   contract above; sufficient upstream evidence may resume the same Phase 5. Reliable update
@@ -1555,13 +1555,21 @@ to implement it during Phase 7. Historical phases keep their original numbering 
 - **Phase 7 — App Store Discovery: COMPLETE.** `search_app_store` and
   `get_app_store_details` were delivered through protected PR #28. The specification below
   preserves the original assignment; separate v0.3.0 authorization covers release operations only.
-- **Phase 8 — System Diagnostics & Management: APPROVED NEXT / NOT STARTED.** Richer live
-  resources, supported CPU/memory/storage/temperature/health and troubleshooting network
-  information; reliable supported OS update availability/check/status; bounded secret-safe
-  system logs and meaningful supported notifications. `restart_device` and OS update installation
-  are approved in principle only after supported current APIs and clear semantics are verified.
-  Exact tools, contracts and permissions will be fixed at kickoff; no Phase 8 implementation now.
-- **Phase 9 — Files: APPROVED LATER / NOT STARTED.** Future file management requires its own
+- **Phase 8 — System Diagnostics & Management: CURRENT / AUTHORIZED.** Deliver three bounded
+  protected PRs in order, merging each before beginning the next: 8A live system resources and
+  verified read-only OS-update availability/status; 8B bounded system logs and meaningful supported
+  read-only notifications; 8C supported `restart_device` and conditionally verified OS-update
+  installation. Expose only verified supported CPU/memory/storage/temperature/health data.
+  Notifications and OS-update installation may be explicitly deferred if evidence is insufficient.
+  Independent default-off system-control and OS-update permissions, one mutation attempt and no
+  ambiguous retry are required for 8C. No network diagnostics, Files or app-update investigation.
+  First branch `feat/system-diagnostics` also carries this reconciliation and the separate tiny
+  canonical-runtime-version `/health` maintenance fix. No version bump, tag, Release, release
+  asset or stable/latest promotion is authorized; normal trusted-main development publication remains.
+- **Phase 9 — Network Diagnostics: APPROVED NEXT / NOT STARTED.** Interface/network inventory,
+  IP/subnet/gateway, DNS, routes, Wi-Fi, firewall and connectivity troubleshooting are excluded
+  from Phase 8 and require a separate kickoff.
+- **Phase 10 — Files: APPROVED LATER / NOT STARTED.** Future file management requires its own
   supported-API security design for path grants/canonicalization, read/write authority,
   symlink/path escape and destructive behavior. No detailed contract or implementation now.
 

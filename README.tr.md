@@ -22,7 +22,7 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
 ## Proje durumu
 
-**Seçilen sürüm: `v0.3.0`; ilk kararlı sürüm: `v0.1.0`.** Phase 6 yerel kurulum ve Phase 7 keşif tamamlandı; Phase 8 başlamadı. Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
+**Seçilen sürüm: `v0.3.0`; ilk kararlı sürüm: `v0.1.0`.** Phase 6 yerel kurulum ve Phase 7 keşif tamamlandı. Phase 8A kaynak ve işletim sistemi güncelleme okumaları geliştirme kaynağında uygulanmıştır; yayınlanan v0.3.0 çıktısında yoktur. Phase 8B/8C başlamadı. Phase 1–3 işlevleri tamamlandı; Phase 4 harici runtime UAT'si,
 sıfırdan Custom App kurulumu, modern riskli işlem onayı ve onarımı, hata durumları,
 yükseltme, yeniden başlatma/VM reboot kalıcılığı ve temiz yeniden kurulum dahil tamamlandı.
 Yayın durumunun kaynağı bu belge değil, Git etiketleri, GitHub Releases ve GHCR alias kayıtlarıdır.
@@ -48,6 +48,7 @@ yoktur. Yayın, tam olarak seçilen adayın sürüm doğrulama kapılarına bağ
 - Uygulama/container sağlık durumunu ve sınırlandırılmış son logları okuma.
 - Bir uygulamaya ait container/service bilgisini listeleme.
 - Temel ZimaOS sistem bilgisini okuma.
+- Örneklenmiş CPU/bellek/sistem depolama ölçümlerini ve işletim sistemi güncelleme bildirimi/kurucu durumunu okuma.
 - Compose'u kurulum yapmadan doğrulama.
 - Mevcut bir uygulamanın interpolate edilmiş Compose'unu ve fingerprint'ini okuma.
 - Mevcut uygulama için önerilen Compose değişikliğini uygulamadan doğrulama.
@@ -183,7 +184,8 @@ sayfasının origin'ine aittir. Tarayıcı konsolunda `window.isSecureContext` v
 bırakmayın. Modern Inspector bağlantıları için `--protocol-era modern` seçeneğini açıkça
 belirtin.
 
-`/health` kimlik doğrulaması gerektirmez ve container health/readiness kontrolleri
+`/health`, degraded yanıtlar dahil `status`, `service` ve `ready` yanında paket bilgisinden
+türetilen kanonik `version` alanını içerir. Kimlik doğrulaması gerektirmez ve container health/readiness kontrolleri
 içindir; MCP endpoint'i değildir. Desteklenen, kimlik doğrulamalı ZimaOS cihaz bilgisi
 API'sini aktif olarak kontrol eder. Zaten çalışan sunucuda HTTP 200 hazır, HTTP 503 ise
 upstream erişilemezliği veya kimlik doğrulama hatası dahil degraded readiness anlamındadır.
@@ -209,6 +211,8 @@ tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
 | `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.                            |
 | `list_app_containers`                    | hayır                | Bir uygulamaya ait container/service bilgisi.                                               |
 | `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                                |
+| `get_system_resources`                   | hayır                | Mevcut örneklenmiş CPU/bellek/sistem dosya sistemi ölçümleri; ağ veya sağlık kararı yoktur. |
+| `get_os_update_status`                   | hayır                | İşletim sistemi sürümleri, bildirim sınıfı, kurucu durumu ve beta aboneliği.                |
 | `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                                  |
 | `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin.               |
 | `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.                      |
@@ -217,6 +221,38 @@ tekrarlanan restart denemeleri ZimaOS tarafında rate limiting tetikleyebilir.
 | `install_app_from_store`                 | evet                 | Aynı kurulum izni; yalnızca kayıtlı katalog kimlikleriyle kontrollü, tek denemelik kurulum. |
 | `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                  |
 | `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.               |
+
+## Sistem tanılama (geliştirme)
+
+Phase 8A, yalnızca `{}` kabul eden iki kimlik doğrulamalı salt okunur araç ekler; ek alanlar
+reddedilir. Tüm değişiklik izinleri kapalı kalabilir. ZimaOS yenileme/kontrol işlemi, abonelik
+değişikliği, durum sıfırlama, kurulum, yeniden başlatma veya uygulama güncellemesi yapılmaz.
+Bu araçlar v0.3.0 içinde yoktur.
+
+- `get_system_resources`, mevcutsa `cpu.utilizationPercent` (0–100) ve
+  `cpu.logicalProcessors` (1–4096); `memory.totalBytes`, `usedBytes`, `availableBytes`,
+  `freeBytes`, `usedPercent` (0–100); `systemStorage.totalBytes`, `usedBytes`,
+  `availableBytes` döndürür. Bayt sayaçları negatif olmayan güvenli tamsayılardır. Eksik alanlar
+  ve boş gruplar atlanır, sıfırla doldurulmaz. Geçersiz sayısal kanıt fail-closed davranır.
+  Değerler upstream örnekleridir; anlık ölçüm veya ortak zamanlı snapshot garantisi değildir.
+  Yuvarlanmış yüzdeler bayt oranlarıyla tam eşleşmeyebilir. Kullanılabilir bellek boş bellek
+  değildir; dosya sisteminde kullanılabilir alan, toplam eksi kullanılan alana eşit olmak
+  zorunda değildir. Depolama yalnızca sistem dosya sistemini kapsar, tüm disk/havuzları değil.
+  Sıfır sensör yokluğu anlamına gelebildiğinden sıcaklık atlanır; upstream depolama sağlık
+  anlamı makine/havuz sağlık kararı için yeterli değildir. Ağ, GPU, güç, yol veya disk kimliği
+  verisi döndürülmez.
+- `get_os_update_status`, `currentVersion`, `latestVersion`, `notice`, `updateAvailable`,
+  `installerStatus` ve `betaSubscription` döndürür. `notice`, `no-update`, `normal-update`,
+  `important-update` veya `force-update` olur; `updateAvailable` yalnızca `no-update` için false'tur.
+  Bu, Installer'ın bildirdiği sınıflandırmadır; sürüm karşılaştırması veya kurulum uygunluğu
+  garantisi **değildir**. `installerStatus`, `idle`, `installing` veya `installError` olur;
+  idle tamamlanmayı kanıtlamaz. `betaSubscription`, `enabled` veya `disabled` olur, kanal
+  uygunluğu kararı değildir. Ardışık beş okuma atomik değildir; aralarında durum değişebilir.
+  Sürümler, isteğe bağlı ön sürüm son ekiyle noktayla ayrılmış üç bileşenli biçimde en fazla
+  64 ASCII karakterdir; hatalı, tanınmayan veya kimlik bilgisi taşıyan kanıt fail-closed davranır.
+  Sürüm notları, ham mesajlar ve arayüzün yaklaşık adım bazlı ilerlemesi döndürülmez.
+- Her tanılama yanıtı 64 KiB ile sınırlıdır; zaman aşımı tüm gövdeyi kapsar ve yönlendirmeler
+  reddedilir. Upstream hataları, yanlış no-update/sağlıklı sonucu değil normalize edilmiş hata döndürür.
 
 ## App Store keşfi
 

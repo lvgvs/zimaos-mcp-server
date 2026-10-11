@@ -80,7 +80,7 @@ describe("Phase 7 MCP discovery", () => {
     const h = await harness();
     try {
       const { tools } = await h.client.listTools();
-      expect(tools).toHaveLength(18);
+      expect(tools).toHaveLength(20);
       expect(tools.some((t) => t.name === "install_app_from_store")).toBe(true);
       for (const name of ["search_app_store", "get_app_store_details"]) {
         const tool = tools.find((t) => t.name === name);

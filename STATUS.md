@@ -1,11 +1,98 @@
 # Status
 
-## Current state — v0.3.0 PUBLISHED (2026-10-11)
+## Current execution — Phase 8 CURRENT / AUTHORIZED (2026-10-11)
+
+Manager authorized System Diagnostics & Management as three sequential protected PRs: 8A resources
+and OS-update reads; 8B system logs/read-only notifications; 8C supported system mutations.
+Branch: `feat/system-diagnostics`, based on canonical main
+`919a7aaf5d4b589141435f1b865d0a7aa0ca267d`. Phase 9 Network Diagnostics NOT STARTED;
+Phase 10 Files NOT STARTED. Neither belongs to Phase 8. Phase 5 remains ON HOLD / Outcome B DEFER;
+retained fixtures are protected. Phases 6 and 7 remain COMPLETE. No release is authorized.
+
+Parent preflight verified clean synchronized main, no existing Phase 8 branch/open PR, published
+v0.3.0 Release/Compose asset and completed release-image workflow. Supported read-only VM Compose
+projection verified the MCP deployment's exact published digest
+`sha256:b07498d8c3bf3c7833aa96cb3842a96da4aebb5c8299f0f6a3e6e10641996697`;
+its container is running/healthy. No application mutation, technical Phase 8 research or
+implementation occurred before this roadmap reconciliation. Live quota was NORMAL, independently
+evaluated (session 30% remaining; weekly 89%). Next: separate health-version maintenance fix,
+then read-only 8A research, implementation, gates/UAT and protected delivery before 8B.
+
+**Initial checkpoint:** roadmap reconciliation is durable; separate health maintenance now imports
+the same canonical package-derived `VERSION` as MCP initialize. Ready/degraded `/health` responses
+include `version:"0.3.0"`, retaining HTTP 200/503 and readiness behavior. Focused regression first
+failed for the missing version, then passed; four focused files/50 tests and the full mocked
+741 tests/41 files passed. Clean explicit-dev install, formatting, ESLint, production/test
+TypeScript, production build, Docker build (`zimaos-mcp-phase8-health:local`), canonical Compose
+validation and whitespace checks passed. No new dependencies or package/version/lock changes.
+
+Read-only 8A characterization verified utilization/storage and Installer release/status envelopes;
+eight guarded GETs, one login POST and zero non-authentication mutations. Research is recorded in
+`docs/RESEARCH.md`; metrics reliability and OS availability semantics still need contract review.
+The bounded research child completed; its scratch report is preserved, with no VM credentials or
+repository writes. No new MCP tool, Phase 8A live product UAT, commit/push/PR/merge or Phase 8B/8C
+start yet. Existing release/source identities remain unchanged.
+
+**Quota HARD STOP checkpoint (2026-10-11):** session 10% remaining; weekly 86% remaining,
+independently evaluated. Preserve uncommitted branch work; do not begin another parent work package.
+The parent verified the captured Installer status/notice enums and exact GET `/v2/installer/web/notice`;
+one additional guarded GET plus login returned `data:"no-update"`, without mutation. Detailed
+responses, public UI assets and child report remain in profile scratch `phase8a/`; child conclusions
+are not accepted wholesale. Ready/degraded packaged health was exercised locally: HTTP 200/503,
+correct readiness and canonical 0.3.0 version. A draft, unregistered numeric resource projection
+and its 18 passing focused tests are in `src/zimaos/systemResources.ts` and
+`tests/systemResources.test.ts`. ESLint and production/test TypeScript passed on that draft;
+the earlier full 741-test suite/build/Docker gates precede it and are NOT final feature gates.
+Resume with live quota/Git checks, then review draft consistency/bounds and missing metrics,
+complete typed transport/service/MCP integration and OS-read contracts from preserved evidence.
+Remaining: adversarial/full gates, paired public docs, zero-mutation live UAT, secret/diff review,
+protected PR/CI/CodeQL and Squash delivery. No release or later subphase action occurred.
+
+**Manager-authorized resumed 8A acceptance (2026-10-11):** fresh quota was NORMAL
+(session 99% remaining; weekly 86%); expected branch/base and full preserved dirty diff were
+verified, with no reset, branch switch, repeated bulk research or health-fix overwrite.
+Parent completed typed bounded transport/service/MCP integration: exactly two new strict-empty-input
+authenticated read tools, `get_system_resources` and `get_os_update_status` (20 tools total).
+Resource draft now rejects counters exceeding a supplied total and omits empty groups. Temperature,
+storage/machine health, pools and network data remain intentionally absent. Installer availability
+uses the verified notice enum, never version comparison; sequential reads are non-atomic and idle
+is not completion. No dependency/permission/config/version/release change; health fix is preserved.
+
+Parent gates: explicit-dev clean install, formatting, ESLint, production/test TypeScript,
+**810/810 mocked tests across 45 files**, production build, Docker build (`zimaos-mcp-phase8a:local`),
+canonical Compose validation and whitespace checks passed. Production/full npm audits report zero
+vulnerabilities. Paired EN/TR README source and actual GitHub-Flavored Markdown rendered DOMs were
+reviewed for structure/semantic parity. RED-to-GREEN integration and numeric draft corrections were
+exercised; prior exact-tool-list regressions were updated without weakening prior-tool coverage.
+
+Exact local non-root development image `sha256:054bf0dc3623cc8199df6d43754f2b4a3737e7fe428f3090dfc53195eef353ee`
+passed real authenticated HTTP MCP UAT against supported VM APIs through a deny-by-default read-only
+relay. Both new results matched independent projections of their exact upstream response samples;
+20 tools, unauthenticated 401, extra-input denial, existing reads and default-off control denial
+passed. Ready/degraded health preserved HTTP 200/503 and version 0.3.0. Final successful pass recorded
+36 GETs, two authentication POSTs and zero non-authentication mutations/unexpected requests.
+All four existing apps, health/container identity/state and supported interpolated-Compose hashes
+were unchanged, protecting retained Phase 5 fixtures. Temporary local container/relay/env file were
+removed; no VM deployment/app/configuration was changed. Two earlier read-only harness passes
+stopped at an incorrect existing-system-result envelope assertion; this was a harness correction,
+not a product defect or mutation retry. Positive OS update/failure transitions remain mocked only.
+
+Independent bounded Qwen read-only code review reported no blocking security/logic findings.
+Parent review independently confirmed the exact allowlisted fields and strict-input regression
+gates; child suggestions introduce no additional scope. Final preparation includes parent staged
+diff/secret/privacy review. Protected delivery is governed by exact-head PR CI/CodeQL, resolved
+conversations, authorized Squash merge, synchronized clean main and development publication checks.
+Git/GitHub and the containing PR handoff own final commit/merge/CI/image identities, not a recursive
+metadata source commit. Phase 8A implementation/local acceptance is complete; delivery state is
+authoritative in those records. Phase 8B/8C, Phase 9 and Phase 10 have not started. Phase 5 remains
+ON HOLD and its fixtures untouched. No product blocker/manual user action or release authorization.
+
+## Published baseline — v0.3.0 (2026-10-11)
 
 Repository: <https://github.com/lvgvs/zimaos-mcp-server>. Phase 6 Native App Store Installation
 and Phase 7 App Store Discovery are COMPLETE; v0.3.0 exposes 18 tools. Phase 5 remains
 ON HOLD / Outcome B DEFER with its resume trigger below and retained fixtures untouched.
-Phase 8 is APPROVED NEXT / NOT STARTED; Phase 9 is APPROVED LATER / NOT STARTED.
+The new execution authorization above supersedes this checkpoint's future-roadmap state.
 No later phase is authorized to begin automatically.
 
 Release preparation [PR #29](https://github.com/lvgvs/zimaos-mcp-server/pull/29) is merged;
@@ -27,7 +114,7 @@ protected Squash PR from `docs/post-v0.3.0-handoff`. Git/GitHub identify its con
 delivery/branch-cleanup state and current canonical `main` SHA, rather than a recursive status commit.
 Any later docs-only main/development image is NOT the v0.3.0 release source or tested digest.
 No runtime changes or new live UAT are required for this correction. No release blocker/manual
-action; next phase requires a separate kickoff. No Phase 8 research or implementation has started.
+action at that checkpoint; its requested separate Phase 8 kickoff is now authorized above.
 
 ## Historical v0.3.0 release preparation — parent-only (2026-10-11)
 

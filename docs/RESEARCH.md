@@ -1452,3 +1452,107 @@ resolved its exact pair and matched normalized direct supported API detail field
 flags were disabled; guarded transport recorded zero non-authentication mutations and unchanged
 installed-app inventory. No app installation or fixture change was needed or performed. Installed
 state/update availability/compatibility are not public discovery claims; see STATUS for delivery.
+
+## Phase 8A — initial read-only characterization (2026-10-11)
+
+The manager authorized system resources and OS-update reads, excluding network diagnostics,
+Files and Phase 5 app updates. The baseline MCP deployment's supported Compose image projection
+matched the exact published v0.3.0 digest; no VM reconfiguration was performed.
+
+### Sources and current-runtime evidence
+
+- Current official [API Explorer](https://www.zimaspace.com/docs/developer/openapi-live-preview),
+  read in a real browser (page updated 2026-09-22), lists ZimaOS v1/v2, local-storage v2 and
+  Installer OTA API families. Its linked `IceWhaleTech/IceWhale-OpenAPI` repository still returns 404. This missing source is not proof of unsupported runtime APIs.
+- Apache-2.0 official [CasaOS v1 routes](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/route/v1.go),
+  [utilization handler](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/route/v1/system.go)
+  and [system service](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/service/system.go)
+  corroborate authenticated `GET /v1/sys/utilization`. They describe aggregate sampled CPU
+  percent, memory byte counters and rounded percentages, but do not establish the VM's exact
+  binary revision. Legacy temperature returns zero on missing sensor/read evidence, so a
+  current observed zero cannot safely be reported as a measured healthy temperature.
+- The running VM's public UI assets identify generated GET wrappers for `/v1/sys/utilization`,
+  `/v2/local_storage/storage/stats`, `/v2/local_storage/storages`, and
+  `/v2/installer/release/current`, `/release/latest`, `/status`, `/beta-subscription`.
+  These are attributed current-runtime route observations, not a new public OpenAPI specification
+  or permission to reuse frontend implementation code. Private scratch preserves captured assets
+  and bounded API responses. No historical MCP source was accessed.
+
+### Bounded authenticated reads
+
+One guarded probe permitted only eight explicit GET paths and the existing login POST;
+observed traffic: eight GETs, one authentication POST, zero non-authentication mutations.
+On the v1.7.1 VM:
+
+- Utilization returned `{success:200,message,data}`. `data.cpu` includes numeric aggregate
+  `percent`, `num` and `temperature`; `mem` includes byte `total`, `used`, `available`, `free`
+  and numeric `usedPercent`. `sys_disk` has byte `size`, `used`, `avail` and boolean `health`.
+  The combined upstream response also contains network counters; they must be discarded, not
+  exposed or used to add Phase 9 functionality. CPU power and GPU data are outside the chosen
+  initial metric evidence. Missing/error values must never become zero or healthy defaults.
+- Storage stats returned a bare object with string `sys_disk`/`sys_usb`; storage listing returned
+  a bare array with `extensions.size`, `used`, `health` and unrelated paths/display metadata.
+  Pool-health meaning, temperature reliability and storage sampling semantics remain unresolved;
+  no RAID/storage mutations or filesystem reads occurred.
+- Installer current/latest each returned `{data:{version,code,important,release_note,background}}`.
+  Both reported version `1.7.1`. Status returned `{data:{status:"idle"},message:"idle"}`;
+  beta subscription returned `{data:{status:"disabled"}}`. No positive update transition,
+  installation progress or failure response was generated. Current UI update-wall handling
+  recognizes `installing` and `installError`, and a `restarting` message; its displayed progress
+  is a step-based approximation, not verified measured progress.
+
+### Still to verify before public contracts
+
+Fix bounded projections and malformed/error behavior, CPU sampling caveats, storage scope and
+health meaning. Independently verify OS availability/channel/status semantics before claiming
+an available update, no-update conclusion or completion. Unequal version strings alone are not
+an eligibility guarantee. This checkpoint is research, not completed Phase 8A implementation/UAT;
+no new tool, system mutation or app-update capability is claimed.
+
+### Resumed contract review — supported notice and bounded projections
+
+Parent inspection of the preserved current-runtime generated Installer wrapper independently
+verified `GET /v2/installer/web/notice` and its exact `NoticeOKData` enum:
+`no-update | normal-update | important-update | force-update`. A guarded authenticated GET
+returned `{data:"no-update"}` (one GET, one login, zero non-authentication mutations). This closes
+the child's missing-path/shape finding; its speculative candidate paths and version-based
+conclusion are not accepted. Source context is the official API Explorer above plus the running
+v1.7.1 public generated wrapper, not an invented public source revision or copied implementation.
+
+The same wrapper verifies `GET /v2/installer/status` enum `idle | installing | installError`
+and `GET /v2/installer/beta-subscription` enum `enabled | disabled`. Together with the already
+verified `GET /v2/installer/release/current` and `/release/latest` envelopes, these are the five
+fixed GETs used by `get_os_update_status`. The returned availability boolean is explicitly the
+notice's report only, not independent eligibility. No check/refresh/reset/subscription/install
+route is called. Raw notes/background/messages and approximate UI progress are discarded.
+Unknown enum, malformed version/envelope or explicit failure fails closed. Version strings have
+a conservative 64-character ASCII three-component/prerelease grammar and configured-secret guard.
+No positive transition, beta eligibility, progress or completion guarantee is established.
+
+`get_system_resources` uses only `GET /v1/sys/utilization`, with explicit numeric field mapping:
+`cpu.percent/num` to utilization/logical processors; `mem.total/used/available/free/usedPercent`
+to memory counters; `sys_disk.size/used/avail` to system-filesystem counters. The pinned official
+service above supports sampled CPU and distinct available/free memory; percentages are rounded.
+Individual counters cannot exceed a supplied total; missing totals are not invented. No exact
+percentage-to-byte ratio or total-minus-used equality is imposed. Zero remains valid numeric
+evidence, but unverified temperature and health are excluded. The broader local-storage endpoints
+were research only and are not used by product code; no paths/pool identities are returned.
+
+Each diagnostic GET uses the existing bounded authenticated transport: 64 KiB total-body limit,
+strict UTF-8/JSON, whole-body timeout, redirect denial, normalized errors and at most the existing
+single read-only reauthentication retry. Sequential OS reads are not an atomic snapshot.
+Both public tools require normal MCP auth, reject extra inputs, and work with all mutation flags
+disabled. Preserved health maintenance still derives version from canonical package metadata.
+
+### Exact local production-artifact read-only acceptance
+
+The non-root Docker development artifact was exercised through authenticated Streamable HTTP
+against the authorized VM, with a deny-by-default relay permitting only fixed supported GETs and
+login. Both diagnostic outputs matched independently written field projections from the actual
+responses served to that artifact (not two uses of the product normalizer or a later changing
+CPU sample). Live notice/status were `no-update`/`idle`; no positive update/failure transition
+was manufactured. Four protected applications retained inventory/status, health/container state
+and supported interpolated-Compose fingerprints. Final pass: 36 GETs, two auth POSTs, zero
+non-authentication mutations or unexpected requests. Existing reads/default-off denial and
+ready/degraded health version semantics passed. Local test container, relay and temporary env
+file were cleaned up; the VM configuration and retained Phase 5 fixtures were not changed.

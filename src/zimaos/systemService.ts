@@ -4,9 +4,19 @@
 
 import type { ZimaOsClient } from "./client.js";
 import { normalizeSystemInfo, type SystemInfo } from "../domain/models.js";
+import { normalizeSystemResources, type SystemResources } from "./systemResources.js";
+import type { OsUpdateStatus } from "./osUpdate.js";
 
 export class SystemService {
   constructor(private readonly client: ZimaOsClient) {}
+
+  async getOsUpdateStatus(): Promise<OsUpdateStatus> {
+    return this.client.getOsUpdateStatus();
+  }
+
+  async getSystemResources(): Promise<SystemResources> {
+    return normalizeSystemResources(await this.client.getSystemResources());
+  }
 
   /** Small normalized system summary (Phase 1 scope; not full hardware mgmt). */
   async getSystemInfo(): Promise<SystemInfo> {

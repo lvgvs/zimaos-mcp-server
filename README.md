@@ -21,7 +21,7 @@ ZimaOS internal-file/database manipulation.
 
 ## Project status
 
-**Selected release: `v0.3.0`; first stable release: `v0.1.0`.** Phase 6 native installation and Phase 7 discovery are complete; Phase 8 is not started. Phase 1–3 functionality is implemented and Phase 4 external runtime
+**Selected release: `v0.3.0`; first stable release: `v0.1.0`.** Phase 6 native installation and Phase 7 discovery are complete. Phase 8A resources and OS-update reads are implemented in development source, not the published v0.3.0 artifact; Phase 8B/8C are not started. Phase 1–3 functionality is implemented and Phase 4 external runtime
 UAT is complete, including fresh Custom App installation, modern risky approval and repair,
 failure modes, upgrade, restart/reboot persistence, and clean reinstall. Publication state is
 authoritative in Git tags, GitHub Releases and GHCR aliases, not this source document.
@@ -46,6 +46,7 @@ approved scope and safety boundaries, see [`PROJECT.md`](PROJECT.md).
 - Read app/container health and bounded recent logs.
 - List an app's containers/services.
 - Read basic ZimaOS system information.
+- Read sampled CPU/memory/system-storage metrics and the OS-update notice/installer status.
 - Validate Compose without installing it.
 - Read an existing app's interpolated Compose and fingerprint it.
 - Validate a proposed existing-app Compose change without applying it.
@@ -178,7 +179,8 @@ the Inspector page origin, not the remote MCP endpoint. Check `window.isSecureCo
 and `typeof crypto.randomUUID` in the browser console; do not disable browser security.
 For modern Inspector connections, select `--protocol-era modern` explicitly.
 
-`/health` is unauthenticated and intended for container readiness/health checks; it is not
+`/health` includes the canonical package-derived `version` alongside `status`, `service` and
+`ready`, including degraded responses. It is unauthenticated and intended for container readiness/health checks; it is not
 an MCP endpoint. It actively checks the supported, authenticated ZimaOS device-info API.
 For an already-running server, HTTP 200 means ready; HTTP 503 means degraded readiness,
 including upstream unreachability or authentication failure. Concurrent
@@ -203,6 +205,8 @@ ZimaOS-side rate limiting.
 | `get_app_logs`                           | no        | Bounded recent logs; default 100 lines, max 500.                                          |
 | `list_app_containers`                    | no        | Containers/services belonging to one app.                                                 |
 | `get_system_info`                        | no        | Small normalized ZimaOS system summary.                                                   |
+| `get_system_resources`                   | no        | Available sampled CPU/memory/system-filesystem metrics; no network or health verdict.     |
+| `get_os_update_status`                   | no        | OS release versions, notice classification, installer state and beta subscription.        |
 | `validate_app_compose`                   | no        | Local risk analysis + official ZimaOS dry run.                                            |
 | `get_app_compose`                        | no        | Reads interpolated Compose + SHA-256 fingerprint. Treat output as sensitive.              |
 | `validate_app_compose_change`            | no        | Validates a proposed change, including risk delta and stale-base checks.                  |
@@ -211,6 +215,36 @@ ZimaOS-side rate limiting.
 | `install_app_from_store`                 | yes       | Same install permission; registered catalog identities only, controlled one-shot install. |
 | `uninstall_app`                          | yes       | Requires `ALLOW_APP_UNINSTALL=true`; sends `delete_config_folder=false`.                  |
 | `edit_app_compose`                       | yes       | Requires `ALLOW_APP_EDIT=true`; uses optimistic base-fingerprint checks.                  |
+
+## System diagnostics (development)
+
+Phase 8A adds two authenticated read-only tools, each accepting only `{}`; additional arguments
+are rejected. All mutation flags may remain disabled. No ZimaOS refresh/check action, subscription
+change, status reset, install, restart or app update is performed. These tools are not in v0.3.0.
+
+- `get_system_resources` returns available `cpu.utilizationPercent` (0–100) and
+  `cpu.logicalProcessors` (1–4096); `memory.totalBytes`, `usedBytes`, `availableBytes`,
+  `freeBytes`, `usedPercent` (0–100); and `systemStorage.totalBytes`, `usedBytes`,
+  `availableBytes`. Byte counters are nonnegative safe integers. Missing fields and empty groups
+  are omitted, never replaced with zero. Invalid numeric evidence fails closed. Values are
+  upstream samples, not an instantaneous measurement or guaranteed common-time snapshot;
+  rounded percentages need not exactly match byte ratios. Available memory is not free memory;
+  filesystem available space need not equal total minus used. Storage covers only the system
+  filesystem, not all disks/pools. Temperature is omitted because zero can mean no sensor;
+  upstream storage-health meaning is insufficient for a machine/pool-health verdict. No network,
+  GPU, power, path or disk-identity data is returned.
+- `get_os_update_status` returns `currentVersion`, `latestVersion`, `notice`, `updateAvailable`,
+  `installerStatus` and `betaSubscription`. `notice` is `no-update`, `normal-update`,
+  `important-update` or `force-update`; `updateAvailable` is false only for `no-update`.
+  This is the Installer's reported classification, **not** a version comparison or guarantee
+  of installation eligibility. `installerStatus` is `idle`, `installing` or `installError`;
+  idle does not prove completion. `betaSubscription` is `enabled` or `disabled`, not a channel
+  eligibility verdict. Five sequential reads are not atomic and can change between requests.
+  Versions are bounded to 64 ASCII characters in dotted three-component form with an optional
+  prerelease suffix; malformed, unrecognized or credential-bearing evidence fails closed.
+  Release notes, raw messages and the UI's approximate step-based progress are not returned.
+- Each diagnostic response is limited to 64 KiB with a full-body request timeout and redirects
+  rejected. Upstream failures return normalized errors, not a false no-update/healthy result.
 
 ## App Store discovery
 

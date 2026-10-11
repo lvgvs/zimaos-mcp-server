@@ -23,6 +23,7 @@ import type {
 } from "./storeCatalog.js";
 import { validateStoreSearchInput } from "./storeDiscovery.js";
 import type { StoreDiscoveryItem } from "./storeDiscovery.js";
+import { normalizeOsUpdateStatus, type OsUpdateStatus } from "./osUpdate.js";
 
 /** Bounded native read options for authenticated catalog GETs (Phase 6 slice). */
 interface NativeReadOptions {
@@ -815,6 +816,44 @@ export class ZimaOsClient {
   }
 
   // ------------------------------------------------------------- zimaos --
+
+  /** Only fixed Installer GETs: no refresh, subscription change, reset or install. */
+  async getOsUpdateStatus(): Promise<OsUpdateStatus> {
+    const raw: Record<string, unknown> = {};
+    for (const [key, path] of [
+      ["current", "/v2/installer/release/current"],
+      ["latest", "/v2/installer/release/latest"],
+      ["notice", "/v2/installer/web/notice"],
+      ["status", "/v2/installer/status"],
+      ["beta", "/v2/installer/beta-subscription"],
+    ] as const) {
+      raw[key] = await this.authedRequest("GET", path, undefined, this.timeoutMs, {
+        kind: "json",
+        limitBytes: 64 * 1024,
+      });
+    }
+    const result = normalizeOsUpdateStatus(raw);
+    for (const value of [result.currentVersion, result.latestVersion]) {
+      if (
+        (this.password.length > 0 && value.includes(this.password)) ||
+        (this.accessToken !== null && value.includes(this.accessToken))
+      ) {
+        throw new AppError(
+          "ZIMAOS_UPSTREAM_ERROR",
+          "The OS update response could not be returned safely.",
+        );
+      }
+    }
+    return result;
+  }
+
+  /** Bounded current sampled utilization envelope, not network diagnostics. */
+  async getSystemResources(): Promise<unknown> {
+    return this.authedRequest("GET", "/v1/sys/utilization", undefined, this.timeoutMs, {
+      kind: "json",
+      limitBytes: 64 * 1024,
+    });
+  }
 
   /** Device info: GET /v2/zimaos/device/info -> bare payload (no envelope). */
   async getDeviceInfo(timeoutMs = this.timeoutMs): Promise<Record<string, unknown>> {
