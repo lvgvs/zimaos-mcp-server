@@ -1,8 +1,10 @@
 # Release process and evidence
 
 `v0.1.0` remains the first stable release, dated 2026-10-09 in the changelog. `v0.2.0` is historical;
-`v0.3.0` is PUBLISHED through completed Phase 7. Package and lockfile versions
-for this source are `0.3.0`.
+`v0.3.0` is the current published release. This release-preparation source has package and
+lockfile version `0.4.0`; v0.4.0 is an upcoming candidate, not yet published. It includes the
+completed system diagnostics and guarded restart work. Candidate notes are in
+[v0.4.0 notes](RELEASE-NOTES-v0.4.0.md).
 Publication state is authoritative in Git tags, GitHub Releases
 and GHCR version/alias readback. This document records the verified publication checkpoint below
 and the reusable release-process contract; later docs-only main commits do not change release identity.

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-11
+
 ### Added
 
 - Authenticated `restart_device`, independently gated by default-off `ALLOW_SYSTEM_CONTROL`;
@@ -14,6 +16,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   filesystem counters, with bounded numeric projection and no network/temperature/health verdict.
 - Authenticated read-only `get_os_update_status` for supported Installer release versions,
   notice classification, installer state and beta subscription; no refresh or update action.
+
+### Changed
+
+- Complete 21-tool public inventory and clearer bilingual capability, permission and usage
+  documentation.
 
 ### Fixed
 
@@ -27,6 +34,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   states are mocked, not live transition UAT. OS installation, network diagnostics and Files
   are not implemented. Restart acknowledgment is not completion; unknown outcomes are unsafe
   to automatically retry.
+- App updates remain on hold; system logs remain deferred and generic notifications remain
+  unavailable pending authoritative supported evidence.
 
 ## [0.3.0] - 2026-10-11
 
