@@ -1,6 +1,35 @@
 # Status
 
-## v0.3.0 release preparation — parent-only (2026-10-11)
+## Current state — v0.3.0 PUBLISHED (2026-10-11)
+
+Repository: <https://github.com/lvgvs/zimaos-mcp-server>. Phase 6 Native App Store Installation
+and Phase 7 App Store Discovery are COMPLETE; v0.3.0 exposes 18 tools. Phase 5 remains
+ON HOLD / Outcome B DEFER with its resume trigger below and retained fixtures untouched.
+Phase 8 is APPROVED NEXT / NOT STARTED; Phase 9 is APPROVED LATER / NOT STARTED.
+No later phase is authorized to begin automatically.
+
+Release preparation [PR #29](https://github.com/lvgvs/zimaos-mcp-server/pull/29) is merged;
+`release/v0.3.0` was removed locally/remotely. Immutable release source/annotated-tag target:
+`02a4129ba6f4e23f2c94f9cde5efc2632b695bc5`. Public release, exact image and Compose asset
+evidence are recorded in [docs/RELEASE.md](docs/RELEASE.md).
+
+Release-source gates passed: 741/741 mocked tests across 41 files, formatting, lint,
+production/test TypeScript, production/Docker builds, Compose validation, version consistency,
+privacy/license review and exact-head PR/main CI/CodeQL. Runtime/full audits: zero vulnerabilities.
+Exact-digest VM UAT passed before/after the disposable server restart: MCP 0.3.0, 18 tools,
+discovery/details, representative reads and default-off mutation gates. Zero candidate application
+mutations; protected apps/Phase 5 fixtures unchanged; disposable deployment and relay cleaned up.
+The supported Custom Compose API test-deployment path was used. Fresh UI import did not respond;
+fresh-user UI installation was NOT newly claimed for v0.3.0. Historical releases remain unchanged.
+
+The manager-authorized post-release reconciliation is documentation-only, delivered through a
+protected Squash PR from `docs/post-v0.3.0-handoff`. Git/GitHub identify its containing commit,
+delivery/branch-cleanup state and current canonical `main` SHA, rather than a recursive status commit.
+Any later docs-only main/development image is NOT the v0.3.0 release source or tested digest.
+No runtime changes or new live UAT are required for this correction. No release blocker/manual
+action; next phase requires a separate kickoff. No Phase 8 research or implementation has started.
+
+## Historical v0.3.0 release preparation — parent-only (2026-10-11)
 
 Phase 7 COMPLETE / MERGED in PR #28, canonical baseline
 `42fc857688b01ed295ad62d2c5f883428600c73f`. Its exact-head CI/CodeQL and development publication
@@ -29,7 +58,7 @@ blocker or manual action.
 The following Phase 7 section preserves its historical implementation/preparation evidence;
 its delivery-pending wording is superseded by PR #28 and the release checkpoint above.
 
-## Phase 7 — App Store Discovery
+## Historical Phase 7 — App Store Discovery implementation checkpoint
 
 **Current milestone:** Phase 7 implementation and read-only MCP UAT complete; protected-main
 delivery is governed by exact-head CI/CodeQL, clean parent review and the authorized Squash gate.
@@ -87,7 +116,7 @@ Fresh readable quota before staging/finalization: NORMAL (session 19% used; week
 evaluated independently under AGENTS. Normal trusted-main development GHCR publication is permitted only
 after an authorized verified merge; no Phase 7 published artifact is claimed yet.
 
-## Phase 6 — Native App Store Installation
+## Historical Phase 6 — Native App Store Installation implementation checkpoint
 
 **Current milestone:** Phase 6 COMPLETE / MERGED. Parent-implemented native-store installation
 and disposable live UAT complete (2026-10-10), delivered through the protected-main workflow in
