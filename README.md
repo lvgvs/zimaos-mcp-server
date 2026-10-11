@@ -19,81 +19,18 @@ The server is the only component that holds ZimaOS credentials. It does not expo
 arbitrary shell execution, the Docker socket, privileged container access, or direct
 ZimaOS internal-file/database manipulation.
 
-## Project status
+**Current release: [v0.3.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.3.0).**
+Development main/`edge` also includes system resource and OS-update reads and a `/health`
+version field that are not in v0.3.0. The Tool Reference below describes current main.
 
-**Selected release: `v0.3.0`; first stable release: `v0.1.0`.** Phase 6 native installation and Phase 7 discovery are complete. Phase 8A resources and OS-update reads are implemented in development source, not the published v0.3.0 artifact; Phase 8B/8C are not started. Phase 1–3 functionality is implemented and Phase 4 external runtime
-UAT is complete, including fresh Custom App installation, modern risky approval and repair,
-failure modes, upgrade, restart/reboot persistence, and clean reinstall. Publication state is
-authoritative in Git tags, GitHub Releases and GHCR aliases, not this source document.
+## Capabilities
 
-`edge` tracks CI-verified development only. Approved stable-version promotion manages `latest` /
-`stable`; verify their targets against the release record and pin a digest for exact deployments.
-Runtime-UAT evidence is distinct from later documentation-only release-source artifacts.
-
-For implementation state and engineering history, see [`STATUS.md`](STATUS.md). For
-approved scope and safety boundaries, see [`PROJECT.md`](PROJECT.md).
-
-**v0.2.0 feature:** native App Store installation is implemented in this source, not in
-`v0.1.0`. Exact-candidate release verification governs publication; see
-[`v0.2.0 release notes`](docs/RELEASE-NOTES-v0.2.0.md). Phase 5 updates remain ON HOLD / Outcome B DEFER.
-
-## What it can do
-
-### Read-only
-
-- List installed apps and inspect an app.
-- Search trusted App Store catalogs and inspect an exact repository/app entry.
-- Read app/container health and bounded recent logs.
-- List an app's containers/services.
-- Read basic ZimaOS system information.
-- Read sampled CPU/memory/system-storage metrics and the OS-update notice/installer status.
-- Validate Compose without installing it.
-- Read an existing app's interpolated Compose and fingerprint it.
-- Validate a proposed existing-app Compose change without applying it.
-
-### Mutating operations
-
-Mutating capabilities are separated behind independent, default-off permissions:
-
-| Capability                    | MCP tools                              | Required flag         | Default |
-| ----------------------------- | -------------------------------------- | --------------------- | ------- |
-| Reversible app control        | `start_app`, `stop_app`, `restart_app` | `ALLOW_APP_CONTROL`   | `false` |
-| Compose installation          | `install_app_from_compose`             | `ALLOW_APP_INSTALL`   | `false` |
-| Native App Store installation | `install_app_from_store`               | `ALLOW_APP_INSTALL`   | `false` |
-| App uninstall                 | `uninstall_app`                        | `ALLOW_APP_UNINSTALL` | `false` |
-| Existing-app Compose edit     | `edit_app_compose`                     | `ALLOW_APP_EDIT`      | `false` |
-
-Read-only tools do not inherit mutation authority from any of these flags.
-
-## Security model
-
-- **MCP authentication is mandatory.** Every MCP request must use
-  `Authorization: Bearer <token>` matching `MCP_AUTH_TOKEN`.
-- **No default MCP secret ships with the project.** `MCP_AUTH_TOKEN` must be at least 32
-  characters.
-- **ZimaOS credentials are never returned to MCP clients.**
-- **Mutation permissions are independent and disabled by default.**
-- **Risky Compose operations fail closed.** Risk-increasing install/edit requests require
-  the modern MCP approval flow before mutation.
-- **At most one mutation request is sent for an accepted install/edit/uninstall attempt.**
-  Ambiguous outcomes are not automatically retried.
-- **No shell, SSH control plane, Docker socket, privileged server mode, or direct ZimaOS
-  internal storage manipulation.**
-
-The server does not terminate TLS itself. Use it on a trusted LAN/VPN or behind a properly
-configured HTTPS reverse proxy; do not expose the plain HTTP port directly to the internet.
-Bearer authentication is not transport encryption.
-
-### Risky-operation approval
-
-Risk-increasing Compose install/edit requests use native MCP `input_required` / form
-elicitation for modern clients. The approval state is short-lived, signed,
-exact-content-bound, and single-use. The server rechecks the current state before
-mutation.
-
-This mechanism cannot cryptographically prove that a human actually saw the disclosure;
-the MCP client is responsible for presenting the approval UI. Pending approval state is
-process-local and is lost on server restart.
+- Inspect installed Compose apps, containers, health and bounded logs.
+- Search trusted App Store catalogs and inspect exact repository/app identities.
+- Read system information, sampled resources and OS-update notice/installer status.
+- Read and validate Compose, including proposed changes, without applying them.
+- Opt in separately to app start/stop/restart, installation, uninstall and Compose editing.
+  All mutation permissions default to `false`; read tools work with them disabled.
 
 ## ZimaOS installation
 
@@ -110,20 +47,21 @@ The intended installation flow is ZimaOS's normal Custom App UI:
 The Compose file uses `host.docker.internal:host-gateway` so the container can reach the
 ZimaOS API without host networking, Docker socket access, privileged mode, or host mounts.
 
-> **Runtime-UAT evidence:** fresh normal-user ZimaOS Custom App installation and clean reinstall
-> passed on the exact digest recorded in [release process and evidence](docs/RELEASE.md).
-> Release aliases follow approved version promotion; verify publication records and pin a digest.
+The source repository and GHCR package are public; no registry credentials are required.
+Do not embed registry credentials in YAML or substitute host-shell control for the supported
+installation flow. For an exact deployment, replace the template's development image with
+`ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` from the release/publication record.
 
-### Image access and first-install UAT
+### Run locally with Docker
 
-The canonical source repository and GHCR package are public. Retained-version review/cleanup
-is complete, and anonymous image pull access is verified; no registry credentials are required
-for this approved path. Fresh normal-user Custom App installation UAT passed using canonical
-deployment YAML and the exact immutable candidate digest; generated old `x-casaos` /
-`store_app_id` metadata was not reused during clean reinstall.
-Do not embed registry credentials in the YAML or use host shell commands to bypass UAT.
-For exact UAT/deployment, replace the template's development image with the manager-reviewed
-`ghcr.io/lvgvs/zimaos-mcp-server@sha256:<digest>` reference supplied by the manager.
+```bash
+docker build -t zimaos-mcp-server:local .
+
+docker run --rm \
+  --env-file /path/to/your.env \
+  -p 3900:3000 \
+  zimaos-mcp-server:local
+```
 
 ## Configuration
 
@@ -164,35 +102,6 @@ Configure your MCP client to send:
 Authorization: Bearer <MCP_AUTH_TOKEN>
 ```
 
-The endpoint supports modern MCP `2026-07-28` and stateless legacy clients. Legacy clients
-can use read tools and permitted non-risky operations, but risky install/edit requests fail
-closed. Risky approval requires a modern client with form elicitation and the native
-`input_required` / `requestState` multi-round-trip flow; there is no legacy approval shim
-or text-confirmation bypass.
-
-**Inspector Web UI:** open the Inspector page from `http://localhost` / loopback on the
-browser's own machine, or from trusted HTTPS. Plain HTTP on a LAN IP is not a browser
-secure context. Inspector 2.9.0 requires `crypto.randomUUID()` for request tracking; when
-that API is unavailable, modern discovery can fail before any request reaches this server
-and report "the server did not offer pinned protocol version". This requirement concerns
-the Inspector page origin, not the remote MCP endpoint. Check `window.isSecureContext`
-and `typeof crypto.randomUUID` in the browser console; do not disable browser security.
-For modern Inspector connections, select `--protocol-era modern` explicitly.
-
-`/health` includes the canonical package-derived `version` alongside `status`, `service` and
-`ready`, including degraded responses. It is unauthenticated and intended for container readiness/health checks; it is not
-an MCP endpoint. It actively checks the supported, authenticated ZimaOS device-info API.
-For an already-running server, HTTP 200 means ready; HTTP 503 means degraded readiness,
-including upstream unreachability or authentication failure. Concurrent
-probes share bounded upstream work. Docker checks the configured internal `PORT` and treats
-degradation as unhealthy; this is not a guarantee that every application API works.
-
-During initial startup, invalid ZimaOS credentials or an unreachable `ZIMAOS_URL` fail fast
-before the MCP/health HTTP listener opens. Connection refused, rather than `/health` 503,
-is therefore expected for those startup failures. Check the non-secret `zimaos_login_failed`
-log code and correct the configuration; repeated bad-password restart attempts can trigger
-ZimaOS-side rate limiting.
-
 ## Tool reference
 
 | Tool                                     | Mutation? | Notes                                                                                     |
@@ -216,107 +125,98 @@ ZimaOS-side rate limiting.
 | `uninstall_app`                          | yes       | Requires `ALLOW_APP_UNINSTALL=true`; sends `delete_config_folder=false`.                  |
 | `edit_app_compose`                       | yes       | Requires `ALLOW_APP_EDIT=true`; uses optimistic base-fingerprint checks.                  |
 
-## System diagnostics (development)
+## Permissions and security
 
-Phase 8A adds two authenticated read-only tools, each accepting only `{}`; additional arguments
-are rejected. All mutation flags may remain disabled. No ZimaOS refresh/check action, subscription
-change, status reset, install, restart or app update is performed. These tools are not in v0.3.0.
+- **MCP authentication is mandatory.** Every MCP request must use
+  `Authorization: Bearer <token>` matching `MCP_AUTH_TOKEN`.
+- **No default MCP secret ships with the project.** `MCP_AUTH_TOKEN` must be at least 32
+  characters.
+- **ZimaOS credentials are never returned to MCP clients.**
+- **Mutation permissions are independent and disabled by default.**
+- **Risky Compose operations fail closed.** Risk-increasing install/edit requests require
+  the modern MCP approval flow before mutation.
+- **At most one mutation request is sent for an accepted install/edit/uninstall attempt.**
+  Ambiguous outcomes are not automatically retried.
+- **No shell, SSH control plane, Docker socket, privileged server mode, or direct ZimaOS
+  internal storage manipulation.**
 
-- `get_system_resources` returns available `cpu.utilizationPercent` (0–100) and
-  `cpu.logicalProcessors` (1–4096); `memory.totalBytes`, `usedBytes`, `availableBytes`,
-  `freeBytes`, `usedPercent` (0–100); and `systemStorage.totalBytes`, `usedBytes`,
-  `availableBytes`. Byte counters are nonnegative safe integers. Missing fields and empty groups
-  are omitted, never replaced with zero. Invalid numeric evidence fails closed. Values are
-  upstream samples, not an instantaneous measurement or guaranteed common-time snapshot;
-  rounded percentages need not exactly match byte ratios. Available memory is not free memory;
-  filesystem available space need not equal total minus used. Storage covers only the system
-  filesystem, not all disks/pools. Temperature is omitted because zero can mean no sensor;
-  upstream storage-health meaning is insufficient for a machine/pool-health verdict. No network,
-  GPU, power, path or disk-identity data is returned.
-- `get_os_update_status` returns `currentVersion`, `latestVersion`, `notice`, `updateAvailable`,
-  `installerStatus` and `betaSubscription`. `notice` is `no-update`, `normal-update`,
-  `important-update` or `force-update`; `updateAvailable` is false only for `no-update`.
-  This is the Installer's reported classification, **not** a version comparison or guarantee
-  of installation eligibility. `installerStatus` is `idle`, `installing` or `installError`;
-  idle does not prove completion. `betaSubscription` is `enabled` or `disabled`, not a channel
-  eligibility verdict. Five sequential reads are not atomic and can change between requests.
-  Versions are bounded to 64 ASCII characters in dotted three-component form with an optional
-  prerelease suffix; malformed, unrecognized or credential-bearing evidence fails closed.
-  Release notes, raw messages and the UI's approximate step-based progress are not returned.
-- Each diagnostic response is limited to 64 KiB with a full-body request timeout and redirects
-  rejected. Upstream failures return normalized errors, not a false no-update/healthy result.
+The server does not terminate TLS itself. Use it on a trusted LAN/VPN or behind a properly
+configured HTTPS reverse proxy; do not expose the plain HTTP port directly to the internet.
+Bearer authentication is not transport encryption.
 
-## App Store discovery
+### Risky-operation approval
 
-Phase 7 discovery is included in the selected **v0.3.0** source, not v0.2.0. Both tools require
-normal MCP authentication, work with all mutation flags disabled, and perform only supported
-ZimaOS reads (plus authentication when needed). They do not manage repositories or fetch
-caller-supplied URLs.
+Risk-increasing Compose install/edit requests use native MCP `input_required` / form
+elicitation for modern clients. The approval state is short-lived, signed,
+exact-content-bound, and single-use. The server rechecks the current state before
+mutation.
 
-- `search_app_store` accepts strictly `{ "query": "search text", "limit": 20 }`.
-  `query` is required, trimmed, nonempty literal text: at most 256 UTF-16 code units before
-  trimming, with control characters and DEL rejected. `limit` is optional, an integer from
-  1 to 50, default 20. Empty-query browsing is not supported by the verified upstream API.
-- Search returns `{ "apps": [...], "truncated": false }`. Each app has exact `repo_id`
-  and `app_id`, plus available `name`, `version`, `tagline`, `category`, `architectures`.
-  Search uses ZimaOS fuzzy matching with fixed English localization, reads at most five
-  60-entry pages, and sorts that bounded relevance window by repository/app identity before
-  applying the limit. `truncated` means the limit or window omitted results; it is not a
-  catalog-wide ordering or completeness guarantee. The same app ID in different repositories
-  remains distinct; repeated exact pairs, failed repositories or inconsistent pages fail closed.
-- `get_app_store_details` accepts strictly `{ "repo_id": "registered-repo-id",
-"app_id": "com.example.app" }` and returns the same identity/summary fields plus available
-  `description`, `author`, `developer`, `release_notes`. Both tools omit absent optional fields.
-  Details do not include raw Compose, configuration, source URLs, installed state, update
-  availability or a compatibility verdict. Advertised architectures are not an installation
-  eligibility guarantee; the existing installer independently revalidates its safety contract.
-- Display strings are bounded in UTF-16 code units: name 120, version 80, tagline 512,
-  category 128, description 12,000, author/developer 256 each, release notes 8,000. Architectures
-  are at most eight unique sorted lower-case alphanumeric/underscore labels, each at most
-  32 characters. Malformed or credential-bearing selected metadata fails closed, not silently
-  truncated or partially returned. Catalog descriptions are untrusted content, not instructions.
+This mechanism cannot cryptographically prove that a human actually saw the disclosure;
+the MCP client is responsible for presenting the approval UI. Pending approval state is
+process-local and is lost on server restart.
 
-## Native App Store installation
+## Important usage
 
-`install_app_from_store` accepts only two required string fields:
+### App Store discovery and installation
 
-```json
-{ "repo_id": "registered-repo-id", "app_id": "com.example.app" }
-```
+Search requires nonempty text; empty-query browsing is unsupported. Use returned `repo_id`
+and `app_id` together for details or installation, not display names or URLs. Search is bounded
+and fuzzy with English localization; `truncated` reports omitted results, not catalog-wide
+completeness. Catalog text is untrusted data, not instructions; advertised architecture is not
+an installation guarantee. Discovery does not report installed state or update availability.
 
-Use exact identifiers from the host's registered App Store repository/catalog, not display
-names or URLs. Repository IDs are bounded to 128 characters; canonical lower-case
-reverse-domain app IDs to 192. Additional fields are rejected. There is no caller-supplied
-Compose, repository/Compose URL, architecture override, version, force, update or downgrade option.
-Use `search_app_store` and `get_app_store_details` to obtain exact identities in v0.3.0,
-or the normal App Store UI/catalog in earlier releases without discovery. See
-[`v0.3.0 release notes`](docs/RELEASE-NOTES-v0.3.0.md).
-No repository-management MCP tool is provided.
+Native installation supports enabled registered v2 HTTP repositories, Compose-class entries
+and server-selected amd64/arm64 variants only. It has no URL, version, architecture, force,
+update or downgrade override. Store origin does not bypass risk approval. Existing identity
+conflicts or unreadable/ambiguous association evidence block installation, never trigger update.
+Accepted/uncertain native identity reservations persist until server restart, including after
+uninstall; verify actual host state before restarting after an uncertain result.
 
-- Supports enabled registered **v2 HTTP repositories**, **Compose-class** entries and exact
-  server-selected **amd64/arm64** Compose variants. Unsupported classes, malformed detail,
-  mismatched identity/architecture or noncanonical paths fail closed; no download fallback.
-- Preserves verified `x-casaos.id` and adds the selected `x-casaos.repo_id` only when absent.
-  The deterministic final bytes are analyzed, dry-run validated, approved when risky and submitted
-  unchanged. Store origin does not bypass modern approval. `uncontrolled=false` and port checking
-  are enforced internally; enabling `ALLOW_APP_INSTALL` enables both installation tools.
-- Before dry-run, scans at most 128 installed apps through supported association reads. An existing
-  canonical catalog ID conflicts regardless of repository or project name. Unreadable, malformed
-  or ambiguous association evidence and excessive listings block installation, not trigger update.
-  Association reads expose only identity metadata internally; raw credential-bearing Compose
-  remains blocked by the existing public read path.
-- Shares process-local serialization/name reservations with Compose installation and reserves
-  native catalog IDs. Accepted or uncertain attempts remain reserved until server restart,
-  including after uninstall; definitive rejection releases reservations. Verify actual host state
-  before restarting after an uncertain result. Reservations are bounded and fail closed on exhaustion;
-  they are neither durable nor cross-process locks and cannot prevent external-actor races.
-- Sends at most one real install POST. `accepted` is asynchronous acceptance, never completion.
-  One immediate list read, plus at most one container read and one health probe if the exact
-  project is visible, yields `reconciliation: observed|pending|unknown` and optional `appId`,
-  `containerCount` and `health`. Visibility, running containers or health are observations, not
-  proof of overall completion. There is no polling, mutation retry or rollback in this tool.
+See [App Store contracts and safety details](docs/TOOL-USAGE.md#app-store-discovery) for input/output
+bounds, identity validation, controlled install and bounded reconciliation.
 
-## Important behavior and limitations
+### System diagnostics
+
+Both diagnostic tools accept only `{}` and perform reads, not refresh, subscription changes,
+status reset, installation or restart. Missing metrics are omitted, not zero/healthy defaults.
+CPU/memory values are samples; system storage covers only the system filesystem, not pools.
+Temperature and health verdicts are not exposed. `updateAvailable` follows the Installer notice,
+not version comparison or installation eligibility; `idle` does not prove completion.
+Sequential OS reads are non-atomic. Raw notes/messages and approximate progress are excluded.
+See [diagnostic fields, bounds and semantics](docs/TOOL-USAGE.md#system-diagnostics-development).
+
+### Readiness and startup
+
+`/health` includes the canonical package-derived `version` alongside `status`, `service` and
+`ready`, including degraded responses. It is unauthenticated and intended for container readiness/health checks; it is not
+an MCP endpoint. It actively checks the supported, authenticated ZimaOS device-info API.
+For an already-running server, HTTP 200 means ready; HTTP 503 means degraded readiness,
+including upstream unreachability or authentication failure. Concurrent
+probes share bounded upstream work. Docker checks the configured internal `PORT` and treats
+degradation as unhealthy; this is not a guarantee that every application API works.
+
+During initial startup, invalid ZimaOS credentials or an unreachable `ZIMAOS_URL` fail fast
+before the MCP/health HTTP listener opens. Connection refused, rather than `/health` 503,
+is therefore expected for those startup failures. Check the non-secret `zimaos_login_failed`
+log code and correct the configuration; repeated bad-password restart attempts can trigger
+ZimaOS-side rate limiting.
+
+## Compatibility and limitations
+
+The endpoint supports modern MCP `2026-07-28` and stateless legacy clients. Legacy clients
+can use read tools and permitted non-risky operations, but risky install/edit requests fail
+closed. Risky approval requires a modern client with form elicitation and the native
+`input_required` / `requestState` multi-round-trip flow; there is no legacy approval shim
+or text-confirmation bypass.
+
+**Inspector Web UI:** open the Inspector page from `http://localhost` / loopback on the
+browser's own machine, or from trusted HTTPS. Plain HTTP on a LAN IP is not a browser
+secure context. Inspector 2.9.0 requires `crypto.randomUUID()` for request tracking; when
+that API is unavailable, modern discovery can fail before any request reaches this server
+and report "the server did not offer pinned protocol version". This requirement concerns
+the Inspector page origin, not the remote MCP endpoint. Check `window.isSecureContext`
+and `typeof crypto.randomUUID` in the browser console; do not disable browser security.
+For modern Inspector connections, select `--protocol-era modern` explicitly.
 
 - `accepted` means ZimaOS accepted an asynchronous request; it does **not** prove the
   operation completed.
@@ -344,17 +244,6 @@ No repository-management MCP tool is provided.
 
 See [release process and evidence](docs/RELEASE.md) for the publication contract and recorded UAT.
 
-## Run locally with Docker
-
-```bash
-docker build -t zimaos-mcp-server:local .
-
-docker run --rm \
-  --env-file /path/to/your.env \
-  -p 3900:3000 \
-  zimaos-mcp-server:local
-```
-
 ## Development
 
 Use Node.js 22 LTS (22.13.0 or newer) or a supported newer LTS runtime.
@@ -372,7 +261,10 @@ npm run build
 Automated tests use mocks/fakes and local HTTP test servers. Live ZimaOS integration
 testing is separate and never depends on committed credentials.
 
-## Project documents
+## Documentation
+
+- [Releases](https://github.com/lvgvs/zimaos-mcp-server/releases) and [v0.3.0 notes](docs/RELEASE-NOTES-v0.3.0.md).
+- [Tool usage and safety semantics](docs/TOOL-USAGE.md).
 
 - [`PROJECT.md`](PROJECT.md) — approved product scope and phase boundaries.
 - [`STATUS.md`](STATUS.md) — current implementation/release status and historical

@@ -17,6 +17,50 @@ When an implementation detail is unspecified:
 
 Routine engineering choices do not require manager approval.
 
+## Parent ownership, delegation and review
+
+Hermes / GPT-6.1 Sol remains the parent/orchestrator. The parent owns product and scope
+interpretation, architecture/security and exact public-contract decisions, delegation boundaries,
+review/acceptance of child results, live-UAT interpretation, documentation judgment, Git commits
+and pushes, PR management and merge decisions, subject to manager authority and existing gates.
+
+### Default child delegation
+
+Normally use Qwen/local children for substantial, well-bounded work when delegation materially
+reduces parent effort, improves throughput or preserves parent quota. Good targets include bounded
+source/API research, localized/mechanical implementation, focused test authoring, debugging and
+regression loops, scoped code inspection, and repetitive/long-running evidence gathering.
+Do not delegate tiny tasks merely for ceremony. Define the task boundary and review and accept
+or reject the result before relying on it.
+
+Qwen/local children must never become the parent; make product/scope/architecture/security
+decisions; receive secrets, credentials or tokens; own Git commits, pushes, PRs or merges;
+independently perform live mutations; author/translate either README; or bypass quota, manager,
+security, release or UAT gates.
+
+### Explicit manager overrides
+
+Delegation is a default, not an unconditional requirement. A current explicit manager instruction
+overrides it for the exact named task, subtask, phase, release operation or other stated scope.
+Obey instructions such as parent-only, do not use Qwen, no child delegation, Sol should do this
+directly, research-only children, no child live testing, or parent-only release work exactly.
+Do not reinterpret them as preferences or launch children because delegation would usually help.
+When the overridden scope ends, normal policy resumes unless the manager states otherwise.
+The manager may also require bounded delegation; use it within the stated limits while preserving
+all parent ownership rules.
+
+### Independent read-only review
+
+Substantial or security-sensitive implementation should normally receive a bounded independent
+read-only code/security/logic review before protected delivery when a separate reviewer is
+reasonably available. Prefer a reviewer other than the implementation author: Sol and/or another
+bounded reviewer can inspect Qwen-authored work; a bounded Qwen/local reviewer can inspect
+Sol-authored work. The reviewer is read-only, does not own Git or silently modify implementation,
+and does not make final product/security decisions. Findings are evidence; Sol evaluates them and
+owns final acceptance. Do not require separate review for trivial mechanical changes or create
+recursive reviewer-of-reviewer loops. Explicit manager instructions may strengthen, weaken or
+disable independent review for a named task; a parent-only override prohibits child review too.
+
 ## Parent-model quota safety
 
 Hermes / GPT-6.1 Sol is this repository's parent/orchestrator. Qwen/local children may perform
@@ -78,6 +122,12 @@ from preserved evidence without unnecessarily repeating completed child work.
 
 Install this section once for Phase 5. Later checkpoints only read/verify it; do not duplicate,
 rewrite, refresh or reformat AGENTS.md again during Phase 5 without new explicit manager authority.
+
+Delegation may preserve quota but never bypass these thresholds. In NORMAL operation, normally
+prefer useful child delegation once substantial routine work is bounded. In CAUTION, the quota
+policy comes first: do not launch broad child work whose required parent review cannot reasonably
+finish within the remaining safe budget. At HARD STOP, launch no children, transfer no parent
+responsibility to Qwen and use no other model to bypass the stop.
 
 ## Project workspace
 
@@ -150,6 +200,12 @@ Generated or disposable untracked artifacts may be recreated normally when appro
 
 `README.md` is the canonical English public README. `README.tr.md` is its Turkish translation.
 
+Any PR/subphase changing a public user-facing capability must update both READMEs in that same
+PR when relevant. This includes new/removed tools, visible tool behavior, permission flags,
+public configuration, installation behavior, connection requirements, health/public endpoints,
+and significant compatibility/limitation changes. For phase-style work this applies to each
+delivery unit (XA/XB/XC), not only the end of the larger phase.
+
 Whenever either README changes:
 
 - update **both** files in the same commit;
@@ -164,6 +220,29 @@ task could touch documentation, explicitly exclude `README.md` and `README.tr.md
 
 CI should preserve a mechanical guard that fails when only one of the two README files changes;
 that guard supplements, but does not replace, parent review for semantic translation parity.
+
+### Public information architecture
+
+README is public product documentation, not an agent handoff, development diary, phase-progress
+transcript, research log or release-validation transcript. Put execution state in STATUS,
+durable roadmap/scope in PROJECT, verified research in docs/RESEARCH, architecture/security
+decisions in DECISIONS, and release history in release notes/CHANGELOG. Phase numbers, internal
+Outcome labels, PR workflow details, test/UAT transcripts, commit identities and internal lifecycle
+language belong in README only when genuinely useful to a normal user. Keep release versus
+development availability accurate without duplicating engineering history.
+
+The Tool Reference is the canonical concise inventory of the public MCP tool surface. Represent
+every public tool there; grouped rows must remain complete, obvious and auditable. Later prose
+must supplement, not replace, that inventory. Avoid repeating contracts across long sections;
+move excessive detail into linked dedicated documentation while preserving user-facing safety
+and usage caveats. Keep both languages semantically equivalent.
+
+### Intentional AI disclosure exception
+
+The prominent near-top AI development disclosure in both READMEs is manager-approved ethical
+transparency, not development-diary clutter. Never remove or reduce its substantive disclosure,
+hide it, move it to the bottom or otherwise reduce visibility. Preserve near-top placement and
+English/Turkish semantic parity.
 
 ## Clean-room requirement
 

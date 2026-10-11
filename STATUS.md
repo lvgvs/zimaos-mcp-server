@@ -1,6 +1,27 @@
 # Status
 
-## Current execution — Phase 8 CURRENT / AUTHORIZED (2026-10-11)
+## Current execution — parent-only policy/README maintenance (2026-10-11)
+
+Phase 8A is COMPLETE / MERGED in [PR #31](https://github.com/lvgvs/zimaos-mcp-server/pull/31).
+Clean synchronized starting main: `948760842318a65ae7de1f62fced1fd80e04fc13`; its exact-head
+CI/CodeQL and development publication passed. Manager authorized `docs/agent-readme-discipline`
+before 8B: permanent delegation/override/read-only-review/README policies, paired public README
+restructure and linked bilingual tool detail documents. Parent-only: no child delegation.
+No runtime, tool/permission/configuration/version, roadmap or architecture change; AI disclosure
+stays near the top and the Tool Reference retains all 20 tools. Existing detailed safety contracts
+are retained in linked documentation. No live UAT or VM mutation is needed or performed.
+Parent self-review verified every original AGENTS policy line remains in order; quota/security/Git
+and README ownership gates are unchanged. Both GitHub-Flavored Markdown rendered README DOMs and
+English/Turkish semantic parity were reviewed; exact source-derived inventory checks cover all
+20 tools, near-top AI disclosures and valid local links. Formatting, ESLint, production/test
+TypeScript, 810/810 mocked tests across 45 files, production build and whitespace checks passed.
+Staged secret/privacy checks and exact-head remote CI/CodeQL are delivery gates; the containing
+maintenance PR handoff owns final merge/check/development-image identities without recursive commits.
+After clean protected Squash delivery, resume authorized Phase 8B logs/notifications under the new
+policy with a fresh quota check. 8B/8C and Phase 9/10 have not started; Phase 5 remains ON HOLD.
+No release authorization, blocker or manual runtime action. PROJECT/DECISIONS remain unchanged.
+
+## Historical Phase 8A execution and acceptance (2026-10-11)
 
 Manager authorized System Diagnostics & Management as three sequential protected PRs: 8A resources
 and OS-update reads; 8B system logs/read-only notifications; 8C supported system mutations.
