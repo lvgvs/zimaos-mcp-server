@@ -1,6 +1,24 @@
 # Status
 
-## Current execution — Phase 8C acceptance and protected delivery (2026-10-11)
+## Current execution — parent-only v0.4.0 release preparation (2026-10-11)
+
+Repository: <https://github.com/lvgvs/zimaos-mcp-server>. Preparation branch `release/v0.4.0`,
+baseline `db0b1ff3f407d94dba64f8875560c93bc4392366` (completed Phase 8, PR #34).
+Package/lockfile 0.4.0 and public candidate notes are prepared; published release remains v0.3.0.
+Release-source identity is the containing protected Squash merge, selected only after gates.
+Tagging/promotion/publication require exact trusted-main digest UAT, including one newly authorized
+candidate restart with no replay. Prior 8C restart evidence is historical, not candidate UAT.
+No child/reviewer delegation or real OS installation. Phase 5 ON HOLD; Phase 6/7/8 COMPLETE;
+Phase 9 Network Diagnostics and Phase 10 Files NOT STARTED. Preserve all existing VM apps/fixtures.
+Historical tags/releases/assets/image identities were snapshotted and v0.3.0/stable/latest verified
+unchanged. Locked dev install, format/lint/production-test TypeScript, 844/844 mocked tests across
+48 files, build/Docker/Compose and production/full audits passed (zero vulnerabilities).
+Exact 21-tool bilingual inventory and secret/private-fixture scans passed; README unchanged.
+Parent complete release-prep diff review is complete, with no delegation. Protected delivery,
+exact-candidate runtime validation and publication are next;
+Git/Release/GHCR and the final handoff own dynamic identities, not premature document claims.
+
+## Historical Phase 8C acceptance and protected delivery (2026-10-11)
 
 Repository: <https://github.com/lvgvs/zimaos-mcp-server>. Preparation branch
 `feat/system-mutations`, baseline `b532e957cfe5b061993e0662d75a6abb6c3699f5`.
