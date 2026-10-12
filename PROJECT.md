@@ -1565,9 +1565,10 @@ to implement it during the current phase. Historical phases keep their original 
   PR #35, exact trusted-main candidate UAT, annotated tagging and digest-only promotion/publication.
   This does not retroactively widen the original development authorization or start another phase.
   Release identity and historical immutability are recorded in docs/RELEASE and Git/Release/GHCR.
-- **Phase 9 — Network Diagnostics: APPROVED NEXT / NOT STARTED.** Interface/network inventory,
-  IP/subnet/gateway, DNS, routes, Wi-Fi, firewall and connectivity troubleshooting are excluded
-  from Phase 8 and require a separate kickoff.
+- **Phase 9 — Network Diagnostics & Management: COMPLETE — RESEARCH-ONLY.** Research concluded;
+  no public network runtime tools delivered. Useful API observations, limitations and future
+  control/diagnostic leads are preserved in `docs/RESEARCH.md`. Public inventory remains 21 tools.
+  Deferred capabilities do not automatically reopen the phase.
 - **Phase 10 — Files: APPROVED LATER / NOT STARTED.** Future file management requires its own
   supported-API security design for path grants/canonicalization, read/write authority,
   symlink/path escape and destructive behavior. No detailed contract or implementation now.
@@ -1663,3 +1664,30 @@ candidates remain outside this implementation.
 Stop for unsupported discovery evidence, unsafe/ambiguous identity, necessary arbitrary URL or
 secret exposure, a broad Phase 6 safety refactor, update involvement, materially contradictory
 live behavior, unresolved material product/security decisions or the permanent quota guard.
+
+# Phase 9 — completed network research-only outcome (2026-10-12)
+
+Manager closes Phase 9 as **COMPLETE / RESEARCH-ONLY / NO PUBLIC TOOLS DELIVERED**.
+This is a valid completed phase, not an unfinished or failed implementation. Earlier conditional
+local-prototype authorization and technical acceptance do not establish public product value.
+The completed research did not establish a sufficiently valuable network troubleshooting surface:
+narrow reported inventory/configuration/ZeroTier state is not effective routing/resolver state,
+gateway/DNS/Internet reachability, useful active diagnostics, rich app-network troubleshooting,
+host-good/app-bad differentiation, firewall policy, bounded repair or reliable connection-status semantics.
+
+The three local network-read prototypes are rejected for publication. Deliver only selectively
+preserved research/status and the permanent Parent Advice rule through a fresh docs-only branch
+from canonical main; never merge/cherry-pick the prototype branch wholesale. No runtime, test,
+permission, package/version, dependency, workflow or deployment change. Public MCP inventory stays
+21 and the current published release stays v0.4.0. Existing app/container and guarded Compose
+information retains its existing contract; networking configuration is not effective network health.
+
+Future supported diagnostic/control leads remain DEFER and arbitrary proxy/scanner/passthrough
+or shell/socket/filesystem fallback remains NO-GO. Stronger authoritative version-applicable APIs
+may justify separately scoped work later, not automatic Phase 9 resumption. No network mutation,
+Phase 5 resumption, Phase 10 or v0.5.0 is authorized. Normal trusted-main development SHA/edge
+publication after the docs merge is allowed; version artifacts, stable/latest and Releases are not changed.
+
+After verified protected Squash delivery and research preservation, remove the rejected local
+implementation branch without publishing it; retain private durable provenance. Phase 5 ON HOLD,
+Phases 6/7/8/9 COMPLETE, Phase 10 NOT STARTED. Stop after the final verification/handoff.

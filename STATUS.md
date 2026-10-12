@@ -1,6 +1,41 @@
 # Status
 
-## Current execution — public documentation quality audit (2026-10-11)
+## Current execution — Phase 9 completed as research-only (2026-10-12)
+
+**Phase 9 COMPLETE / RESEARCH-ONLY / NO PUBLIC TOOLS DELIVERED.** Manager rejects publication
+of the three local network-read prototypes: narrow reported settings/state do not establish the
+valuable effective-network, reachability, app-vs-host, firewall or repair surface sought. Technical
+prototype validation is not product delivery. Current published release v0.4.0 and public inventory
+21 tools remain unchanged. Deferred capabilities do not make the completed phase unfinished.
+
+Parent-only closure on `docs/close-phase9-research`, independently based on synchronized canonical
+`bceb42071417182a46c23234e9e3f95368b9fd50`; <https://github.com/lvgvs/zimaos-mcp-server>.
+Only AGENTS/PROJECT/STATUS/RESEARCH change. Research was selectively synthesized from preserved
+local history, not merged wholesale: response semantics, repeated unexplained settings 500,
+connection ambiguity, deprecated API/app-network limits, source authority and future control risks
+remain durable. Raw captures/protected identifiers and earlier reports remain private. AGENTS adds
+optional non-binding Parent Advice: recommendations alone authorize no implementation or state change.
+README/tool guidance, runtime/tests, permissions, dependencies/workflows, version and deployment are untouched.
+
+Historical Phase 9 read-only research/prototype verification: 109 GETs/seven authentication POSTs,
+zero active diagnostics/non-auth mutations; four protected apps/retained fixtures compared unchanged.
+No new VM action/UAT is needed for this closure. Exact local prototype runtime checkpoint
+`2a00feb5f8c0ad63e848fa6f3bb43109872b1eb4` and final local acceptance
+`d99857230a9b55963f68357fa1eed30983878701` are provenance only, not deliverable source.
+
+Local formatting, lint, strict production/test TypeScript, **844/844 mocked tests in 48 files**,
+production build and canonical Compose validation passed. Markdown parsing, relative links/anchors,
+unchanged paired 21-tool inventories/version, added-line privacy patterns and diff checks passed;
+parent reviewed the complete rendered engineering-doc diff and policy. Staged Gitleaks and exact-head
+protected CI, PR/head/merge identities and post-merge readbacks are recorded in the containing PR
+and final handoff. Git owns the containing canonical commit identity.
+Squash only after exact-head CI and resolved conversations; verify clean synchronized main and
+research before removing the rejected local branch, retaining private provenance. No release
+operation, network mutation or automatic phase progression. Normal development SHA/edge CI is
+allowed; v0.4.0/stable/latest and historical releases stay immutable. No current blocker or manual
+action beyond protected delivery gates. Phase 5 ON HOLD; Phases 6/7/8/9 COMPLETE; Phase 10 NOT STARTED.
+
+## Historical public documentation quality audit (2026-10-11)
 
 Parent-only docs/policy cleanup on `docs/public-docs-audit`, from clean synchronized
 `2358bf46fd087dc910b53981cdab5584ed3961e8`;
