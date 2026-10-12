@@ -1,6 +1,24 @@
 # Status
 
-## Current execution — Phase 9 completed as research-only (2026-10-12)
+## Current execution — Phase 10 file/storage research (2026-10-12)
+
+Manager authorizes broad supported API/root/path/read/write research followed automatically by
+only justified useful safe LOCAL read-only implementation. No names/count fixed; no file-read
+permission, no assumed write flag/model, no write execution/implementation or publication.
+Started clean/synchronized `ee59b27989bc64196c3bd922d9381f2ff61c0473`;
+local branch `feat/files-read-local`, main/origin unchanged, integration secret file ignored.
+Initial quota NORMAL (session 76% / weekly 41% remaining). Read current permanent/project/state/
+research policies; preserved baseline is 21 tools/v0.4.0 and 844 tests/48 files. No Phase 10 test/UAT
+or runtime change. Fresh app/fixture baseline and after comparison now verify all four protected apps
+unchanged against initial/prior captures. First static index selector failed after 10 GETs/one auth;
+separate corrected 23-GET/one-auth pass completed; reports preserved, aggregate 33 GETs/two auth POSTs,
+zero active diagnostics/non-auth mutations. Current public file SDK captured; no file target read yet.
+Parser failure is not API absence. Bounded public source/wrapper/write research is underway.
+Record source classes, containment, sensitivity, read bounds and full write/conflict/Trash/recovery
+leads durably before deciding contracts. Normal bounded delegation resumes; parent owns security,
+evidence and delivery. Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 RESEARCH / LOCAL CANDIDATE ONLY.
+
+## Historical Phase 9 completed research-only closure (2026-10-12)
 
 **Phase 9 COMPLETE / RESEARCH-ONLY / NO PUBLIC TOOLS DELIVERED.** Manager rejects publication
 of the three local network-read prototypes: narrow reported settings/state do not establish the

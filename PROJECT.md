@@ -1569,9 +1569,9 @@ to implement it during the current phase. Historical phases keep their original 
   no public network runtime tools delivered. Useful API observations, limitations and future
   control/diagnostic leads are preserved in `docs/RESEARCH.md`. Public inventory remains 21 tools.
   Deferred capabilities do not automatically reopen the phase.
-- **Phase 10 — Files: APPROVED LATER / NOT STARTED.** Future file management requires its own
-  supported-API security design for path grants/canonicalization, read/write authority,
-  symlink/path escape and destructive behavior. No detailed contract or implementation now.
+- **Phase 10 — Files: RESEARCH / CONDITIONAL LOCAL READ-ONLY CANDIDATE ONLY.** Separately
+  authorized below. Broad supported-API/root/path research precedes any implementation; writes
+  remain research-only. No publication, file-read permission or assumed write-permission model.
 
 Later candidates, without implementation authorization or additional numbered phases: richer
 installed-app status/details; low-priority, uncommitted semantic app-settings helpers; later
@@ -1691,3 +1691,61 @@ publication after the docs merge is allowed; version artifacts, stable/latest an
 After verified protected Squash delivery and research preservation, remove the rejected local
 implementation branch without publishing it; retain private durable provenance. Phase 5 ON HOLD,
 Phases 6/7/8/9 COMPLETE, Phase 10 NOT STARTED. Stop after the final verification/handoff.
+
+# Phase 10 — Files research and conditional local reads (2026-10-12)
+
+Manager starts Phase 10 from canonical `ee59b27989bc64196c3bd922d9381f2ff61c0473`;
+stable v0.4.0 and 21 public tools remain unchanged. Complete broad supported current file/storage
+research first and preserve every meaningful successful/rejected/deferred/ambiguous finding.
+If a coherent useful safe read-only set is established without a material unresolved product/security
+decision, parent proceeds automatically into local implementation; otherwise retain a research-only
+checkpoint. No predetermined tool names/count. Phase 9 stays COMPLETE, Phase 5 ON HOLD.
+
+Investigate roots/shares/disks/pools/volumes/user/media/app/system paths, opaque vs absolute/relative
+identity, stability/offline/network/removable storage and ownership. Map directory listing, file
+metadata, bounded download/text/binary/ranges/encoding, native search, ordering/pagination/limits,
+missing/inaccessible/partial responses and sequential-read atomicity. Critical containment research
+covers traversal, separators/dot segments, encoding/Unicode/case/aliases, mounts/symlinks/hardlinks
+and sensitive system/app state. Never silently use `/` or unrestricted host paths as user-storage.
+If only useful raw host-path APIs exist and safe containment cannot be proven, do not implement them;
+record the security/product blocker. API scope is not established by UI presentation alone.
+
+Accepted reads require normal authenticated MCP access and **NO separate file-read permission**;
+no `ALLOW_FILE_READ`, no mutation permission coupling. Strict closed inputs, proven roots/containment,
+bounded bytes/counts, credential-safe selected outputs, safe errors, malformed-data rejection,
+honest missing/unavailable/error vs empty, safe links and no unbounded recursion/content. Content
+reads require supported safe size/text/binary behavior; no multi-GB-to-context or invented streaming.
+No crawling/search fallback, SSH/shell, host scraping, `/proc`/`/sys`, socket/namespace/bind-mount
+escape, private guessed endpoint or unrestricted filesystem proxy. Clean-room exclusions remain.
+
+Research all write leads only: mkdir/create/upload/replace/append, rename/move/copy, conflicts,
+overwrite, Trash/restore/empty/permanent deletion. Preserve exact endpoint/request/source/target,
+same/cross-root/filesystem behavior, permissions/metadata/link effects, size/chunk/resume/integrity,
+temporary/finalization/interruption/storage-full/offline behavior, atomicity/partial failure,
+idempotency/retry ambiguity and rollback/recovery/blast radius. Silent overwrite is disfavored,
+not a settled contract. Write authority is undecided: no `ALLOW_FILE_WRITE` or assumed substitute;
+report options/approval/UAT requirements for later manager decision, never finalize or implement writes.
+
+Before any live pass, obtain a fresh all-app/retained-fixture baseline and after comparison. Allow
+only authentication POSTs and verified non-mutating supported reads; count traffic and require zero
+non-auth mutations. Never manufacture test files/directories or alter existing apps/files/deployment,
+network, ownership, device restart or OS update. Existing safe disposable state may be read only;
+if validation needs writes, DEFER it. Missing semantics defer an individual capability, not all research.
+
+Normal bounded Qwen/local delegation applies; Sol owns scope/security/containment/contracts,
+evidence acceptance, live interpretation, bilingual public docs and Git. Children get no secrets,
+live file mutations, publication or forbidden historical source. Substantial implementation requires
+independent read-only security review, parent disposition and traversal/link/size/error/mutation-negative
+tests, while preserving the baseline 844 mocked tests/48 files and existing 21 tools. Run full local
+format/lint/production+test types/tests/build/Docker/Compose/audits/docs-inventory-parity/privacy/Gitleaks.
+If implemented, paired README/usage updates remain local, human-facing/unreleased and preserve
+near-top AI disclosure. Exact disposable local non-root authenticated MCP UAT must cover every new
+read and existing reads with all mutation flags disabled, bounded outputs and protected state.
+
+Everything remains on a local branch, including checkpoint commits and durable findings. No push,
+PR/merge/main modification, external image/SHA/edge publication, tags/Releases/stable/latest movement,
+v0.5.0 or later phase. Stop task-wide for quota, uncertain protected state, fundamental phase-wide
+architecture/security conflict, necessary mutation or scope escape. Final consolidated A–L report
+covers research/security/read dispositions/contracts/Git/gates/UAT/write leads/gaps/durability/real
+manager choices/recommendation/state/quota; optional non-binding Parent Advice follows AGENTS.
+Separate explicit authorization is required for GitHub delivery and any write implementation.

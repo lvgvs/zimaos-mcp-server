@@ -1,5 +1,43 @@
 # ZimaOS API Research
 
+## Phase 10 — file/storage research kickoff (2026-10-12)
+
+Baseline `ee59b27989bc64196c3bd922d9381f2ff61c0473`, stable v0.4.0/21 tools. Broad current
+supported API research precedes tool selection. Separate source classes: authoritative docs/spec,
+version-applicable first-party source/UI, fresh guarded read-only VM observations and inference.
+Root/share identity, containment/symlinks/sensitive scope, listing/metadata/download/search bounds
+and all write/conflict/Trash/upload/recovery leads must be preserved, including unsuccessful/unknown
+findings. Read implementation is conditional on proven useful safe contracts with no read permission;
+write authority remains undecided, writes forbidden. At kickoff no live request or new public tool existed.
+This section is a kickoff record, not evidence that a safe file API exists. Local only; no publication.
+
+### Initial fresh protection/static-UI pass — incomplete, preserved separately
+
+Guarded existing auth/app/config/container reads established a fresh private baseline and matched
+retained prior protection. GET `/` returned 200/1501 bytes, but the probe's exact absolute-index
+selector did not establish one unique script path; no file/storage API was called. This pass stopped
+with **10 GETs/one auth POST/zero active diagnostics/non-auth mutations**. Its report/baseline remain
+separate; final after comparison and fresh wrapper capture are pending a bounded corrected pass.
+This is a discovery-parser limitation, not proof that a file API or public UI is absent. No write,
+replay of a mutation or prototype implementation occurred.
+
+### Completed fresh baseline and version-applicable public wrapper capture
+
+A separate corrected static-discovery pass matched the initial and retained prior app baselines,
+then verified all four apps/config hashes/container identity/state/attachments unchanged afterward.
+Only quoted/unquoted/relative script-attribute parsing was broadened; auth/origin/method/byte/path
+guards remained enforced. Counts **23 GETs/one auth POST/zero active diagnostics/non-auth mutations**.
+Both reports remain distinct: aggregate initial research is **33 GETs/two auth POSTs/zero active
+diagnostics/non-auth mutations**. No file/storage target API or content read was called yet.
+
+Fresh same-origin public index/system SDK hashes exactly match the Phase 9 captures. A previously
+unexamined current file SDK is now retained privately: `/assets/vendor-api-files-CAznwRc3.js`,
+SHA-256 `048a2718aab997e63e897078e2f2cb352b65d5d5386091efa0565216ea55f7ea`.
+Public assets supply current route/request/model leads, not proof of backend containment or source
+revision equivalence. Baseline/captures/journals stay in owner-only durable `evidence/phase10`;
+no topology, fixture IDs, raw Compose or credentials enter tracked docs. Bounded public-source
+research is underway; no read contract or write policy is selected before broad research completes.
+
 ## Phase 9 — completed network research-only outcome (2026-10-12)
 
 **Final manager disposition: COMPLETE / RESEARCH-ONLY / NO PUBLIC TOOLS DELIVERED.**
