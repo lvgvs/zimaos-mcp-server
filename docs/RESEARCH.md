@@ -1,5 +1,180 @@
 # ZimaOS API Research
 
+## Phase 9 — completed network research-only outcome (2026-10-12)
+
+**Final manager disposition: COMPLETE / RESEARCH-ONLY / NO PUBLIC TOOLS DELIVERED.**
+Reported configuration/state endpoints were verified, but the completed investigation did not
+establish a sufficiently valuable public network troubleshooting surface. The local prototypes
+`list_network_interfaces`, `get_network_config` and `get_remote_access_status` are explicitly
+rejected for publication, not development/current/public capabilities. Public inventory remains
+21 tools and current published release v0.4.0. Prototype technical validation does not override
+the product decision; DEFER findings do not automatically reopen this completed phase.
+
+### Source authority and version applicability
+
+- Official [developer guide](https://www.zimaspace.com/docs/developer/openapi-developer-guide)
+  and [API Explorer](https://www.zimaspace.com/docs/developer/openapi-live-preview) were reviewed;
+  Explorer was updated 2026-09-22 and marks the v1 Docker Container API deprecated. Its referenced
+  `IceWhaleTech/IceWhale-OpenAPI` repository returned GitHub 404. Neither page established the
+  missing field-level/effective-network semantics.
+- Guarded research on ZimaOS v1.7.1 captured its same-origin public generated SDK/UI assets:
+  `/assets/vendor-api-system-DTFfJb9G.js`, `/assets/vendor-api-apps-D8CV56Gp.js`,
+  `/assets/SettingsDialog-Cpgt0zUg.js`, `/assets/Home-CHLd0zKi.js` and initialization assets.
+  Operation-specific base modules AND actual constructors bind NetworkMethods/ZeroTierMethods
+  to `/v2/zimaos`, ContainerMethods to `/v1/container`, not `/v2/app_management`.
+  Wrapper/UI evidence is version-applicable route/presentation evidence, not backend revision
+  equivalence, completeness, rollback, universal side-effect absence or license to copy implementation.
+  System asset SHA-256: `815912d9f00f1df6d18b3965302705d3c253462966ff0bc13b5f0da9960743da`;
+  initialization asset SHA-256: `f37aef2beebb77c4f79876e29cb0c2d0b67c571818c2544ff89f4b41f0f64f83`.
+- The community `DeniskaAbr/IceWhale-OpenAPI` fork is not current first-party authority. Legacy
+  Apache-2.0 CasaOS sources/SDKs are supplementary leads, never proof of current ZimaOS equivalence.
+  No forbidden historical MCP source was inspected or copied; no frontend implementation was ported.
+  Missing vendor URLs and bounded package/search failures do not prove product-wide API absence.
+
+### Verified reported interface and settings behavior
+
+GET `/v2/zimaos/network/interfaces` returned HTTP 200, a bare five-entry array with three named
+entries and two empty-name display/port slots. Ethernet, Thunderbolt bridge and virtual-remote
+categories were represented. Fresh observations matched earlier captures; this does not prove
+lifetime identity stability or exhaustive kernel interface/address inventory. Native keys include
+`name`, `index`, `order`, `model`, optional `ip`, `mac`, `method`, `connect_type`, `product`, `vendor`,
+`theoretical_speed` and `negotiated_speed`. Actual speed keys are NOT `speed`/`link_speed`.
+Presence varies; missing/null/empty/zero must not be conflated or translated into healthy/down defaults.
+
+Current Settings UI uses `index` as a display/slot key and `order` for presentation, not proven
+OS identity or route priority. It retains unnamed slots. Speed formatting uses `bits:true` and
+bit-rate icon buckets, corroborating reported bits/second, not actual throughput/link state.
+Its single `ip` string is not a full address inventory; the green-dot heuristic is not a verified
+health contract. `connect_type` is not established as a closed enum.
+
+GET `/v2/zimaos/network/settings?interface_name=...` was called only for nonempty names from the
+fresh inventory. Two returned HTTP 200 `{data:{interface_name,ipv4,ipv6},message}`; one returned
+HTTP 500, and a separately counted repeated read returned 500 with `{message:"Internal Server Error"}`.
+**Backend cause remains unknown.** Repeated generic failure is neither empty configuration nor
+proof of universal unsupported-target behavior. No invalid-target or settings-mutation probe occurred.
+
+The failing target has `connect_type="Virtual Network (Remote)"`; current UI excludes that category
+from configuration actions/choices. This corroborates a narrow UI eligibility boundary, not the
+cause of the server 500, a ban on every virtual type or the support status of all future categories.
+Index 13 UI allows Manual-only IPv4 editing and IPv4-only submission; this is not an IPv6 read ban.
+
+Successful groups contain string `method`, `ip`, `subnet_mask`, `gateway_address` and DNS arrays.
+Observed methods were Manual/DHCP; current wrapper/UI enums also include Close. IPv4 masks were
+dotted strings; IPv6 masks were nonnumeric strings, with UI format unconstrained. Do not manufacture
+prefix lengths. Empty configured gateway/address/DNS values do not establish effective routing,
+active resolver or reachability. UI defaults can conflate absent/empty; they are not strict backend
+schema proof. Independent inventory/settings reads are sequential, not an atomic snapshot.
+No DHCP/static transition or missing-gateway/DNS failure was manufactured.
+
+### Connection status and ZeroTier
+
+GET `/v2/zimaos/network/connection-status` returned bare `{ip:string,status:"LAN"}`. The IP did
+not match any reported interface address. Settings presents category/IP in the device header;
+current category enums are LAN/Thunderbolt/Remote/Unknown. The address/category reference may
+describe API/UI connection rather than host state and remains unresolved. **DEFER** host-network
+status/reachability interpretation. The fork's `/connect/status` differs and was not substituted.
+No forwarded-header or alternative-target experiment was performed.
+
+GET `/v2/zimaos/zt/info` returned bare `{id:string,ip:string,name:string,status:"online"}`.
+Current UI consumes id and compares status to online for remote-access service state. This is
+narrow ZeroTier-reported state, not peer reachability, membership completeness, Internet health
+or guaranteed remote management. Unknown status must not default to online. The corresponding
+status/reset write is a future control lead, not tested or implemented product authority.
+
+### Existing app/container and deprecated API evidence
+
+Existing supported `/v2/app_management/compose/{id}/containers` responses expose service-keyed
+`Networks` name arrays and `Publishers`. Existing public container normalization exposes published
+ports, not a newly delivered attachment-name projection. Guarded Compose inspection may show
+declared networks/network_mode/DNS/ports where present under its existing secrecy/approval contract.
+These observations establish neither exhaustive replicas nor per-container effective IP/gateway/DNS,
+host-wide TCP/UDP listener ownership, firewall state, reachability or host-good/app-bad diagnosis.
+No existing product contract is expanded by this research.
+
+GET `/v1/container/networks` returned HTTP 200 `{success,message,data:[{driver,id,name},...]}`
+with three entries; the official Explorer marks that API family deprecated. Home's custom-app editor
+uses it for settings choices and converts Compose networks/network_mode, sometimes defaulting to
+bridge or selecting the first network. Editor defaults are not runtime topology/completeness evidence.
+**DEFER** new topology or attachment projections based on deprecated inventory or unexplained fields.
+
+First-party Apache-2.0
+[CasaOS-AppManagement source at debfa317f0f996b91b43210e8d57799461388704](https://github.com/IceWhaleTech/CasaOS-AppManagement/blob/debfa317f0f996b91b43210e8d57799461388704/route/v2/compose_app.go)
+contains a historical one-container-per-service workaround; a possible internal full list does not
+make service-keyed responses replica-exhaustive. Its app health invokes `composeApp.HealthCheck()`;
+without implementation/current-equivalence proof this is not a verified DNS/TCP/HTTP probe or root cause.
+[Docker Compose v2.14.2 ContainerSummary](https://github.com/docker/compose/blob/v2.14.2/pkg/api/api.go)
+contains Publishers but NOT Networks, correcting the earlier claimed type correspondence. The
+[official Compose service reference](https://docs.docker.com/reference/compose-file/services/)
+supports declared-configuration semantics, not deployed effective state. No source implementation is copied.
+
+### Diagnostic gaps and final capability dispositions
+
+No exact current supported useful contract was established for effective route/gateway selection,
+active resolver/DNS, complete addresses/prefixes/admin/link/MTU state, Wi-Fi association/scan/leases,
+gateway/DNS/Internet reachability, active bounded diagnostics, rich app connectivity or firewall/
+iptables/nft policy/errors. Examined current SDK/UI absence is scoped evidence, not proof that the
+product has no such APIs. `/v2/mod_management` module cards and DLNA feature state do not establish
+network daemon/policy health. Legacy health/services, health/ports or service-status leads are not
+current supported route proof. No binary archive, shell, host files, socket, namespace, packet capture,
+scan or guessed probe was substituted for missing evidence. GET alone does not prove passivity.
+
+| Capability / lead                                                                                   | Final disposition                                                                    |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Reported inventory/settings and ZeroTier state                                                      | Verified narrow observations; **NO PUBLIC DELIVERY** by final product decision       |
+| Connection status, effective host network, routes/resolver, Wi-Fi, firewall/policy                  | **DEFER** pending authoritative useful semantics                                     |
+| Rich app topology, host-good/app-bad differentiation, listener ownership                            | **DEFER**; configuration/attachment names/ports are not health or complete ownership |
+| Supported fixed active diagnostics or repair                                                        | **DEFER**; no bounded effects/targets/completion contract established                |
+| Arbitrary URL/target probes, proxy/passthrough, scanning, shell/SSH/socket/files/namespace fallback | **NO-GO** for the bounded product                                                    |
+
+### Future control leads — none called or delivered
+
+Current generated wrapper/UI leads use existing bearer authentication. No idempotency, at-most-once
+server guarantee, rollback API or safe ambiguous replay is established. HTTP/UI success is not
+completion. Any future control needs separately authorized scope, independent default-off authority,
+stable target binding, explicit action/exact-content approval, authorized positive UAT and recovery
+evidence. Host/remote-access changes require independent out-of-band recovery; no automatic replay
+after an ambiguous result. No network permission is introduced by this closure.
+
+| Exact lead and evidence                                                          | Value / target                                                                                                                                                          | Blast radius, uncertainty and disposition                                                                                                                                                                                                    |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PUT `/v2/zimaos/network/settings`; current NetworkMethods + Settings UI          | JSON `{interface_name,ipv4:{method,ip,subnet_mask,gateway_address,dns},ipv6?:{method,ip,subnet_mask,gateway_address,dns}}`; DHCP/Manual/Close; UI may submit IPv4 alone | Host/API/app connectivity loss, family disablement or lockout; eligibility, acknowledgment, persistence, retry/rollback unverified. **DEFER**; future separate network authority, exact content/target approval and independent recovery/UAT |
+| PUT `/v2/zimaos/network/interfaces/order`; wrapper + Customize ports UI          | Array `{name,order}`, names from current entries; presentation ordering, not proven routing priority                                                                    | Side effects/persistence/reversal unknown; low repair value. **DEFER** until display-only scope is settled, then separately consider authority/approval/UAT                                                                                  |
+| PUT `/v2/zimaos/zt/status`; ZeroTierMethods + UI                                 | JSON `{status:"online"}`; online/offline/reset                                                                                                                          | Remote connectivity/membership/identity impact; reset changes displayed id but destructive scope/rejoin/recovery unknown. **DEFER**; independent authority/action approval/recovery/UAT; no guaranteed reversal or replay                    |
+| App reconnect/reattach/recreate, resolver refresh, service/firewall/route repair | No exact supported current operation established                                                                                                                        | **DEFER**, no guessed route or restart-as-repair substitute                                                                                                                                                                                  |
+| Legacy `ANY /v1/zt/*url`, GET `/v1/sys/proxy?url=...`                            | Arbitrary operation/HTTP target; current ZimaOS applicability unverified                                                                                                | **NO-GO** for this bounded product. SSH enablement, host state/service exit and server-port rewriting are not authorized network-repair candidates                                                                                           |
+
+Corrected legacy interpretation:
+[CasaOS route](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/route/v1.go)
+maps POST `/v1/sys/stop` to
+[PostKillCasaOS](https://github.com/IceWhaleTech/CasaOS/blob/0d3b2f444ec0193193cf03eef6d43c6e35b0183e/route/v1/system.go),
+which calls `os.Exit(0)`; this is core-service exit, NOT proven OS shutdown or a network recovery API.
+
+### Preserved execution evidence and privacy
+
+| Historical batch                                       | GETs | Authentication POSTs | Active diagnostics | Non-authentication mutations |
+| ------------------------------------------------------ | ---: | -------------------: | -----------------: | ---------------------------: |
+| Initial Phase 9A, including failed probe/public assets |   36 |                    3 |                  0 |                            0 |
+| Fresh Stage 1 inventory/settings and preservation      |   23 |                    1 |                  0 |                            0 |
+| Stage 2 connection/ZeroTier and preservation           |   20 |                    1 |                  0 |                            0 |
+| Local prototype verification                           |   30 |                    2 |                  0 |                            0 |
+| Entire Phase 9                                         |  109 |                    7 |                  0 |                            0 |
+
+Continuation aggregate was 73 GETs/four auth POSTs, zero unexpected traffic/active diagnostics/
+non-auth mutations. The initial probe stopped on unnamed slots; a separately reported corrected
+selector pass completed without silently dropping slots from inventory. A later probe compile
+failure caused no request; successful reports remain separate. Four protected apps/retained fixtures
+were compared unchanged before/after: Compose hashes and container identities/state/attachments/
+publishers. Temporary local verification container/env/relay were removed; stable deployment untouched.
+No fresh VM action or prototype UAT is repeated for this docs-only closure.
+
+Durable private `evidence/phase9a` and `evidence/phase9-continuation` retain captures, request reports,
+source findings, protection hashes and rejected prototype/review provenance outside prunable cache.
+The local runtime/acceptance commits are historical provenance, not approved delivery. Private topology,
+fixture/app identifiers, credentials and raw secret-bearing Compose are not carried into canonical docs.
+This summary supersedes interim implementation/acceptance recommendations while retaining corrected
+technical findings. Phase 9 COMPLETE; future evidence needs new scoped authorization. Phase 5 ON HOLD,
+Phases 6/7/8 COMPLETE, Phase 10 NOT STARTED. No version/release/network mutation is authorized.
+
 Authoritative research for the ZimaOS MCP Server. Every API operation used by the
 implementation is recorded here with its authoritative source and implementation
 implication, per `AGENTS.md`. Copied source text is kept minimal; concise technical

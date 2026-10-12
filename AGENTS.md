@@ -61,6 +61,26 @@ owns final acceptance. Do not require separate review for trivial mechanical cha
 recursive reviewer-of-reviewer loops. Explicit manager instructions may strengthen, weaken or
 disable independent review for a named task; a parent-only override prohibits child review too.
 
+## Parent Advice
+
+At the end of a final manager-facing report, the parent may optionally add a `Parent Advice`
+section for a materially useful independent recommendation. It preserves technical judgment,
+not authorization: the parent may recommend adding, removing or renaming capabilities, different
+scope or sequencing, additional research/testing/review, or a tradeoff or alternative approach.
+The parent may explain why it would change or drop part of the requested plan.
+
+Parent Advice is **NON-BINDING**. Any idea, change or action introduced only through Parent Advice:
+
+- is outside authorized scope and is not considered accepted by the manager/user;
+- requires separate explicit manager authorization before implementation, even locally;
+- without that authorization, must not cause code or documentation edits, live mutations, external actions,
+  branches, commits, pushes, PRs, releases or any other state change.
+
+Do not use advice to reinterpret, expand or bypass an existing authorization. Keep authorized
+work/results clearly separate from recommendations; never present unapproved advice as completed
+work or a manager decision. The manager/user may accept, reject, modify or ignore it. Omit the
+section when there is no meaningful independent advice rather than adding ceremonial agreement.
+
 ## Parent-model quota safety
 
 Hermes / GPT-6.1 Sol is this repository's parent/orchestrator. Qwen/local children may perform
