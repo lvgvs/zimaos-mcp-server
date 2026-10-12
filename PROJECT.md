@@ -1569,9 +1569,9 @@ to implement it during the current phase. Historical phases keep their original 
   no public network runtime tools delivered. Useful API observations, limitations and future
   control/diagnostic leads are preserved in `docs/RESEARCH.md`. Public inventory remains 21 tools.
   Deferred capabilities do not automatically reopen the phase.
-- **Phase 10 — Files: RESEARCH / CONDITIONAL LOCAL READ-ONLY CANDIDATE ONLY.** Separately
-  authorized below. Broad supported-API/root/path research precedes any implementation; writes
-  remain research-only. No publication, file-read permission or assumed write-permission model.
+- **Phase 10 — Files: RESEARCH / LOCAL CHECKPOINT ONLY.** Parent-only continuation below
+  completes research and checkpointing, not runtime implementation. Writes remain research-only;
+  no publication, file-read permission or assumed write-permission model.
 
 Later candidates, without implementation authorization or additional numbered phases: richer
 installed-app status/details; low-priority, uncommitted semantic app-settings helpers; later
@@ -1694,6 +1694,9 @@ Phases 6/7/8/9 COMPLETE, Phase 10 NOT STARTED. Stop after the final verification
 
 # Phase 10 — Files research and conditional local reads (2026-10-12)
 
+Historical initial authorization; the parent-only research continuation below supersedes its
+conditional implementation grant for the current task.
+
 Manager starts Phase 10 from canonical `ee59b27989bc64196c3bd922d9381f2ff61c0473`;
 stable v0.4.0 and 21 public tools remain unchanged. Complete broad supported current file/storage
 research first and preserve every meaningful successful/rejected/deferred/ambiguous finding.
@@ -1749,3 +1752,27 @@ architecture/security conflict, necessary mutation or scope escape. Final consol
 covers research/security/read dispositions/contracts/Git/gates/UAT/write leads/gaps/durability/real
 manager choices/recommendation/state/quota; optional non-binding Parent Advice follows AGENTS.
 Separate explicit authorization is required for GitHub delivery and any write implementation.
+
+## Phase 10 research-only checkpoint disposition
+
+Parent outcome **KEEP RESEARCH ONLY**: useful current file/storage route leads exist, but a coherent
+safe read set is not established. Files APIs/UI use path strings and display aliases; native opaque
+root grants, server containment/no-follow and app-sensitive boundaries are unproven. Do not invent
+prefix canonicalization or substitute a raw host-path proxy. Metadata-only root labels do not supply
+a useful browsing contract or establish safe follow-on access. All proposed file reads DEFER; no
+new tool/name/placeholder/read permission or runtime implementation. Existing surface remains 21.
+Write/Trash/upload/task/encryption/share-control leads and unknowns remain in RESEARCH for later
+manager scope/authority/approval decisions, without an assumed write model. This is a local research
+checkpoint, NOT manager closure of Phase 10. Phase 10 RESEARCH / LOCAL CANDIDATE ONLY; no next phase.
+
+## Parent-only Phase 10 research resume / closure authorization
+
+Manager authorizes recovery and completion of the existing research only, never runtime tools or
+new Files prototypes. The timeout did not establish completion. Parent recovered all dirty docs,
+resolved the remaining upload assignment under explicit new read-only authorization, audited the
+original breadth and retained unprovable backend guarantees as gaps. Research checkpoint is complete;
+parent retains KEEP RESEARCH ONLY / NEED MORE AUTHORITATIVE EVIDENCE, with no secure Files contract.
+Scope/reopen conditions and security matrix are in RESEARCH. No read/write flag or final write model.
+One local docs checkpoint, scoped docs/privacy/Gitleaks checks and final report only; no full runtime/
+build/UAT repeat when inputs unchanged. No children, live mutations, GitHub publication or main change.
+Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 RESEARCH / LOCAL CHECKPOINT ONLY, not manager-complete.

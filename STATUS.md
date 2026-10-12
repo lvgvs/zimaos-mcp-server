@@ -1,6 +1,51 @@
 # Status
 
-## Current execution — Phase 10 file/storage research (2026-10-12)
+## Current execution — Phase 10 parent-only research checkpoint closure (2026-10-12)
+
+Resumed `feat/files-read-local` at `00ced76fbb63a5fdfc4fdba338a5d5f215488975`; three dirty
+PROJECT/STATUS/RESEARCH edits preserved. Pre-timeout research was incomplete: upload destination
+and final required-category audit remained, not just reporting. Normal quota at recovery (session
+69%/weekly35% remaining). No children, no restart of completed research and no runtime implementation.
+New explicit read-only authorization resolved saved plaintext `cM` initialization to
+POST `/v2_1/files/file/uploadV2`; original blocked command was not run/retried/bypassed. Parent audited
+the original category breadth and recorded unsupported/unsafe-to-test guarantees as gaps. No new
+VM call: aggregate remains 97 GETs/five auth POSTs/zero non-auth mutations, last all-four protection
+comparison preserved; no new comparison/UAT claim. No fixture created or file mutation attempted.
+
+**Final disposition KEEP RESEARCH ONLY / NEED MORE AUTHORITATIVE EVIDENCE BEFORE IMPLEMENTATION.**
+Canonical roots/containment/symlink escape/sensitive boundaries remain materially unproven; no
+secure public contract, File tool, placeholder, new permission or local runtime prototype. Local/
+published inventory of 21 and v0.4.0 unchanged. Root/path/upload/overwrite/delete/Trash security matrix,
+write/control leads, failures/rejected interpretations and concrete reopening conditions persist
+in RESEARCH; complete parent audit and raw provenance remain private. No phase completion declared.
+Scoped docs formatting, Markdown parse/render review, relative-link/anchor, inventory, diff and
+privacy/private-value checks passed. Staged Gitleaks and the containing local checkpoint identity
+are recorded in the final handoff; no full runtime/build/UAT rerun because inputs are unchanged. Canonical
+main remains `ee59b27989bc64196c3bd922d9381f2ff61c0473`. No push/PR/merge/image/tag/Release/version/
+deployment change. Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 RESEARCH / LOCAL CHECKPOINT ONLY.
+
+### Historical pre-timeout draft checkpoint
+
+**Parent disposition KEEP RESEARCH ONLY.** No coherent useful safe file read contract established:
+raw paths/UI aliases do not prove server root/symlink containment, sensitive app-data separation,
+root grants or snapshot behavior. No rootless metadata placeholder or speculative file tool delivered.
+Published/local inventories remain 21; no source/tests/permissions/dependencies/version/deployment/
+workflow/public README changes. Files base `/v2_1/files` independently confirmed; current Files UI
+has cursor pagination (older dashboard client sfz), encrypted-folder controls, share permissions,
+partial-conflict restore expectations and a different raw multipart-upload flow. Unknown backend
+guarantees are explicit, not erased. Full write/control handoff persists in RESEARCH; policy undecided.
+Complete guarded research traffic: **97 GETs/five auth POSTs/zero active diagnostics/non-auth mutations**;
+all four apps/retained fixtures compared unchanged, including reconciliation of failed static captures.
+No arbitrary file/system path, file content, unsafe traversal/symlink, thumbnail, metadata POST,
+upload-check or write call; static JS only, never UI execution. No read implementation/UAT candidate.
+Repository gates and exact local commit identities are recorded in the final handoff; normal public
+v0.4.0 release/development artifacts remain untouched. Main/origin stay at the kickoff baseline.
+Only PROJECT/STATUS/RESEARCH change locally on `feat/files-read-local`. No push/PR/merge/publication.
+Next manager choices: delivery of research, any future privileged file scope and later write authority/
+approval—not routine evidence-based deferrals. Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 remains
+RESEARCH / LOCAL CANDIDATE ONLY, not declared manager-complete. No later phase or v0.5.0.
+
+### Historical Phase 10 progress checkpoints
 
 Manager authorizes broad supported API/root/path/read/write research followed automatically by
 only justified useful safe LOCAL read-only implementation. No names/count fixed; no file-read
@@ -18,6 +63,12 @@ elapsed bound exceeded; missing root/base/containment/body semantics prevent acc
 contract. Parent verified exact official package spelling, first-party Git HEAD and current constructor
 contexts; provisional read/write route leads and rejected inferences persist in RESEARCH. Follow-up
 is bounded to current root/base/request semantics; no tool names, runtime, read flag or write model chosen.
+Follow-up inspected: exact Files base `/v2_1/files` confirmed; backup-base, absent-upload and JSON/query
+claims corrected, not accepted wholesale. Fixed storage/module metadata reads returned 200 and
+preserved all four apps/fixtures; no opaque containment root proved. Root metadata uses an absolute
+path outside logical `/DATA`; stats return device strings, not capacity. Aggregate 54 GETs/three auth
+POSTs/zero non-auth mutations. Current file-UI entry was discovered through supported module metadata;
+bounded static capture is next, not arbitrary file content or a write. No runtime decision yet.
 Record source classes, containment, sensitivity, read bounds and full write/conflict/Trash/recovery
 leads durably before deciding contracts. Normal bounded delegation resumes; parent owns security,
 evidence and delivery. Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 RESEARCH / LOCAL CANDIDATE ONLY.
