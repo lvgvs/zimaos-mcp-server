@@ -13,7 +13,11 @@ or runtime change. Fresh app/fixture baseline and after comparison now verify al
 unchanged against initial/prior captures. First static index selector failed after 10 GETs/one auth;
 separate corrected 23-GET/one-auth pass completed; reports preserved, aggregate 33 GETs/two auth POSTs,
 zero active diagnostics/non-auth mutations. Current public file SDK captured; no file target read yet.
-Parser failure is not API absence. Bounded public source/wrapper/write research is underway.
+Parser failure is not API absence. First public-source child report read/reviewed: 21 calls but
+elapsed bound exceeded; missing root/base/containment/body semantics prevent acceptance of a read
+contract. Parent verified exact official package spelling, first-party Git HEAD and current constructor
+contexts; provisional read/write route leads and rejected inferences persist in RESEARCH. Follow-up
+is bounded to current root/base/request semantics; no tool names, runtime, read flag or write model chosen.
 Record source classes, containment, sensitivity, read bounds and full write/conflict/Trash/recovery
 leads durably before deciding contracts. Normal bounded delegation resumes; parent owns security,
 evidence and delivery. Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 RESEARCH / LOCAL CANDIDATE ONLY.

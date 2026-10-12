@@ -38,6 +38,48 @@ revision equivalence. Baseline/captures/journals stay in owner-only durable `evi
 no topology, fixture IDs, raw Compose or credentials enter tracked docs. Bounded public-source
 research is underway; no read contract or write policy is selected before broad research completes.
 
+### Bounded public-source research return — leads, not final contract acceptance
+
+The first public researcher completed 21 calls, within the 22-call retrieval budget, but exceeded
+the requested 20-minute elapsed bound (46m30s). Its durable report is private; it made no VM calls,
+credential access, repository edits or implementation. Its COMPLETE label applies only to that
+bounded subtask. Phase research remains incomplete, especially root/share/path and backend guarantees.
+
+Parent read the complete report and checked decisive public SDK/index contexts. The file bundle
+uses generated Axios clients; do not assume a server-side oapi-codegen implementation. It contains
+multiple API families/default bases (including backup), so class/operation base must be traced before
+forming full endpoints. Index binds FileApi/FolderApi/TrashApi/StorageApi/ShareApi through `dt`;
+separate StorageMethods/DiskMethods bind `/v2/local_storage`. Never borrow that unrelated prefix.
+Reported 97 operations/21 classes remain extraction claims, not independently accepted totals.
+
+Official guide was independently browser-read: exact package is **`@icewhale/zimaos-localstorage-openapi`**,
+NOT the report's inconsistent `@icewale/...` spelling. Guide example binds StorageMethodsApi to
+`/v2/local_storage` and cites `zimaos-local-storage/local_storage/openapi.yaml`; page claims MIT.
+That is not verification of every package/archive license or current File API backend behavior.
+Parent Git remote read independently confirms CasaOS-LocalStorage HEAD
+`a9b12800df6ae9b27ef44ce800b857aa5334f565`; report's inconsistent short `a9b2800` is rejected.
+Legacy Apache-2.0/source-path findings are supplementary leads, not deployed equivalence. Official
+spec/CasaOS-Files 404 observations and a one-page organization search do not prove product absence.
+
+Provisional current client routes below are **module-relative**, NOT yet approved live requests:
+
+| Area                                | Exact client route leads                                                                                                                                | Unsettled semantics / provisional disposition                                                                                                                                                                                                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Listing/metadata                    | GET `/file`, `/file/online`, `/folder`; POST `/file/stats`, `/mediainfo`; GET `/thumbnail`                                                              | Literal path input, root/share identity, symlink/traversal containment, fields/nulls/limits/pagination/hidden/error handling unknown. Thumbnail/stat/history effects must be verified rather than treating GET or a read-like name as passivity. **DEFER** pending broad security research |
+| Download                            | GET `/file/download?path=...`                                                                                                                           | Range is a possible header, not an asserted query parameter; no Range absence or bounded-text/encoding guarantee follows from client signatures. Binary/size/streaming and sensitive-root boundaries unknown. **DEFER**                                                                    |
+| Search                              | GET/PUT `/file/search`                                                                                                                                  | Client exposes search-service status enable/disable, not established query/result/root/pagination contract. No crawling substitute and no global absence claim. Read/search **DEFER**, PUT is future control only                                                                          |
+| History, storage/shares/connections | GET `/file/history`, `/share`, `/share/list`; StorageApi and connect/cloud clients                                                                      | Mixed user/app/system paths, secrets/root/offline/ownership/completeness unknown; full prefixes and selected projections unsettled. **DEFER** pending targeted evidence                                                                                                                    |
+| Create/rename                       | POST `/file`, `/folder`; PUT `/file`, `/folder`                                                                                                         | Body/query fields need corroboration; PUT/file must not be guessed to mean content overwrite. Parent has not accepted path/collision/atomicity/recovery semantics. **FUTURE WRITE — MANAGER REVIEW REQUIRED**                                                                              |
+| Upload                              | GET/POST `/file/upload`, POST `/file/uploadV2`, GET `/file/upload_info`                                                                                 | Chunk params path/relativePath/filename/chunkNumber/totalChunks and multipart path/modTime/file are client leads; finalization/temp state/overwrite/resume/integrity/storage-full/offline unknown. Even check/upload GET needs effect verification. **FUTURE WRITE — RESEARCH ONLY**       |
+| Move/copy/tasks                     | POST `/task`, `/task/cut`, `/task/copy`, `/task/duplicate`, `/task/import`, `/task/migrate`, `/task/decompress`, `/task/retry`; PUT/DELETE `/task/{id}` | Client skip/rename/overwrite and conflict/failed/processing/partial_success enums are not defaults, atomicity, safe retry or rollback. Backup error/task routes may use a different family. **FUTURE WRITE — RESEARCH ONLY**                                                               |
+| Trash/delete                        | DELETE `/file`, `/folder`, `/file/trash`; GET/POST/DELETE `/trash`, POST `/trash/empty`, GET `/trash/stats`                                             | Path bodies/filter all/operable are leads; restore target/conflicts, retention/mount limits, permanent-delete vs Trash behavior and metadata/recovery unknown. **FUTURE WRITE — RESEARCH ONLY**; reads **DEFER**                                                                           |
+| Storage/share controls              | DELETE `/file/storage`, POST `/file/storage/predelete`, POST `/web/path/check`; POST/PUT/DELETE share/Samba/cloud/connect operations                    | Force/reason/status leads do not prove effects, read-only preflight, root containment or recovery. Larger mount/service/network/remote exposure blast radius. **DEFER** controls outside a future narrowly approved file-write scope                                                       |
+
+No source establishes safe root containment merely because an endpoint accepts a path or a UI
+shows a storage label. No file content, symlink/traversal test, cache-generating thumbnail, upload
+check, metadata POST or write route has been called. Read flag remains forbidden; write policy
+undecided. A bounded follow-up traces current root/base/request semantics before any product decision.
+
 ## Phase 9 — completed network research-only outcome (2026-10-12)
 
 **Final manager disposition: COMPLETE / RESEARCH-ONLY / NO PUBLIC TOOLS DELIVERED.**
