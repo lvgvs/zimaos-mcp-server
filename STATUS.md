@@ -1,6 +1,44 @@
 # Status
 
-## Current execution — Phase 10 parent-only research checkpoint closure (2026-10-12)
+## Current execution — Phase 10 interruption checkpoint, local records only
+
+Manager stopped behavioral research after provider `invalid_request` / `cyber_policy` refusal at
+model inference, before the next tool dispatch. No result from the refused request, no retry/bypass/
+model switch/child. Archive/fixture helpers were prepared but not executed. Current task only
+preserves local records/docs; no new VM/SSH/API/browser/behavioral or live preservation check.
+
+Completed beforehand: matching four-app YAML/config/container baseline; non-root SSH connection
+with storage write denial; physical storage and `/DATA` one-item listings200; AppData metadata200;
+display alias and `/etc` listings400 security_policy_blocked; one POST folder200 with SSH-confirmed
+mode0755/root-owned new directory. Failed SSH setup exit1 has UNKNOWN partial effects; directory
+retained, not destructively cleaned up. Post-experiment protected apps/retained fixtures/config
+and current sacrificial state UNKNOWN from existing records, not claimed unchanged.
+
+Continuation26 GET/3auth/1Files API mutation; cumulative123 GET/8auth/1Files API mutation/0unrelated
+API mutations. Two SSH observations and one failed fixture-setup attempt counted separately.
+Traversal/links/content/pagination/upload/conflict/delete/Trash/task lifecycle and final cleanup/
+preservation incomplete. RESEARCH preserves successes/failures/source corrections/provider boundary
+and gap classifications; private evidence/phase10 preserves original journals and closure receipt.
+Scope remains parent-only RESEARCH / INCOMPLETE / INTERRUPTED; no public Files contract, runtime
+implementation or permissions; tools21/v0.4.0 unchanged. Authorized AGENTS VM-policy retained in
+this local checkpoint. Docs formatting/parse/local rendering/link/diff/privacy checks passed;
+staged-secret result is in the final handoff/receipt. No runtime/build/Docker/UAT rerun.
+No publication/main change or next phase. Phase5 ON HOLD; Phase9 COMPLETE. Final SHA is the
+containing checkpoint in Git/private receipt; final gate results in handoff.
+
+### Historical behavioral-research kickoff
+
+Starting `feat/files-read-local` at `ced98c1460b1b55de884e8670c88dc43aa0aedca`, preserving authorized
+dirty AGENTS VM-policy update. Manager permits sacrificial Files mutations and SSH observation;
+product architecture/clean-room/license requirements remain unchanged. No children, runtime Files
+implementation or publication. Establish protected baseline before experiments, preserve each batch
+and count intended Files/API and SSH fixture operations separately from unrelated mutations.
+Source/metadata research below is accepted baseline, not to be repeated without a specific need.
+Behavioral experiments and disposition pending; no positive safety guarantee claimed at kickoff.
+
+## Historical source-only checkpoint closure
+
+## Historical execution — Phase 10 parent-only source research checkpoint closure (2026-10-12)
 
 Resumed `feat/files-read-local` at `00ced76fbb63a5fdfc4fdba338a5d5f215488975`; three dirty
 PROJECT/STATUS/RESEARCH edits preserved. Pre-timeout research was incomplete: upload destination

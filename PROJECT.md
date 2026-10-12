@@ -1767,6 +1767,25 @@ checkpoint, NOT manager closure of Phase 10. Phase 10 RESEARCH / LOCAL CANDIDATE
 
 ## Parent-only Phase 10 research resume / closure authorization
 
+### Current behavioral-research continuation
+
+**Interrupted by provider safety refusal. Current manager authorization is LOCAL CHECKPOINT ONLY:**
+read existing project/evidence records, preserve completed facts and unknown state, document the
+refusal/incomplete questions and create one local docs/policy checkpoint. No VM/SSH/API/browser/
+filesystem/security-boundary experiment or live preservation/cleanup check, no refused-action
+retry/reproduction/substitution/bypass, no child/alternate model, implementation or publication.
+Phase 10 remains RESEARCH-ONLY / INCOMPLETE / INTERRUPTED pending separate manager direction.
+The positive-testing authorization below is historical, not permission to resume during closure.
+
+Manager now authorizes parent-only positive/negative Files experiments on the designated disposable
+VM/account, with SSH enabled for fixture setup and ground-truth observation. Investigate roots,
+containment, traversal, symlinks, sensitive paths, listing/content, upload/conflict and delete/Trash/
+async recovery. Preserve unrelated apps, retained Phase 5 fixtures and configuration. Count intended
+Files mutations separately; unrelated mutations must remain zero. SSH is research only, never a
+product fallback. No runtime implementation, children, publication or phase progression. Preserve
+the authorized VM-policy edit; finish with one local research/policy checkpoint and manager report.
+Earlier zero-mutation closure and gaps below are historical, not restrictions on this new grant.
+
 Manager authorizes recovery and completion of the existing research only, never runtime tools or
 new Files prototypes. The timeout did not establish completion. Parent recovered all dirty docs,
 resolved the remaining upload assignment under explicit new read-only authorization, audited the

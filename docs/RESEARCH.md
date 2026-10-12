@@ -1,5 +1,98 @@
 # ZimaOS API Research
 
+## Phase 10 behavioral research interrupted — local records only (2026-10-12)
+
+Parent-only continuation started at `ced98c1460b1b55de884e8670c88dc43aa0aedca`, preserving the
+authorized AGENTS designated-VM policy. Manager then stopped all experiments following a provider
+safety refusal. This closure reads existing local records only: no new VM/API/SSH/browser experiment,
+live preservation check, destructive cleanup or runtime implementation. Research remains incomplete.
+
+### Provider boundary and execution evidence
+
+Existing provider request dump records **`invalid_request` / `cyber_policy`** on a model-inference
+POST. Its last inputs are successful local helper-file writes, not a dispatched upload or extraction
+request. The research in progress was controlled fixture preparation for containment/link and
+upload/task observations. The provider refusal occurred before the next tool/action dispatch;
+**no experimental result is recorded from the refused request**. Prepared archive/fixture helpers
+exist, but no generated archive, fixture-batch report or corresponding VM request journal exists.
+Do not confuse these prepared files with executed experiments. No refusal retry, rephrasing bypass,
+alternate access/model/provider, Daybreak or child was used. The refusal is an execution constraint,
+not evidence of endpoint safety, success or product unsuitability. Raw provider payload/headers must
+remain private and are not copied into tracked documentation.
+
+### Completed behavioral evidence before refusal — OBSERVED ON TEST VM
+
+ZimaOS v1.7.1/current first-party Files module is the existing source baseline. These observations
+apply to the designated test account/instance, not every user, mount, race or future version.
+
+| Operation / question                                                                 | Existing result                                                                         | Interpretation / limitation                                                                        |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Protected four-app inventory/config/container baseline                               | Matched the earlier checkpoint before experiments                                       | Config fingerprints require the same YAML Accept representation; no final live comparison exists   |
+| SSH using existing designated account                                                | Connected as non-root; storage root not writable through SSH                            | No elevation or alternate account; SSH permissions differ from observed API effects                |
+| `GET /v2/local_storage/storages`                                                     | HTTP200, top-level array; descriptor maps to an existing SSH-observed storage directory | Not an opaque root grant or exhaustive allowed-root inventory                                      |
+| `GET /v2_1/files/file` with physical storage path and `/DATA`, index0/size1/name/asc | HTTP200, identical response hashes; one entry each                                      | Alias consistency observed, not canonical authorization or reliable pagination proof               |
+| Same GET with display-only alias or `/etc`                                           | HTTP400, `files.error.security_policy_blocked`, detail `invalid path`                   | Two representative rejections; no traversal/encoding/link guarantee                                |
+| Same GET with `/DATA/AppData`                                                        | HTTP200, application-area metadata returned                                             | Do not assume sensitive AppData is excluded; no private contents downloaded                        |
+| `POST /v2_1/files/folder`, JSON `{path: <new full sacrificial target>}`              | HTTP200; SSH confirms created directory, mode0755 UID0/GID0                             | Actual creation verified, not overwrite/containment/atomicity or privilege equivalence             |
+| SSH fixture setup                                                                    | Dispatched, exit1; no successful seed/file/link verification                            | Partial filesystem effects UNKNOWN; this was a pre-refusal setup failure, not the provider refusal |
+
+Two previously uncaptured, source-discovered public UI chunks were read (not executed):
+`/modules/icewhale_files/assets/Files-DNe8A2gK.js` and `Trash-PnMOT0Ci.js`.
+They establish current client create-folder full `path`, rename query path/body `new_path`, array
+deletion/Trash/restore inputs and raw_path/collision UI intent. Current module explicitly binds
+TaskApi to `/v2_1/files`: POST `/task/copy`, `/task/cut`, `/task/decompress`, GET `/tasks`, DELETE
+`/tasks` and POST `/task/retry` are source-backed current operations, not merely backup-family
+leads. UI uses `{src,dst,user_select,retain_src_file}` and `{task_list}` as applicable. These were
+NOT live-called; acknowledgement/completion/cancellation/retry remain unproven. This binding does
+not retroactively validate every dashboard backup wrapper under the Files prefix. Current module
+search-status wrapper uses GET/PUT `/file/search`, distinct from older status-path wording; no new
+search endpoint was called or query contract accepted. Raw upload UI uses sanitized filename/size
+or chunk markers, not a universal percent-encoded filename rule. Its initialized uploadV2 target
+can also be retargeted to another discovered interface by the UI; no alternate interface was used.
+
+### Failures, remaining gaps and preservation
+
+First preflight stopped on a false config-hash mismatch: JSON Accept versus prior YAML Accept,
+with identical app/container identities. Corrected YAML reads matched prior fingerprints. Second
+preflight stopped on assumed storage data-envelope shape; the actual top-level array was inspected
+from the saved response, then SSH preflight reused it without repeating the API batch. Both failed
+passes and their traffic remain preserved. SSH fixture setup subsequently failed; no privilege
+escalation was attempted. Prepared later fixture/upload/decompression helpers were not executed.
+
+Observed API-created research directory was left in place, not destructively cleaned up.
+Its last recorded existence is before refusal. Any partial SSH setup effect and current residual
+state are **UNKNOWN** without further observation; no new check is permitted in this local-only
+closure. Four protected apps/retained fixture configuration/container baseline matched before
+experiments; post-experiment preservation and final unrelated configuration comparison are
+**UNKNOWN**, not asserted from absence of an intended unrelated write. SSH config hashes exist
+only for the initial observation. No actual secret content was read for path-denial testing.
+
+Remaining: traversal/normalization, symlink/hardlink escape/races, broader mounts/root authority,
+bounded content/download/range/empty/missing/mismatch/pagination, upload landing/duplicate/overwrite,
+delete/Trash/restore/collision/cleanup and async completion/retry. Their behavioral evidence was
+not obtained; prior client-route evidence remains valid. Root authority/containment/link safety
+remain UNPROVEN; sensitive separation is PARTIAL with an observed AppData access concern; read
+boundary is PARTIAL; upload/overwrite/delete/Trash/async remain source-only PARTIAL or UNPROVEN.
+No secure public Files contract or new read/write feasibility acceptance is made. Refusal itself
+does not determine feasibility. Both read and write containment conclusions remain blocked by gaps.
+
+Continuation recorded **26 GETs, three auth POSTs, one authorized Files API mutation**, two SSH
+observations and one failed SSH fixture-setup attempt. Cumulative Phase 10: **123 GETs, eight auth
+POSTs, one authorized Files API mutation, zero unrelated API mutations**. The SSH attempt is
+separate from API traffic; possible partial fixture effects are not falsely counted as zero.
+One refused provider inference is not a VM request. No live request was made during interruption
+closure. Private evidence: active-profile `evidence/phase10/behavior-*-report-private.json`, SSH
+observations/protected baselines/source captures and `interruption-existing-records.json`.
+
+### Local disposition and future handoff
+
+Phase 10 is **RESEARCH-ONLY / INCOMPLETE / INTERRUPTED** pending manager direction. Preserve the
+existing directory and all artifacts; no automatic resume or reproduction of the refused action.
+The shortest handoff is these saved records and the unresolved root/link containment question,
+not another source-discovery restart or a filter workaround. Final live preservation/cleanup
+would require separate permitted work. No further SSH use is authorized by this closure; access
+may be disabled for this paused task. Runtime Files implementation/new permissions zero; tools21.
+
 ## Phase 10 parent-only research recovery and checkpoint closure (2026-10-12)
 
 Recovered branch `feat/files-read-local`, starting commit
