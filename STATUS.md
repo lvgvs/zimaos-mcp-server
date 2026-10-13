@@ -8,19 +8,35 @@ authorized parent-only protected delivery and the v0.4.1 patch release. Feature
 `5030e939a34102468cfcbbf951c7e7258a4f115d`; its tree equals the checked accepted candidate.
 All required exact-head CI checks passed; no review threads were unresolved.
 
-- Preparation branch: `release/v0.4.1`; package/lockfile select 0.4.1, public tools remain 21.
+- **PUBLISHED / COMPLETE.** Release preparation [PR #42](https://github.com/lvgvs/zimaos-mcp-server/pull/42)
+  was Squash merged at `aa4dd80ee45919442c02a3a2321dee285c5b0788`, the immutable release source.
+  Annotated tag object: `81df6d5bf156f9d5864540749bbc57df54319442`. Package/lockfile version 0.4.1;
+  public tools remain 21. Current reconciliation branch: `docs/v0.4.1-publication`; Git owns its
+  containing commit and final canonical-main identity, not this immutable release-source SHA.
 - No new tool, permission, request path or write capability; no future-phase work. Resource,
   version/origin/launch/recovery leads remain deferred. All five mutation flags stay default-off.
-- Accepted feature gates: 890 mocked tests/53 files, full static/build/audit/privacy/Compose/docs
-  gates; accepted final compiled UAT is `06-parent-final-uat.mjs`. Version-specific release gates
-  and exact registry-image UAT are required on the selected release source, not inferred from that
-  earlier artifact. Preserve four-app configuration/container projections and separate mock-only
-  multi-service/failure evidence from ordinary live read results.
-- Established promotion moves stable/latest on tag push, so exact trusted-main digest UAT must
-  succeed before annotated tagging. Preserve v0.4.0 tag/Release/assets/digest immutably.
-- Publication identity and final source/digest/UAT/asset/checkpoint results are authoritative in
-  Git, GitHub Release/GHCR records and the final handoff/private receipt, not this preparation record.
-  Selected release metadata is not a claim that publication has already occurred.
+- Exact release gates passed: 890 mocked tests/53 files, formatting/lint/production-test strict
+  types/build/Docker/Compose/docs/privacy/Gitleaks and full/production audits (zero vulnerabilities).
+  Required exact-head PR/main CI and CodeQL passed; zero unresolved review threads.
+- Anonymous pull and exact-digest non-root local container UAT against the designated VM passed:
+  four existing apps, independent same-response naming/main-role/health projections, modern/legacy
+  MCP, version 0.4.1, 21 tools, authentication and malformed/default-off denials. All five flags
+  explicitly false; successful pass 37 GETs/two auth POSTs, zero non-auth mutations. Protected
+  Compose/configuration/container projections matched before/after and the accepted baseline.
+  Temporary container/relay/env removed. Multi-service/failure cases remain mock-proven; no fresh
+  VM UI import or dangerous failure induction is newly claimed. Initial baseline-only harness
+  stopped on undefined-versus-omitted JSON fields: 18 GETs/one auth POST, zero mutations; corrected
+  serialization comparison retains real configuration-change detection, with failure evidence saved.
+- Release image `sha256:5bea2600d97622beccd2181e3cace139e5bf4d1f6b25a921a2358355314654d7` was
+  tested before tagging, then promoted without rebuilding; anonymous v0.4.1/stable/latest match.
+  Source/revision labels, subject-bound SLSA v1 and SPDX SBOM verified. Promotion run 38449133578 passed.
+- GitHub Release ID 412002152; Compose asset `zimaos-mcp-server-v0.4.1-compose.yaml`, ID 637942102,
+  SHA-256 `4a9d0b87f86ff17394dd1ae68b8b1d098b6af2b62594ff640c3cf1aea0110b4d`. Published body
+  matches committed notes and anonymous asset bytes match locally validated digest-pinned YAML.
+  Credential placeholders and all default-off flags retained. v0.4.0 tag/Release/assets/digest
+  unchanged. This docs-only reconciliation does not change any release identity or stable alias.
+- No blocker, manual cleanup or new architecture decision. Next action: manager review; STOP,
+  with no OAuth/other phase authorization. Final remote/main/branch-cleanup state is in the handoff.
 - Phase 5 ON HOLD; Phase 9 COMPLETE/research-only; Phase 10 research complete/implementation deferred.
   No children or delegated review; no new roadmap work after release without manager authorization.
 

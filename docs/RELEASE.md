@@ -24,6 +24,31 @@ Public v0.3.0 notes are in [release notes](RELEASE-NOTES-v0.3.0.md); retain the
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
 corresponding explicit maintainer approval.
 
+## Completed v0.4.1 publication checkpoint (2026-10-13)
+
+- Release preparation [PR #42](https://github.com/lvgvs/zimaos-mcp-server/pull/42) was Squash merged
+  at `aa4dd80ee45919442c02a3a2321dee285c5b0788`, the immutable release source and tag target.
+  Annotated tag object: `81df6d5bf156f9d5864540749bbc57df54319442`.
+- [GitHub Release v0.4.1](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.4.1),
+  ID `412002152`, is published, non-draft and non-prerelease. Its body matches committed notes.
+- Anonymous-pull/UAT-passed artifact:
+  `ghcr.io/lvgvs/zimaos-mcp-server@sha256:5bea2600d97622beccd2181e3cace139e5bf4d1f6b25a921a2358355314654d7`.
+  v0.4.1/stable/latest matched it after promotion; the trusted-main artifact was copied without
+  rebuilding. Source/revision labels, subject-bound SLSA v1 provenance and SPDX SBOM verified.
+- Asset `zimaos-mcp-server-v0.4.1-compose.yaml`, ID `637942102`, SHA-256
+  `4a9d0b87f86ff17394dd1ae68b8b1d098b6af2b62594ff640c3cf1aea0110b4d`.
+  Anonymous downloaded bytes match the generated digest-pinned YAML; Compose validates and
+  credential placeholders/all five default-off permissions remain intact.
+- 890 mocked tests in 53 files; full static/build/Docker/Compose/audit/privacy/documentation gates,
+  exact-head PR/main CI/CodeQL and publication/promotion passed. Exact-artifact non-root local
+  runtime UAT against the disposable ZimaOS test system passed: four existing apps, independent
+  naming/main-role/health projections, authentication, modern/legacy MCP, version 0.4.1/21 tools,
+  malformed-input/default-off denials, 37 GETs/two auth POSTs and zero non-auth mutations.
+  Protected configuration/container projections unchanged; temporary test instance removed.
+  Multi-service/failure cases remain mock-proven; no fresh-user VM UI import is newly claimed.
+- v0.4.0 tag, Release, assets and digest remained unchanged. Later docs-only main/edge publication
+  is development-only, not this tested release artifact, and does not advance stable/latest.
+
 ## Historical completed v0.4.0 publication checkpoint (2026-10-11)
 
 - Parent-only release preparation [PR #35](https://github.com/lvgvs/zimaos-mcp-server/pull/35)
