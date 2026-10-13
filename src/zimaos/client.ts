@@ -1149,6 +1149,18 @@ export class ZimaOsClient {
     return body;
   }
 
+  /** Check newly surfaced installed-app metadata without returning credentials or doing I/O. */
+  isAppMetadataSafe(text: string): boolean {
+    const decoded = text.replace(/(?:%[0-9a-f]{2})+/gi, (encoded) =>
+      Buffer.from(encoded.replaceAll("%", ""), "hex").toString("utf8"),
+    );
+    return ![text, decoded].some(
+      (candidate) =>
+        (this.password.length > 0 && candidate.includes(this.password)) ||
+        (this.accessToken !== null && candidate.includes(this.accessToken)),
+    );
+  }
+
   /** Guard already-normalized public metadata without returning credentials or doing I/O. */
   assertStoreDiscoverySafe(item: StoreDiscoveryItem): void {
     for (const value of Object.values(item)) {

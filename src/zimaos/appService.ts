@@ -6,7 +6,7 @@
  * never leak past this layer (AGENTS.md).
  */
 
-import { AppError, isRecord } from "../errors.js";
+import { AppError, isRecord, type ErrorCode } from "../errors.js";
 import { resolveStoreCompose } from "./storeResolver.js";
 import { assertStoreSelection, type StoreSelection } from "./storeCatalog.js";
 import { getAppStoreDetails, searchAppStore } from "./storeDiscoveryService.js";
@@ -264,7 +264,7 @@ export class AppService {
   /** List all installed compose applications (normalized summaries). */
   async listApps(): Promise<AppInfo[]> {
     const data = await this.client.listComposeApps();
-    return normalizeAppList(data);
+    return normalizeAppList(data, (value) => this.client.isAppMetadataSafe(value));
   }
 
   /** Uninstall an explicit installed id with one DELETE and a bounded read-only observation. */
@@ -334,12 +334,22 @@ export class AppService {
     app: string;
     probe: HealthProbeResult;
     containers: ContainerInfo[];
+    containersReadStatus: "succeeded" | "failed";
+    containersReadErrorCode?: ErrorCode;
   }> {
-    const [probe, containers] = await Promise.all([
+    const [probe, containerRead] = await Promise.all([
       this.client.probeComposeAppHealth(id),
-      this.listContainers(id).catch(() => [] as ContainerInfo[]),
+      this.listContainers(id).then(
+        (containers) => ({ containers, containersReadStatus: "succeeded" as const }),
+        (error: unknown) => ({
+          containers: [] as ContainerInfo[],
+          containersReadStatus: "failed" as const,
+          containersReadErrorCode:
+            error instanceof AppError ? error.code : ("INTERNAL" as const),
+        }),
+      ),
     ]);
-    return { app: id, probe, containers };
+    return { app: id, probe, ...containerRead };
   }
 
   /**
@@ -598,7 +608,7 @@ export class AppService {
         "Installed identities could not be verified safely.",
       );
     }
-    return normalizeAppList(data);
+    return normalizeAppList(data, (value) => this.client.isAppMetadataSafe(value));
   }
 
   private async assertNativeAssociationAvailable(

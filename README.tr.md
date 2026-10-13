@@ -24,11 +24,16 @@ dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 Sürüm, aşağıdaki 21 aracın tamamını; korumalı cihaz yeniden başlatmayı, sistem kaynakları ve
 işletim sistemi güncelleme okumalarını ve `/health` içinde kanonik çalışma zamanı sürümünü içerir.
 
+**Geliştirme kaynak kodu:** aşağıda açıklanan uygulama okuma iyileştirmeleri yayımlanan
+v0.4.0 sürümünün parçası değildir.
+
 ## Yetenekler
 
 - **Kurulu uygulamaları inceleme:** Compose uygulamalarını listeleme; normalize edilmiş
   uygulama ayrıntılarını, container/service bilgilerini, mevcut sağlık bilgilerini ve
   sınırlandırılmış son uygulama loglarını okuma.
+  Geliştirme kaynak kodu ayrıca yerelleştirilmiş adları çözümler, bildirilen ana service ilişkilerini
+  sunar ve başarısız container okumalarını başarılı boş sonuçlardan ayırır.
 - **App Store'dan keşif ve kurulum:** güvenilir kayıtlı kataloglarda arama, tam depo/uygulama
   girdilerini inceleme ve desteklenen kayıtlı girdilerden doğrudan uygulama kurma.
 - **Compose ile çalışma:** çağıranın sağladığı Compose ile uygulama kurma, mevcut uygulama
@@ -123,27 +128,27 @@ Authorization: Bearer <MCP_AUTH_TOKEN>
 
 ## Araç referansı
 
-| Araç                                     | Değişiklik yapar mı? | Not                                                                                          |
-| ---------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------- |
-| `list_apps`                              | hayır                | Kurulu Compose uygulamalarını listeler.                                                      |
-| `get_app`                                | hayır                | Tek uygulama için normalize edilmiş ayrıntılar.                                              |
-| `search_app_store`                       | hayır                | Etkin kayıtlı v2 HTTP Compose kataloglarında sınırlı arama.                                  |
-| `get_app_store_details`                  | hayır                | Güvenilir tam depo/uygulama çifti için herkese açık metadata.                                |
-| `get_app_health`                         | hayır                | ZimaOS'un sunduğu ölçüde uygulama/container sağlık bilgisi.                                  |
-| `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.                             |
-| `list_app_containers`                    | hayır                | Bir uygulamaya ait container/service bilgisi.                                                |
-| `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                                 |
-| `get_system_resources`                   | hayır                | Mevcut örneklenmiş CPU/bellek/sistem dosya sistemi ölçümleri; ağ veya sağlık kararı yoktur.  |
-| `get_os_update_status`                   | hayır                | İşletim sistemi sürümleri, bildirim sınıfı, kurucu durumu ve beta aboneliği.                 |
-| `restart_device`                         | evet                 | `ALLOW_SYSTEM_CONTROL=true` gerekir; tek yeniden başlatma isteği, kabul tamamlanma değildir. |
-| `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                                   |
-| `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin.                |
-| `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.                       |
-| `start_app` / `stop_app` / `restart_app` | evet                 | `ALLOW_APP_CONTROL=true` gerekir.                                                            |
-| `install_app_from_compose`               | evet                 | `ALLOW_APP_INSTALL=true` gerekir; riskli değişiklikler onay ister.                           |
-| `install_app_from_store`                 | evet                 | Aynı kurulum izni; yalnızca kayıtlı katalog kimlikleriyle kontrollü, tek denemelik kurulum.  |
-| `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                   |
-| `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.                |
+| Araç                                     | Değişiklik yapar mı? | Not                                                                                                                        |
+| ---------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `list_apps`                              | hayır                | Kurulu Compose uygulamaları; geliştirme kaynak kodunda yerelleştirilmiş adlar ve isteğe bağlı bildirilen ana service.      |
+| `get_app`                                | hayır                | Tek uygulamanın normalize edilmiş ayrıntıları; listedekiyle aynı geliştirme metadata'sı.                                   |
+| `search_app_store`                       | hayır                | Etkin kayıtlı v2 HTTP Compose kataloglarında sınırlı arama.                                                                |
+| `get_app_store_details`                  | hayır                | Güvenilir tam depo/uygulama çifti için herkese açık metadata.                                                              |
+| `get_app_health`                         | hayır                | Mevcut uygulama/container sağlık bilgisi; geliştirme kaynak kodunda açık container okuma durumu.                           |
+| `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.                                                           |
+| `list_app_containers`                    | hayır                | Uygulamanın container/service ve port bilgileri; geliştirme kaynak kodunda isteğe bağlı bildirilen ana service işaretleri. |
+| `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                                                               |
+| `get_system_resources`                   | hayır                | Mevcut örneklenmiş CPU/bellek/sistem dosya sistemi ölçümleri; ağ veya sağlık kararı yoktur.                                |
+| `get_os_update_status`                   | hayır                | İşletim sistemi sürümleri, bildirim sınıfı, kurucu durumu ve beta aboneliği.                                               |
+| `restart_device`                         | evet                 | `ALLOW_SYSTEM_CONTROL=true` gerekir; tek yeniden başlatma isteği, kabul tamamlanma değildir.                               |
+| `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                                                                 |
+| `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin.                                              |
+| `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.                                                     |
+| `start_app` / `stop_app` / `restart_app` | evet                 | `ALLOW_APP_CONTROL=true` gerekir.                                                                                          |
+| `install_app_from_compose`               | evet                 | `ALLOW_APP_INSTALL=true` gerekir; riskli değişiklikler onay ister.                                                         |
+| `install_app_from_store`                 | evet                 | Aynı kurulum izni; yalnızca kayıtlı katalog kimlikleriyle kontrollü, tek denemelik kurulum.                                |
+| `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                                                 |
+| `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.                                              |
 
 ## İzinler ve güvenlik
 
@@ -175,6 +180,25 @@ kanıtlayamaz; onay arayüzünü doğru şekilde göstermek MCP istemcisinin sor
 Bekleyen onay durumu process-local'dır ve sunucu yeniden başlatıldığında kaybolur.
 
 ## Önemli kullanım bilgileri
+
+### Uygulama bilgileri (geliştirme kaynak kodu)
+
+`list_apps` ve `get_app`, sabit kimlikleri ve mevcut durum/güncelleme/uncontrolled alanlarını korur.
+Yerelleştirilmiş adlar geçerli `en_us`, ardından `en`, ardından leksikografik locale sırasıyla seçilir;
+yeni yerelleştirilmiş adlar 256 UTF-8 bayt, map'ler 32 kendi girdisiyle sınırlıdır. Geçersiz veya
+mevcut olmayan adlarda kesme yapılmadan id kullanılır; mevcut düz metin adların davranışı korunur.
+Yapılandırılmış ZimaOS kimlik bilgilerini içeren yeni adlar ve ana service adları dışarıda bırakılır.
+
+İsteğe bağlı `mainService`, yapılandırılmış metadata'yı bildirir. İsteğe bağlı container
+`isMainService` işaretleri, dönen service map'iyle eşleşen açık bir bildirim gerektirir; eksik,
+geçersiz veya çelişkili kanıt atlanır, ilk/tek service tahminiyle doldurulmaz. Bu alanlar kurulum
+kökenini, gerçek çalışma zamanı önceliğini, erişilebilirliği veya sağlığı kanıtlamaz.
+
+`get_app_health`, `app`, `probe` ve `containers` alanlarını korur. `containersReadStatus`,
+`succeeded` ile `failed` durumlarını ayırır; hata durumunda eski boş dizi korunur ve yalnızca
+normalize edilmiş `containersReadErrorCode` eklenir, exception metni verilmez. Başarı, okuma/normalizasyonun
+tamamlanmasıdır; envanterin eksiksizliği veya uygulamanın sağlıklı olduğu kararı değildir.
+Yeni istek, girdi veya izin eklenmez.
 
 ### App Store keşfi ve kurulumu
 

@@ -1,5 +1,95 @@
 # ZimaOS API Research
 
+## Application-management continuation — source checkpoint (2026-10-13)
+
+**RESEARCH COMPLETE / SELECTED LOCAL IMPLEMENTATION VERIFIED.** Continue the existing application surface locally
+from `15384a1e2bc2a0b86eb49730951a82188cfa1ef7`; version 0.4.0 and 21 tools are unchanged.
+This investigation does not reopen update_app, network, Files or another roadmap phase.
+
+### Saved-source provenance and limits
+
+- Existing supported application list/container/health/Compose/control/install/catalog operations
+  remain covered by the product. `get_app` currently selects a normalized list entry, not a separate
+  detailed configuration projection. Containers already expose image/state/health/published ports.
+- The saved `appmgmt-v2.yaml` is from
+  <https://github.com/DeniskaAbr/IceWhale-OpenAPI>, a community fork of
+  `SociOS-Linux/IceWhale-OpenAPI`, not a verified official mirror or current backend contract.
+  Its metadata lacks a pinned revision/license for that copy. Treat its localized `title`, `main`
+  service and launch-metadata definitions as structural leads only; do not incorporate its code.
+- Initial analysis used the first-party asset `/assets/vendor-api-apps-D8CV56Gp.js` from the saved
+  2026-10-12 capture; fresh byte equality is verified below. Its SHA-256 is
+  `c82a4275213b5bfb577c7e0e50b531da9da898c7b8eeb6ab3cff4fd07e4362e7`, independently checked
+  against the saved bytes. Multiple generated client families coexist; operation inventories
+  corroborate route leads, not response DTOs or a blanket base assignment.
+- Bounded client analysis identifies `ContainerMethodsApi.getAppUsageList`, GET `/usage`, with
+  the client default-path lead `/v2/app_management/usage`. This remains **INFERRED / UNPROVEN**:
+  no concrete UI caller, effective caller override, current backend contract, passivity, sampling
+  units, container-to-app mapping or response bounds are established. No usage endpoint was called.
+  The older `/installed/container/usage` client is a separate lead, not a substitute contract.
+
+### Initial provisional capability assessment (before fresh observation)
+
+| Lead                                                                     | Existing coverage / possible fit                                              | Current disposition                                                                                    |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Installed display metadata and configured catalog association            | Natural existing-app projection; association is not installation-origin proof | Candidate only; current fields and meaning need corroboration                                          |
+| Main-service relationships                                               | Possible existing app/container output extension                              | Candidate only; reported metadata must not become invented runtime authority                           |
+| Runtime image/state/health/ports; logs/Compose/lifecycle/install/catalog | Already covered                                                               | Reject duplicate wrappers/views                                                                        |
+| Per-app/container resource readings                                      | Potentially distinct useful concept                                           | Defer selection; current contract, identity mapping, units and bounds unproven                         |
+| Container-read availability in app health                                | Existing health output currently catches container failures as an empty array | Evaluate an honest backward-compatible availability indication                                         |
+| Launch metadata                                                          | Possible app-information extension, partly overlaps published ports           | Candidate only; no automatic URL fetch or reachability claim                                           |
+| Auto-start, install recovery and container recreation                    | Client mutation leads                                                         | Defer selection pending supported target/effect/lifecycle/ambiguity evidence and permission assessment |
+| update_app                                                               | Phase 5 remains ON HOLD                                                       | Excluded from this investigation                                                                       |
+
+### Fresh current-app observation and parent selection
+
+A single guarded pass used **20 app/device API GETs, three public-source GETs and one auth POST**,
+with no non-auth write method. Current device data reports v1.7.1. Four sampled app configuration
+hashes and container identity/state/publisher projections were exactly equal before/after;
+the parent independently checked saved equality and journal counters. No sacrificial state or
+cleanup was necessary. This is a sampled preservation result, not exhaustive host-wide proof.
+
+**OBSERVED ON TEST VM:** all four app-list projections carried localized `store_info.title` maps
+and string `store_info.main`; container responses supplied string `main` plus a service-keyed map.
+All sampled apps were single-service, with declared main matching that key; multi-service live
+behavior remains unproven. Only one sampled container supplied nonempty health. Launch metadata
+was not universal. Store association/configured main do not prove installation origin or actual
+runtime primacy/health. Raw Compose/environment values were hashed for protection, never returned.
+
+Fresh served root `/assets/index-DPb_m2mj.js` has SHA-256
+`f37aef2beebb77c4f79876e29cb0c2d0b67c571818c2544ff89f4b41f0f64f83` and references the app SDK,
+whose fresh bytes match the saved hash above. The root constructs a `ContainerMethodsApi` facade
+with `/v1/container`, but multiple exported namespaces/facades coexist: this does not authorize
+assigning one constructor to every same-named client operation. Effective usage caller, DTO,
+units/mapping/passivity/backend authority remain insufficient; no usage route was probed.
+
+**Parent selection:** repair localized display names and add reported bounded `mainService` on
+existing app summaries; add declared `isMainService` relationships to existing container outputs;
+add explicit `containersReadStatus`/sanitized failure code to existing health output. Preserve old
+fields/wrappers, plain-string titles and request paths. No new tool, input, permission or mutation.
+New localized labels are bounded to 256 UTF-8 bytes with bounded deterministic locale selection;
+main names use the existing bounded identifier style. Missing/invalid main declarations omit role
+flags rather than invent a first/sole primary. Read-status success is not health or complete inventory.
+These selections use already-supported reads plus honest normalization of optional reported data,
+not the community fork as new backend authority. The local implementation preserves input schemas,
+permissions, existing probe semantics and supported request paths. Own-property/non-array guards
+were proven with isolated negative fixtures; new localized values are length-checked before encoding.
+New labels and main-service strings exclude configured password/access-token matches, including
+percent-escaped UTF-8 representations; legacy plain-string name behavior is unchanged.
+
+**OBSERVED ON TEST VM, parent-only compiled UAT:** both modern authenticated MCP and legacy
+stateless reads passed for four pre-existing apps. Independently projected labels, app fields and
+declared container relationships matched supported API evidence. Read status was `succeeded`;
+failed/empty/exception cases are mock-proven, not live-induced. All five mutation flags were off;
+unauthenticated and malformed-input/default-off control negatives generated no upstream traffic.
+Each parent UAT pass used 42 GETs and two auth POSTs, with zero non-auth mutations. The second
+pass verified the final credential-screened implementation. Both before/after projected protection
+checks matched the earlier four-app baseline: configuration hashes, container identity/state and
+publishers. No fixture, SSH, disruption or cleanup was needed; no exhaustive host-integrity claim.
+Multi-service relationships remain synthetic-test-proven only; metadata is not runtime authority.
+
+Private source/matrix, binding and observed evidence remain under active-profile
+`evidence/app-management-continuation/`. Runtime changes exist locally only; no publication occurred.
+
 ## Phase 10 Files — consolidated research outcome (2026-10-13)
 
 **RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** No defensible
