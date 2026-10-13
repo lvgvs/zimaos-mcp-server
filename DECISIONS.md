@@ -4,6 +4,32 @@ Architectural decisions made during implementation and approved-scope research. 
 engineering choices are not recorded here; see `STATUS.md` for state and
 `docs/RESEARCH.md` for API findings.
 
+## 2026-10-13 — Continue existing app reads with reported metadata and explicit read degradation
+
+**Decision:** Locally extend the existing application surface, not a separate details/status
+family. Repair localized display-name selection in `list_apps`/`get_app`; expose optional bounded
+reported `mainService`; add optional `isMainService` to container projections only when an explicit
+main declaration matches the returned service map. Extend `get_app_health` with
+`containersReadStatus` (`succeeded`/`failed`) and a sanitized `containersReadErrorCode` on failure,
+preserving its existing app/probe/containers structure and legacy empty-on-failure array.
+
+**Reason:** Current v1.7.1 supported app reads supplied localized title maps and configured main
+metadata for all sampled apps. The existing normalizer loses those labels/relationships, while
+health's swallowed container error hides useful read-failure information. These are natural
+backward-compatible corrections/extensions using existing requests, not distinct tool concepts.
+Read status describes request/normalization completion, not inventory completeness or health.
+Main declarations are metadata, not proof of actual runtime primacy, health or install origin.
+Unknown/malformed metadata is omitted; no inferred first/sole main service or healthy defaults.
+
+**Security / alternatives:** No new endpoint, read permission or mutation; retain 21 tools/version
+0.4.0 and existing permission/approval families. Apply explicit read-only/non-destructive hints to
+the four affected reads. Reject duplicate details/log/Compose/runtime views. Defer resource reads
+despite their distinct potential value: client binding/caller, DTO/units, identity mapping and
+supported backend semantics remain insufficient. Defer auto-start/install-recovery/recreation
+mutations rather than invent permissions, eligibility, completion or safe retry. Do not expose raw
+Compose, environment, tips, credential-bearing URLs or speculative version/origin claims.
+Delivery remains local-only, subject to tests, review and UAT; this decision is not acceptance.
+
 ## 2026-09-26 — MCP transport: Streamable HTTP over a single authenticated endpoint
 
 **Decision:** Expose the server as an authenticated Streamable HTTP MCP endpoint at

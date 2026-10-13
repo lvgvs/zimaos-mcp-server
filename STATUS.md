@@ -3,9 +3,9 @@
 ## Current state — application-management continuation, local only
 
 Research and deepen the existing Phase 1 application surface; no artificial product family or
-later numbered phase. Current milestone: provisional saved-source matrix checkpointed, current
-app-metadata/public-source verification dispatched. Implementation has not started and no
-capability is preselected. Resource/client mutation leads remain unproven, not product contracts.
+later numbered phase. Current milestone: parent selected localized display names, reported main
+service/roles and explicit health container-read status on existing tools. Implementation is next;
+no runtime changes or final acceptance yet. Resource/client mutation leads remain deferred.
 
 - Repository: https://github.com/lvgvs/zimaos-mcp-server.
 - Branch: `feat/app-management-local`; canonical/start baseline:
@@ -17,9 +17,16 @@ capability is preselected. Resource/client mutation leads remain unproven, not p
 - Normal Qwen/local bounded delegation and correction loops apply. An initial capped source task
   and outline-only correction were rejected; provisional evidence and remaining corrections are
   preserved privately. README authorship, decisions, secrets, Git and acceptance remain parent-owned.
-- A parent-reviewed, syntax-checked opaque helper gates the newly dispatched read-only VM pass to
-  existing supported app reads and public assets, with bounds/no redirects/no retries, protected
-  before/after comparison and no mutation endpoints. Its outcome is pending; no UAT is claimed.
+- The guarded fresh research pass completed: 20 API GETs, three public GETs, one auth POST, zero
+  non-auth write methods. Four-app configuration hashes/container identity/state/publisher
+  before/after equality and journal counts were independently checked. Localized title maps and
+  configured main metadata were observed; only one sampled container exposed nonempty health.
+  No sacrificial fixtures or cleanup; this is research, not implementation UAT.
+- Served v1.7.1 index/root/app SDK hashes are preserved. Same-name client facades/base overrides
+  still require namespace-specific interpretation; no resource endpoint was called or accepted.
+- Selected contract is in DECISIONS and private approved-contract evidence: no new inputs,
+  permissions, endpoints or tools; preserve existing payloads/semantics with bounded optional
+  metadata and explicit container-read failure. Do not invent runtime-primary/origin/version claims.
 - No push/PR/merge/GHCR/edge/stable/latest/version/tag/Release action. Phase 5 ON HOLD; Phase 9
   COMPLETE / research-only; Phase 10 research complete to current evidence boundary / implementation
   deferred. Their reopening and all separate future roadmap work remain out of scope.

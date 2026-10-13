@@ -2,7 +2,7 @@
 
 ## Application-management continuation — source checkpoint (2026-10-13)
 
-**IN PROGRESS / NO IMPLEMENTATION SELECTED.** Continue the existing application surface locally
+**RESEARCH CHECKPOINT / NARROW LOCAL SCOPE SELECTED, IMPLEMENTATION PENDING.** Continue the existing application surface locally
 from `15384a1e2bc2a0b86eb49730951a82188cfa1ef7`; version 0.4.0 and 21 tools are unchanged.
 This investigation does not reopen update_app, network, Files or another roadmap phase.
 
@@ -40,10 +40,40 @@ This investigation does not reopen update_app, network, Files or another roadmap
 | Auto-start, install recovery and container recreation                    | Client mutation leads                                                         | Defer selection pending supported target/effect/lifecycle/ambiguity evidence and permission assessment |
 | update_app                                                               | Phase 5 remains ON HOLD                                                       | Excluded from this investigation                                                                       |
 
-No permission or tool design is decided from these leads. Private source/matrix and bounded-binding
-notes are preserved under active-profile `evidence/app-management-continuation/`. A guarded fresh
-app-metadata/public-source pass is dispatched with protected before/after comparison; its outcome
-is pending, not live evidence claimed here. No runtime implementation or publication has occurred.
+### Fresh current-app observation and parent selection
+
+A single guarded pass used **20 app/device API GETs, three public-source GETs and one auth POST**,
+with no non-auth write method. Current device data reports v1.7.1. Four sampled app configuration
+hashes and container identity/state/publisher projections were exactly equal before/after;
+the parent independently checked saved equality and journal counters. No sacrificial state or
+cleanup was necessary. This is a sampled preservation result, not exhaustive host-wide proof.
+
+**OBSERVED ON TEST VM:** all four app-list projections carried localized `store_info.title` maps
+and string `store_info.main`; container responses supplied string `main` plus a service-keyed map.
+All sampled apps were single-service, with declared main matching that key; multi-service live
+behavior remains unproven. Only one sampled container supplied nonempty health. Launch metadata
+was not universal. Store association/configured main do not prove installation origin or actual
+runtime primacy/health. Raw Compose/environment values were hashed for protection, never returned.
+
+Fresh served root `/assets/index-DPb_m2mj.js` has SHA-256
+`f37aef2beebb77c4f79876e29cb0c2d0b67c571818c2544ff89f4b41f0f64f83` and references the app SDK,
+whose fresh bytes match the saved hash above. The root constructs a `ContainerMethodsApi` facade
+with `/v1/container`, but multiple exported namespaces/facades coexist: this does not authorize
+assigning one constructor to every same-named client operation. Effective usage caller, DTO,
+units/mapping/passivity/backend authority remain insufficient; no usage route was probed.
+
+**Parent selection:** repair localized display names and add reported bounded `mainService` on
+existing app summaries; add declared `isMainService` relationships to existing container outputs;
+add explicit `containersReadStatus`/sanitized failure code to existing health output. Preserve old
+fields/wrappers, plain-string titles and request paths. No new tool, input, permission or mutation.
+New localized labels are bounded to 256 UTF-8 bytes with bounded deterministic locale selection;
+main names use the existing bounded identifier style. Missing/invalid main declarations omit role
+flags rather than invent a first/sole primary. Read-status success is not health or complete inventory.
+These selections use already-supported reads plus honest normalization of optional reported data,
+not the community fork as new backend authority. Full contract/review/gates/UAT remain pending.
+
+Private source/matrix, binding and observed evidence remain under active-profile
+`evidence/app-management-continuation/`. Runtime implementation and publication have not occurred.
 
 ## Phase 10 Files — consolidated research outcome (2026-10-13)
 
