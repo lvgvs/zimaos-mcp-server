@@ -1569,9 +1569,11 @@ to implement it during the current phase. Historical phases keep their original 
   no public network runtime tools delivered. Useful API observations, limitations and future
   control/diagnostic leads are preserved in `docs/RESEARCH.md`. Public inventory remains 21 tools.
   Deferred capabilities do not automatically reopen the phase.
-- **Phase 10 — Files: RESEARCH / LOCAL CHECKPOINT ONLY.** Parent-only continuation below
-  completes research and checkpointing, not runtime implementation. Writes remain research-only;
-  no publication, file-read permission or assumed write-permission model.
+- **Phase 10 — Files: RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.**
+  Controlled links crossed the intended subroot; supported atomic root-bound/no-follow or equivalent
+  containment authority was not established. No Files tools or permissions are implemented;
+  inventory remains 21. Research and cleanup are checkpointed locally for manager discussion;
+  write capability and GitHub delivery require separate authorization.
 
 Later candidates, without implementation authorization or additional numbered phases: richer
 installed-app status/details; low-priority, uncommitted semantic app-settings helpers; later
@@ -1694,8 +1696,28 @@ Phases 6/7/8/9 COMPLETE, Phase 10 NOT STARTED. Stop after the final verification
 
 # Phase 10 — Files research and conditional local reads (2026-10-12)
 
-Historical initial authorization; the parent-only research continuation below supersedes its
-conditional implementation grant for the current task.
+## Current disposition and closure boundary
+
+**RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** The research
+established useful current route and behavioral evidence, but no defensible per-path Files MCP
+surface. Representative traversal rejection does not prove containment: controlled links were
+observed crossing the intended subroot into harmless sacrificial AppData. Lexical-prefix checks
+and sequential preflights cannot repair that observed boundary. No supported version-applicable
+authoritative rooted/no-follow or equivalent containment contract was established.
+
+No Files runtime tool, placeholder or permission is implemented; reads and writes remain deferred,
+with 21 existing tools. Reopening requires new supported root/sensitive-path/atomic containment
+authority and the relevant bounded behavior, not repetition of settled experiments or a shell
+fallback. Remaining hardlink/race/mount/offline/large-directory and write-lifecycle questions are
+explicit unknowns in RESEARCH, not universal negative claims about ZimaOS.
+
+The current assignment is parent-only closure: preserve research, reconcile documentation, remove
+only confirmed Phase 10 sacrificial state, verify protected state and create one local docs-only
+checkpoint. No further research, implementation, delegation, push/PR/merge/publication, release/tag/
+alias change or next phase. Manager discussion precedes any docs-only GitHub delivery. Local
+closure does not mean Files implementation is complete. Phase 5 stays ON HOLD; Phase 9 COMPLETE.
+
+## Historical initial authorization
 
 Manager starts Phase 10 from canonical `ee59b27989bc64196c3bd922d9381f2ff61c0473`;
 stable v0.4.0 and 21 public tools remain unchanged. Complete broad supported current file/storage
@@ -1753,7 +1775,7 @@ covers research/security/read dispositions/contracts/Git/gates/UAT/write leads/g
 manager choices/recommendation/state/quota; optional non-binding Parent Advice follows AGENTS.
 Separate explicit authorization is required for GitHub delivery and any write implementation.
 
-## Phase 10 research-only checkpoint disposition
+## Historical Phase 10 research-only checkpoint disposition
 
 Parent outcome **KEEP RESEARCH ONLY**: useful current file/storage route leads exist, but a coherent
 safe read set is not established. Files APIs/UI use path strings and display aliases; native opaque
@@ -1765,11 +1787,28 @@ Write/Trash/upload/task/encryption/share-control leads and unknowns remain in RE
 manager scope/authority/approval decisions, without an assumed write model. This is a local research
 checkpoint, NOT manager closure of Phase 10. Phase 10 RESEARCH / LOCAL CANDIDATE ONLY; no next phase.
 
-## Parent-only Phase 10 research resume / closure authorization
+## Historical Phase 10 research resume / closure authorizations
 
-### Current behavioral-research continuation
+### Historical behavioral-research continuation
 
-**Interrupted by provider safety refusal. Current manager authorization is LOCAL CHECKPOINT ONLY:**
+**Historical resume authorization (2026-10-13):** complete bounded behavioral research and decide
+read-only feasibility; normal useful delegation resumes. If defensible, define the exact safe
+contract and implement/test/review only read-only tools locally. No product writes or publication.
+First reconcile interrupted fixtures and protected state with read-only observation; preserve
+evidence before safe cleanup. Prior interruption-only instructions below are historical. Do not
+retry/bypass the provider-refused fixture operation; the refusal remains an evidence constraint.
+
+**Historical local disposition:** MORE EVIDENCE REQUIRED — NOT IMPLEMENTED. Preserved current-module
+and VM evidence demonstrates directory-link listing and file-link content access into controlled
+sacrificial AppData outside the intended subroot. No supported atomic root-bound/no-follow or
+equivalent containment contract is established. Prefix checks or sequential metadata preflights
+cannot repair that boundary; root-label-only placeholders are not a useful Files surface. No
+read/write tool or permission is added; inventory stays 21. Reopening needs version-applicable
+supported root/sensitivity/containment authority, not repetition of the settled escape experiment.
+The bounded source-audit correction did not finish; its missing artifact is a recorded blocker,
+not accepted evidence. This local checkpoint does not declare Phase 10 manager-complete.
+
+**Historical interruption-only authorization after provider safety refusal — LOCAL CHECKPOINT ONLY:**
 read existing project/evidence records, preserve completed facts and unknown state, document the
 refusal/incomplete questions and create one local docs/policy checkpoint. No VM/SSH/API/browser/
 filesystem/security-boundary experiment or live preservation/cleanup check, no refused-action

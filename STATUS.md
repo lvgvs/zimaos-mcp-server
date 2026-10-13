@@ -1,6 +1,47 @@
 # Status
 
-## Current execution — Phase 10 interruption checkpoint, local records only
+## Current state — Phase 10 research closure
+
+**RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** No defensible
+per-path read-only Files contract was established: controlled links crossed the intended subroot,
+and supported atomic rooted/no-follow or equivalent containment authority remains unproven.
+No Files implementation, write capability or new permission; local/public inventory remains 21.
+Research findings, source distinctions and unresolved questions are durable in RESEARCH.
+
+- Repository: https://github.com/lvgvs/zimaos-mcp-server.
+- Branch: `feat/files-read-local`; closure baseline HEAD: `e37798407f93580686129acf0196f1682a08e8a8`.
+  The containing local checkpoint is identified by Git and the private closure receipt.
+- Closure was Sol-only. No broad research or settled experiment was repeated. An imported helper
+  unexpectedly added a read-only storage/baseline preflight; its traffic and refreshed artifact
+  provenance are recorded privately, not omitted from totals.
+- Confirmed sacrificial cleanup: 18 harmless regular files, two controlled links and three
+  directories removed by exact-name operations; both research roots independently verified absent.
+  Three older recorded setup paths are also absent. Two failed local command-print helpers removed;
+  meaningful private evidence and research scripts retained. No uncertain target was deleted.
+- Privacy cleanup redacted one historical private credential echo while retaining its non-secret
+  permission evidence. No credential copy is retained in Phase 10 evidence; configured-secret and
+  pattern scans are both required, not treated as interchangeable guarantees.
+- Fresh before/after four-app inventory, YAML fingerprints, container identities/state/attachments
+  match the retained baseline; all four tracked configuration hashes match. Retained non-Phase 10
+  apps/fixtures remain unchanged in that sampled comparison. Unrelated mutation traffic is zero;
+  no claim of exhaustive host-wide state verification.
+- Closure traffic: 28 GETs, three auth POSTs, two SSH observations, one SSH cleanup action;
+  no Files API or unrelated mutation. Cumulative Phase 10: 201 GETs, 17 auth POSTs, 10 authorized
+  Files API mutations, 14 SSH observations, three fixture actions; unrelated mutations zero.
+- Documentation formatting, Markdown parse/render/link checks, privacy/private-value checks,
+  inventory/input-equality checks, diff-check and staged Gitleaks PASS. Private evidence Gitleaks
+  and complete-document/configured-secret comparisons PASS after the historical echo redaction.
+  Results and exact checkpoint identity are recorded in the final handoff/private receipt.
+  Prior regression evidence remains 844 mocked tests/48 files plus lint/types/build PASS;
+  no runtime/build/Docker/UAT rerun in this docs-only closure because inputs are unchanged.
+- Only PROJECT/STATUS/RESEARCH change. AGENTS, runtime/tests/config/dependencies, both READMEs,
+  tool reference, Docker/Compose and release inputs remain unchanged. v0.4.0 and existing public
+  GHCR/deployment readiness are unchanged; no image/deployment operation was performed.
+- No push, PR, merge, publication, tag/Release or alias change. Phase 5 ON HOLD; Phase 9 COMPLETE.
+  Next manager gate: discuss documentation before separately authorizing docs-only GitHub delivery.
+  Files code remains blocked on supported containment authority; writes require separate scope.
+
+## Historical execution — Phase 10 interruption checkpoint, local records only
 
 Manager stopped behavioral research after provider `invalid_request` / `cyber_policy` refusal at
 model inference, before the next tool dispatch. No result from the refused request, no retry/bypass/

@@ -1,6 +1,147 @@
 # ZimaOS API Research
 
-## Phase 10 behavioral research interrupted — local records only (2026-10-12)
+## Phase 10 Files — consolidated research outcome (2026-10-13)
+
+**RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** No defensible
+per-path read-only Files MCP surface was implemented. Representative traversal rejection does not
+prove containment: controlled directory/file links were observed crossing the intended subroot
+into harmless sacrificial AppData. Lexical-prefix checks and sequential metadata preflights cannot
+repair that observed boundary. No supported/version-applicable authoritative rooted/no-follow or
+equivalent containment contract was established. This is a product eligibility decision based on
+the available evidence, not a universal claim that ZimaOS has no file isolation mechanism.
+
+### Sources, provenance and evidence classification
+
+- Official documentation: [OpenAPI developer guide](https://www.zimaspace.com/docs/developer/openapi-developer-guide)
+  and [live preview](https://www.zimaspace.com/docs/developer/openapi-live-preview), captured during
+  v1.7.1 research. They identify file/storage API modules; they do not supply the required current
+  rooted-open/no-follow backend guarantee. The guide's exact storage package is
+  `@icewhale/zimaos-localstorage-openapi`; storage client examples are not Files containment authority.
+- Current Files module: `/modules/icewhale_files/assets/main-C-FLc10Q.js`, SHA-256
+  `3415b05bac0cf2a2d309f7de4fb1a6703bc4de5d53ce5da08a490a2d2c8c9a9c`.
+  Its own File/Folder clients use `/v2_1/files`; listing uses
+  `path,index,cursor,size,sort,direction` with request options. Download options can carry headers.
+  These are first-party current-runtime route/client observations, not a supported backend revision
+  or atomic containment contract. No proprietary frontend implementation is incorporated into product code.
+- Older dashboard bundle: `/assets/vendor-api-files-CAznwRc3.js`, SHA-256
+  `048a2718aab997e63e897078e2f2cb352b65d5d5386091efa0565216ea55f7ea`.
+  Its older `sfz` pagination and mixed API-family defaults must not be substituted for current
+  Files-module behavior. Legacy CasaOS sources likewise do not establish deployed ZimaOS equivalence.
+- **OBSERVED ON TEST VM** means the designated v1.7.1 instance/account and controlled fixtures only.
+  **SUPPORTED / CONTRACTUAL** is reserved for an actually established applicable contract;
+  no atomic file-root containment guarantee qualifies. **INFERRED** implications and **UNPROVEN**
+  guarantees remain separate. An unrestricted path/shell/socket fallback is **NO-GO** by architecture.
+- Saved response interpretation was corrected without replaying mutations: listing `content` is
+  top-level, Axios `data.content` is not a server envelope, and JSON download `data` contains the
+  observed text. UI display `/files` or aliases are not grants; absence of a Range query parameter
+  does not establish absence of Range-header support. An incomplete follow-up source audit supplies
+  no additional accepted authority. Original captures, failed assertions and corrected results remain private.
+
+### Concrete read observations — OBSERVED ON TEST VM
+
+- `GET /v2/local_storage/storages` returned a bare absolute-path descriptor array. Physical storage
+  and `/DATA` listings had identical observed hashes; friendly aliases are presentation, not root grants.
+  A display-only alias and `/etc` listing were rejected with HTTP 400/security-policy errors.
+  `/DATA/AppData` metadata was accessible; no real secret or system-file content was downloaded.
+- `GET /v2_1/files/file` returned HTTP 200 with empty `content` for an empty directory, HTTP 404
+  for a missing path, and a singleton for a file supplied as a directory. Index 0 normalized to 1;
+  requested size 2 was honored and page 2 differed. In the small fixture `all` was 16 visible
+  entries while `total` was 2 page entries; size 32 returned all 16 then-visible entries. Hidden
+  fixture omitted. Later fixture membership was 18 visible plus one hidden entry after two links
+  were created, not evidence of a new general pagination guarantee.
+- `GET /v2_1/files/folder` returned metadata for both a directory and a file. Link/no-follow
+  metadata semantics, large-directory limits, recursive costs and snapshot completeness are unproven.
+- Known harmless content read via `/file/download` accepted dot segments and repeated separators.
+  Parent segments, relative paths, literal encoded-dot and parent-cross-to-AppData cases returned
+  HTTP 400 with `files.error.security_policy_blocked`. These are representative cases, not an
+  exhaustive normalization/encoding/Unicode/case/mount defense.
+- A controlled directory link listed the outside fixture; a controlled file link returned its
+  harmless outside canary. Upload through that directory link landed outside the intended inside
+  root, independently confirmed through SSH. Some path rejection therefore does not confine these
+  observed operations to an MCP-selected subroot or establish app-sensitive exclusions.
+- Download returned a JSON data/message envelope matching known text, not raw bytes. Sending
+  `Range: bytes=0-4` with `Accept: application/octet-stream` returned HTTP 200/full JSON text and
+  no Content-Range in that test. A fixture containing invalid UTF-8 retained its expected SSH hash,
+  but JSON string decoding introduced replacement characters and did not round-trip binary bytes.
+  No reliable lossless binary or bounded ranged-content product contract is established.
+- Missing404, policy400 and empty200 are distinct observed outcomes. General permission/offline/
+  unavailable semantics remain unproven; errors must not be treated as empty success.
+
+### Narrow read-only feasibility and remaining contract gaps
+
+| Area                   | Accepted evidence / classification                                                                                                  | Current implication                                                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Storage/root discovery | OBSERVED absolute storage descriptor and alias consistency; current UI role/display behavior                                        | No stable grant-bearing root or equivalent authoritative binding; do not treat `/`, UI labels or disk IDs as access grants          |
+| Sensitive boundaries   | OBSERVED AppData metadata access and harmless controlled-link access into AppData                                                   | User-facing storage contains application data; no supported exclusion of app secrets/container/system state established             |
+| Normalization          | OBSERVED dot/repeated slash acceptance and representative parent/relative/encoded-dot rejections                                    | Partial validation, not exhaustive encoding/Unicode/case/mount authorization                                                        |
+| Links/containment      | OBSERVED directory-link listing and file-link content outside the selected subroot                                                  | Listing, metadata and content cannot be defended by lexical prefix checks; atomic rooted/no-follow equivalent remains UNPROVEN      |
+| Listing/metadata       | OBSERVED small pages, index0→1, top-level content, hidden omission, file-as-directory singleton and folder endpoint accepting files | No huge-directory maximum, snapshot completeness, offline or hardlink/race guarantee; no product bounds selected                    |
+| Content                | OBSERVED JSON-wrapped known text; Range request still full JSON200; invalid UTF-8 replaced                                          | No verified bounded/lossless binary contract or reliable ranged byte read; no product content tool                                  |
+| Errors                 | OBSERVED missing404, policy400, empty200; duplicate mkdir404 is operation-specific                                                  | Preserve denial/missing distinctions, never reinterpret failures as empty; unavailable/general permission semantics remain UNPROVEN |
+
+No broader path/link/race probe is necessary merely to reconfirm the already demonstrated boundary.
+The highest-value reopening requirement is supported version-applicable atomic containment and
+sensitive-root authority. Hardlinks, concurrent replacement, removable/network/offline mounts,
+backend limits and general denied/unavailable behavior remain explicit unknowns. A root-label-only
+tool would not meet the useful Files objective, so no placeholder is added.
+
+### Write research disposition
+
+Existing normal upload landing, implicit duplicate replacement, rename-marker duplicate creation,
+duplicate mkdir failure and controlled-link upload escape are OBSERVED, not atomicity/idempotency/
+recovery guarantees. Trash/restore/copy/move/chunk/resume/full-storage and broader failure semantics
+remain source-backed leads or UNPROVEN as recorded below; no broad lifecycle guarantee follows
+from these small tests. No mutating Files MCP tool, write permission,
+approval model or production SSH/filesystem fallback is implemented or authorized.
+
+The observed upload used `POST /v2_1/files/file/uploadV2` with multipart destination `path`, a
+filename/size-marked file part and optional empty `rename` field. Small upload returned HTTP 200
+with an empty body; later JSON text and independent SSH hashes verified landing and replacement
+by a distinct-content same-name upload. The rename marker produced two entries. `POST /folder`
+used a full `path`; duplicate creation returned HTTP 404. Earlier `DELETE /folder` with an exact
+single-item JSON path array removed the obsolete empty research directory, independently verified.
+These observations establish neither atomic replace/fail-if-exists nor safe replay, rollback,
+cross-mount behavior, interruption cleanup, metadata preservation or generalized deletion safety.
+
+### Closure, preservation and accounting
+
+Final closure used only exact positively identified Phase 10 targets. Checked non-link roots,
+exact membership/type/link targets and an empty child directory preceded removal of 18 harmless
+regular files, two controlled links and three directories. Independent observation confirmed both
+research roots and three older recorded setup paths absent. Fresh supported four-app inventory,
+YAML fingerprints, container identities/state/attachments and all four tracked configuration hashes
+matched the retained baselines before/after cleanup. Retained non-Phase 10 apps/fixtures were not
+mutated. No unrelated deletion or configuration change was observed in that bounded comparison.
+
+Two failed local command-print helper files were removed after exact ownership checks. Meaningful
+private captures, reports, scripts and failed/corrected evidence remain preserved in the project's
+owner-only Phase 10 evidence area. A previous enumeration failure was not proof of empty state:
+portable checked enumeration subsequently established exact 19/2 membership. Previously blocked
+cleanup was superseded by explicit parent-only closure authorization, not an approval bypass.
+
+Privacy closure detected and redacted one unintended credential echo from a historical private
+sudo-permission capture. The non-secret permission evidence remains intact; no raw credential copy
+is retained in the Phase 10 evidence area. Configured-secret comparisons and secret-pattern scanning
+are complementary checks: a prior pattern scan alone did not detect that echo. Tracked research
+contains neither that value nor private fixture contents. The private redaction receipt records
+the changed artifact without reproducing the credential.
+
+Closure added 28 GETs, three authentication POSTs, two SSH observations and one SSH cleanup action;
+no Files API or unrelated mutation. Ten GETs/one auth were an unintended read-only imported-helper
+startup preflight, included in those totals. It refreshed a historical preflight report/JSON-baseline
+copy; original JSON request hashes and independent matching YAML baselines remain evidence, but
+byte-for-byte preservation of those refreshed artifacts is not claimed. The private provenance and
+traffic ledger records this explicitly; no settled Files experiment was repeated.
+
+Cumulative recorded Phase 10 totals are **201 GETs /17 authentication POSTs /10 authorized Files API
+mutations /0 unrelated API mutations**, plus **14 SSH observations /3 fixture actions**. Closure
+journal method/action counts were checked against recorded counters. Earlier totals include failed
+attempts; legacy counters are retained rather than represented as a new complete historical audit.
+Private parent-closure-traffic.json and before/action/after evidence support the closure. Sampled
+protected-state equality and zero unrelated mutation traffic do not prove every unobserved host path,
+mount or configuration. No Files runtime, write permission, publication or release change occurred.
+
+## Historical Phase 10 behavioral research interrupted — local records only (2026-10-12)
 
 Parent-only continuation started at `ced98c1460b1b55de884e8670c88dc43aa0aedca`, preserving the
 authorized AGENTS designated-VM policy. Manager then stopped all experiments following a provider
