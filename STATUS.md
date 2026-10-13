@@ -2,10 +2,10 @@
 
 ## Current state — application-management continuation, local only
 
-Research and deepen the existing Phase 1 application surface; no artificial product family or
-later numbered phase. Current milestone: parent selected localized display names, reported main
-service/roles and explicit health container-read status on existing tools. Implementation is next;
-no runtime changes or final acceptance yet. Resource/client mutation leads remain deferred.
+**LOCAL IMPLEMENTATION COMPLETE / READY FOR MANAGER REVIEW.** The existing Phase 1 application
+surface now resolves bounded localized names, exposes optional declared main-service metadata and
+container roles, and distinguishes failed health container reads from successful empty results.
+No artificial product family, new tool, input, permission, endpoint or later phase.
 
 - Repository: https://github.com/lvgvs/zimaos-mcp-server.
 - Branch: `feat/app-management-local`; canonical/start baseline:
@@ -14,9 +14,12 @@ no runtime changes or final acceptance yet. Resource/client mutation leads remai
   independent-window rules. Baseline version 0.4.0/public and local tools 21.
 - Read-only extensions/new tools and sufficiently defensible app mutations are authorized locally,
   subject to evidence, existing permissions/approvals, bounds and parent contract acceptance.
-- Normal Qwen/local bounded delegation and correction loops apply. An initial capped source task
-  and outline-only correction were rejected; provisional evidence and remaining corrections are
-  preserved privately. README authorship, decisions, secrets, Git and acceptance remain parent-owned.
+- Manager override stopped `deleg_44404ed0` (interrupted; no unfinished output accepted) and
+  prohibited further children for this phase. Earlier Qwen metadata source/tests were retained
+  only after Sol review, isolated guard corrections and actual validation. The remainder—code,
+  tests, security hardening, self-review, UAT, paired README documentation and Git—was parent-only.
+  There is no independent-child review claim; initial incomplete research/rejected guard claims
+  remain historical private evidence, not accepted findings.
 - The guarded fresh research pass completed: 20 API GETs, three public GETs, one auth POST, zero
   non-auth write methods. Four-app configuration hashes/container identity/state/publisher
   before/after equality and journal counts were independently checked. Localized title maps and
@@ -27,6 +30,32 @@ no runtime changes or final acceptance yet. Resource/client mutation leads remai
 - Selected contract is in DECISIONS and private approved-contract evidence: no new inputs,
   permissions, endpoints or tools; preserve existing payloads/semantics with bounded optional
   metadata and explicit container-read failure. Do not invent runtime-primary/origin/version claims.
+- New localized labels/main-service names exclude configured password/access-token matches,
+  including percent-escaped UTF-8. Existing plain-string behavior and other container fields remain
+  unchanged. Four touched tools have explicit read-only/non-destructive/idempotent/open-world hints.
+- Final local gates: locked dev install; lint; production/test strict typechecks; **890 tests in
+  53 files**; production build; production npm audit (zero vulnerabilities) PASS. Docker production
+  image build and read-only/network-disabled Node 22 compiled-metadata smoke PASS; deployment
+  Compose validation PASS. Formatting, Markdown/render/link/anchor and bilingual inventory review,
+  configured-secret/private-value checks and staged Gitleaks PASS. All 19 input-schema expressions
+  match baseline. No dependency, version, workflow, permission or deployment-input change.
+- Parent compiled HTTP VM UAT PASS for all four existing apps: modern pinned and legacy protocols,
+  authentication denial, inventory/annotations, independent metadata/role comparison, health-read
+  markers and malformed-input/default-off denial. All five mutation flags off. Each pass: 42 GETs,
+  two auth POSTs, zero non-auth mutations. Final credential-screened pass and earlier pass both
+  matched protected configuration hashes/container identity/state/publishers before/after and
+  against the retained research baseline. Combined phase traffic: **107 GETs/five auth POSTs**,
+  zero non-auth mutations; no fixture, SSH, disruption or cleanup. This is sampled protection,
+  not exhaustive host-wide integrity. Multi-service and failed-read paths are mock-proven only.
+- Local image: `zimaos-mcp-server:app-details-local`; unpublished, not a stable/GHCR artifact.
+  README English/Turkish capability/reference/usage sections distinguish development-source
+  refinements from published v0.4.0 and retain prominent AI disclosure.
+- Preparation HEAD before the implementation checkpoint: `cc249ec6b42705261dd906388478344f67b24282`;
+  gates exercised that worktree plus its local implementation diff. The containing local Git
+  checkpoint's exact final SHA is in the handoff/private receipt (no self-referential status commit).
+  No implementation blocker. Resource/version/origin/launch/mutation leads remain deferred for
+  insufficient supported contracts, not hidden as delivered features. Next action: manager review
+  of this local candidate; publication or another phase requires separate authorization.
 - No push/PR/merge/GHCR/edge/stable/latest/version/tag/Release action. Phase 5 ON HOLD; Phase 9
   COMPLETE / research-only; Phase 10 research complete to current evidence boundary / implementation
   deferred. Their reopening and all separate future roadmap work remain out of scope.

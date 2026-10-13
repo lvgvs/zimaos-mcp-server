@@ -259,7 +259,13 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     {
       title: "List installed applications",
       description:
-        "Returns a concise normalized list of applications installed on the ZimaOS host.",
+        "Returns normalized installed applications with localized display names and optional reported mainService. Configured metadata does not prove installation origin, runtime primacy or health.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: z.object({}),
     },
     guard(async () => {
@@ -273,7 +279,13 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     {
       title: "Get one application",
       description:
-        "Returns normalized information for a single installed application by its stable id.",
+        "Returns normalized information for an installed application by stable id, including a localized display name and optional reported mainService. Configured metadata does not prove runtime primacy or health.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: z.object({ app_id: appIdSchema }),
     },
     guard(async (args) => {
@@ -287,7 +299,13 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     {
       title: "Get application health",
       description:
-        "Returns available health/state information for an application and its containers. Health is only reported when ZimaOS exposes it; otherwise the state is 'unknown'.",
+        "Returns available app/container health and state, optional declared isMainService relationships, and containersReadStatus. A failed container read retains an empty array with a sanitized containersReadErrorCode; successful reads do not prove inventory completeness or health. Existing probe semantics are unchanged.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: z.object({ app_id: appIdSchema }),
     },
     guard(async (args) => {
@@ -330,7 +348,13 @@ export function createMcpServer(deps: ToolDeps): McpServer {
     {
       title: "List application containers",
       description:
-        "Returns normalized container/service information for an installed application.",
+        "Returns normalized containers/services and existing published ports for an installed application. Optional isMainService reflects an explicit matching declaration only, not actual runtime primacy or health; no first/sole-service inference.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: z.object({ app_id: appIdSchema }),
     },
     guard(async (args) => {

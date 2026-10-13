@@ -28,7 +28,13 @@ despite their distinct potential value: client binding/caller, DTO/units, identi
 supported backend semantics remain insufficient. Defer auto-start/install-recovery/recreation
 mutations rather than invent permissions, eligibility, completion or safe retry. Do not expose raw
 Compose, environment, tips, credential-bearing URLs or speculative version/origin claims.
-Delivery remains local-only, subject to tests, review and UAT; this decision is not acceptance.
+Newly surfaced localized labels and main-service values are screened against configured ZimaOS
+password/access-token values, including percent-escaped UTF-8. Unsafe new values are omitted or
+fall back to another valid locale/id, without changing legacy plain-string behavior. The pure
+normalizer receives a predicate; credentials remain inside the API client and are never exported.
+
+Delivery remains local-only. Parent review and local gates/UAT establish a local candidate, not
+manager acceptance or authorization to publish.
 
 ## 2026-09-26 — MCP transport: Streamable HTTP over a single authenticated endpoint
 

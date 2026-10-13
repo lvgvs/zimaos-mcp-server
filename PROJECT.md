@@ -42,8 +42,10 @@ security boundary. Preserve existing approvals, stale-state safeguards and accep
 completion distinctions. Do not duplicate logs, health, containers, Compose or existing lifecycle,
 installation, catalog and uninstall capabilities merely because another endpoint exists.
 
-Use normal bounded delegation and correction loops; Sol retains scope/contracts/security,
-permission decisions, acceptance, UAT interpretation, paired public README authoring and Git.
+The manager subsequently stopped child task `deleg_44404ed0` and made the remainder parent-only.
+No further child implementation or delegated review is authorized for this phase. Sol retains
+scope/contracts/security, permission decisions, acceptance, UAT interpretation, paired public
+README authoring and Git; earlier useful child work is retained only after parent review.
 The designated disposable-VM policy applies to necessary bounded experiments, with protected
 baselines, uniquely owned sacrificial state, cleanup and after-verification. SSH/direct observation
 are research aids only, never product fallbacks. Preserve provenance and classify contractual,
@@ -54,6 +56,11 @@ documentation parity/rendering and useful live UAT gates; obtain independent rea
 where appropriate. Persist source findings, candidate dispositions, exact contracts, limitations,
 actual gates and UAT results. Finish with coherent local commits and a clean worktree for manager
 review. No push, PR, merge, publication, alias movement, version bump, tag, Release or release asset.
+
+Selected local implementation is complete: localized labels and bounded declared main-service
+metadata on existing app/container reads, explicit health container-read status and sanitized
+failure codes, with credential exclusion for newly surfaced strings. Final parent verification
+and the manager handoff are recorded in STATUS; publication requires separate authorization.
 
 Phase 5 update_app stays ON HOLD; Phase 9 stays COMPLETE / research-only; Phase 10 stays RESEARCH
 COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED. Do not resume them or begin OAuth,

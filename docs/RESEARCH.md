@@ -2,7 +2,7 @@
 
 ## Application-management continuation — source checkpoint (2026-10-13)
 
-**RESEARCH CHECKPOINT / NARROW LOCAL SCOPE SELECTED, IMPLEMENTATION PENDING.** Continue the existing application surface locally
+**RESEARCH COMPLETE / SELECTED LOCAL IMPLEMENTATION VERIFIED.** Continue the existing application surface locally
 from `15384a1e2bc2a0b86eb49730951a82188cfa1ef7`; version 0.4.0 and 21 tools are unchanged.
 This investigation does not reopen update_app, network, Files or another roadmap phase.
 
@@ -16,8 +16,8 @@ This investigation does not reopen update_app, network, Files or another roadmap
   `SociOS-Linux/IceWhale-OpenAPI`, not a verified official mirror or current backend contract.
   Its metadata lacks a pinned revision/license for that copy. Treat its localized `title`, `main`
   service and launch-metadata definitions as structural leads only; do not incorporate its code.
-- The first-party asset `/assets/vendor-api-apps-D8CV56Gp.js` was served at the saved 2026-10-12
-  capture, not freshly verified by this checkpoint. Its SHA-256 is
+- Initial analysis used the first-party asset `/assets/vendor-api-apps-D8CV56Gp.js` from the saved
+  2026-10-12 capture; fresh byte equality is verified below. Its SHA-256 is
   `c82a4275213b5bfb577c7e0e50b531da9da898c7b8eeb6ab3cff4fd07e4362e7`, independently checked
   against the saved bytes. Multiple generated client families coexist; operation inventories
   corroborate route leads, not response DTOs or a blanket base assignment.
@@ -27,7 +27,7 @@ This investigation does not reopen update_app, network, Files or another roadmap
   units, container-to-app mapping or response bounds are established. No usage endpoint was called.
   The older `/installed/container/usage` client is a separate lead, not a substitute contract.
 
-### Provisional capability assessment
+### Initial provisional capability assessment (before fresh observation)
 
 | Lead                                                                     | Existing coverage / possible fit                                              | Current disposition                                                                                    |
 | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -70,10 +70,25 @@ New localized labels are bounded to 256 UTF-8 bytes with bounded deterministic l
 main names use the existing bounded identifier style. Missing/invalid main declarations omit role
 flags rather than invent a first/sole primary. Read-status success is not health or complete inventory.
 These selections use already-supported reads plus honest normalization of optional reported data,
-not the community fork as new backend authority. Full contract/review/gates/UAT remain pending.
+not the community fork as new backend authority. The local implementation preserves input schemas,
+permissions, existing probe semantics and supported request paths. Own-property/non-array guards
+were proven with isolated negative fixtures; new localized values are length-checked before encoding.
+New labels and main-service strings exclude configured password/access-token matches, including
+percent-escaped UTF-8 representations; legacy plain-string name behavior is unchanged.
+
+**OBSERVED ON TEST VM, parent-only compiled UAT:** both modern authenticated MCP and legacy
+stateless reads passed for four pre-existing apps. Independently projected labels, app fields and
+declared container relationships matched supported API evidence. Read status was `succeeded`;
+failed/empty/exception cases are mock-proven, not live-induced. All five mutation flags were off;
+unauthenticated and malformed-input/default-off control negatives generated no upstream traffic.
+Each parent UAT pass used 42 GETs and two auth POSTs, with zero non-auth mutations. The second
+pass verified the final credential-screened implementation. Both before/after projected protection
+checks matched the earlier four-app baseline: configuration hashes, container identity/state and
+publishers. No fixture, SSH, disruption or cleanup was needed; no exhaustive host-integrity claim.
+Multi-service relationships remain synthetic-test-proven only; metadata is not runtime authority.
 
 Private source/matrix, binding and observed evidence remain under active-profile
-`evidence/app-management-continuation/`. Runtime implementation and publication have not occurred.
+`evidence/app-management-continuation/`. Runtime changes exist locally only; no publication occurred.
 
 ## Phase 10 Files — consolidated research outcome (2026-10-13)
 
