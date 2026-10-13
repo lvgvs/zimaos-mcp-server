@@ -1,5 +1,537 @@
 # ZimaOS API Research
 
+## Phase 10 Files — consolidated research outcome (2026-10-13)
+
+**RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** No defensible
+per-path read-only Files MCP surface was implemented. Representative traversal rejection does not
+prove containment: controlled directory/file links were observed crossing the intended subroot
+into harmless sacrificial AppData. Lexical-prefix checks and sequential metadata preflights cannot
+repair that observed boundary. No supported/version-applicable authoritative rooted/no-follow or
+equivalent containment contract was established. This is a product eligibility decision based on
+the available evidence, not a universal claim that ZimaOS has no file isolation mechanism.
+
+### Sources, provenance and evidence classification
+
+- Official documentation: [OpenAPI developer guide](https://www.zimaspace.com/docs/developer/openapi-developer-guide)
+  and [live preview](https://www.zimaspace.com/docs/developer/openapi-live-preview), captured during
+  v1.7.1 research. They identify file/storage API modules; they do not supply the required current
+  rooted-open/no-follow backend guarantee. The guide's exact storage package is
+  `@icewhale/zimaos-localstorage-openapi`; storage client examples are not Files containment authority.
+- Current Files module: `/modules/icewhale_files/assets/main-C-FLc10Q.js`, SHA-256
+  `3415b05bac0cf2a2d309f7de4fb1a6703bc4de5d53ce5da08a490a2d2c8c9a9c`.
+  Its own File/Folder clients use `/v2_1/files`; listing uses
+  `path,index,cursor,size,sort,direction` with request options. Download options can carry headers.
+  These are first-party current-runtime route/client observations, not a supported backend revision
+  or atomic containment contract. No proprietary frontend implementation is incorporated into product code.
+- Older dashboard bundle: `/assets/vendor-api-files-CAznwRc3.js`, SHA-256
+  `048a2718aab997e63e897078e2f2cb352b65d5d5386091efa0565216ea55f7ea`.
+  Its older `sfz` pagination and mixed API-family defaults must not be substituted for current
+  Files-module behavior. Legacy CasaOS sources likewise do not establish deployed ZimaOS equivalence.
+- **OBSERVED ON TEST VM** means the designated v1.7.1 instance/account and controlled fixtures only.
+  **SUPPORTED / CONTRACTUAL** is reserved for an actually established applicable contract;
+  no atomic file-root containment guarantee qualifies. **INFERRED** implications and **UNPROVEN**
+  guarantees remain separate. An unrestricted path/shell/socket fallback is **NO-GO** by architecture.
+- Saved response interpretation was corrected without replaying mutations: listing `content` is
+  top-level, Axios `data.content` is not a server envelope, and JSON download `data` contains the
+  observed text. UI display `/files` or aliases are not grants; absence of a Range query parameter
+  does not establish absence of Range-header support. An incomplete follow-up source audit supplies
+  no additional accepted authority. Original captures, failed assertions and corrected results remain private.
+
+### Concrete read observations — OBSERVED ON TEST VM
+
+- `GET /v2/local_storage/storages` returned a bare absolute-path descriptor array. Physical storage
+  and `/DATA` listings had identical observed hashes; friendly aliases are presentation, not root grants.
+  A display-only alias and `/etc` listing were rejected with HTTP 400/security-policy errors.
+  `/DATA/AppData` metadata was accessible; no real secret or system-file content was downloaded.
+- `GET /v2_1/files/file` returned HTTP 200 with empty `content` for an empty directory, HTTP 404
+  for a missing path, and a singleton for a file supplied as a directory. Index 0 normalized to 1;
+  requested size 2 was honored and page 2 differed. In the small fixture `all` was 16 visible
+  entries while `total` was 2 page entries; size 32 returned all 16 then-visible entries. Hidden
+  fixture omitted. Later fixture membership was 18 visible plus one hidden entry after two links
+  were created, not evidence of a new general pagination guarantee.
+- `GET /v2_1/files/folder` returned metadata for both a directory and a file. Link/no-follow
+  metadata semantics, large-directory limits, recursive costs and snapshot completeness are unproven.
+- Known harmless content read via `/file/download` accepted dot segments and repeated separators.
+  Parent segments, relative paths, literal encoded-dot and parent-cross-to-AppData cases returned
+  HTTP 400 with `files.error.security_policy_blocked`. These are representative cases, not an
+  exhaustive normalization/encoding/Unicode/case/mount defense.
+- A controlled directory link listed the outside fixture; a controlled file link returned its
+  harmless outside canary. Upload through that directory link landed outside the intended inside
+  root, independently confirmed through SSH. Some path rejection therefore does not confine these
+  observed operations to an MCP-selected subroot or establish app-sensitive exclusions.
+- Download returned a JSON data/message envelope matching known text, not raw bytes. Sending
+  `Range: bytes=0-4` with `Accept: application/octet-stream` returned HTTP 200/full JSON text and
+  no Content-Range in that test. A fixture containing invalid UTF-8 retained its expected SSH hash,
+  but JSON string decoding introduced replacement characters and did not round-trip binary bytes.
+  No reliable lossless binary or bounded ranged-content product contract is established.
+- Missing404, policy400 and empty200 are distinct observed outcomes. General permission/offline/
+  unavailable semantics remain unproven; errors must not be treated as empty success.
+
+### Narrow read-only feasibility and remaining contract gaps
+
+| Area                   | Accepted evidence / classification                                                                                                  | Current implication                                                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Storage/root discovery | OBSERVED absolute storage descriptor and alias consistency; current UI role/display behavior                                        | No stable grant-bearing root or equivalent authoritative binding; do not treat `/`, UI labels or disk IDs as access grants          |
+| Sensitive boundaries   | OBSERVED AppData metadata access and harmless controlled-link access into AppData                                                   | User-facing storage contains application data; no supported exclusion of app secrets/container/system state established             |
+| Normalization          | OBSERVED dot/repeated slash acceptance and representative parent/relative/encoded-dot rejections                                    | Partial validation, not exhaustive encoding/Unicode/case/mount authorization                                                        |
+| Links/containment      | OBSERVED directory-link listing and file-link content outside the selected subroot                                                  | Listing, metadata and content cannot be defended by lexical prefix checks; atomic rooted/no-follow equivalent remains UNPROVEN      |
+| Listing/metadata       | OBSERVED small pages, index0→1, top-level content, hidden omission, file-as-directory singleton and folder endpoint accepting files | No huge-directory maximum, snapshot completeness, offline or hardlink/race guarantee; no product bounds selected                    |
+| Content                | OBSERVED JSON-wrapped known text; Range request still full JSON200; invalid UTF-8 replaced                                          | No verified bounded/lossless binary contract or reliable ranged byte read; no product content tool                                  |
+| Errors                 | OBSERVED missing404, policy400, empty200; duplicate mkdir404 is operation-specific                                                  | Preserve denial/missing distinctions, never reinterpret failures as empty; unavailable/general permission semantics remain UNPROVEN |
+
+No broader path/link/race probe is necessary merely to reconfirm the already demonstrated boundary.
+The highest-value reopening requirement is supported version-applicable atomic containment and
+sensitive-root authority. Hardlinks, concurrent replacement, removable/network/offline mounts,
+backend limits and general denied/unavailable behavior remain explicit unknowns. A root-label-only
+tool would not meet the useful Files objective, so no placeholder is added.
+
+### Write research disposition
+
+Existing normal upload landing, implicit duplicate replacement, rename-marker duplicate creation,
+duplicate mkdir failure and controlled-link upload escape are OBSERVED, not atomicity/idempotency/
+recovery guarantees. Trash/restore/copy/move/chunk/resume/full-storage and broader failure semantics
+remain source-backed leads or UNPROVEN as recorded below; no broad lifecycle guarantee follows
+from these small tests. No mutating Files MCP tool, write permission,
+approval model or production SSH/filesystem fallback is implemented or authorized.
+
+The observed upload used `POST /v2_1/files/file/uploadV2` with multipart destination `path`, a
+filename/size-marked file part and optional empty `rename` field. Small upload returned HTTP 200
+with an empty body; later JSON text and independent SSH hashes verified landing and replacement
+by a distinct-content same-name upload. The rename marker produced two entries. `POST /folder`
+used a full `path`; duplicate creation returned HTTP 404. Earlier `DELETE /folder` with an exact
+single-item JSON path array removed the obsolete empty research directory, independently verified.
+These observations establish neither atomic replace/fail-if-exists nor safe replay, rollback,
+cross-mount behavior, interruption cleanup, metadata preservation or generalized deletion safety.
+
+### Closure, preservation and accounting
+
+Final closure used only exact positively identified Phase 10 targets. Checked non-link roots,
+exact membership/type/link targets and an empty child directory preceded removal of 18 harmless
+regular files, two controlled links and three directories. Independent observation confirmed both
+research roots and three older recorded setup paths absent. Fresh supported four-app inventory,
+YAML fingerprints, container identities/state/attachments and all four tracked configuration hashes
+matched the retained baselines before/after cleanup. Retained non-Phase 10 apps/fixtures were not
+mutated. No unrelated deletion or configuration change was observed in that bounded comparison.
+
+Two failed local command-print helper files were removed after exact ownership checks. Meaningful
+private captures, reports, scripts and failed/corrected evidence remain preserved in the project's
+owner-only Phase 10 evidence area. A previous enumeration failure was not proof of empty state:
+portable checked enumeration subsequently established exact 19/2 membership. Previously blocked
+cleanup was superseded by explicit parent-only closure authorization, not an approval bypass.
+
+Privacy closure detected and redacted one unintended credential echo from a historical private
+sudo-permission capture. The non-secret permission evidence remains intact; no raw credential copy
+is retained in the Phase 10 evidence area. Configured-secret comparisons and secret-pattern scanning
+are complementary checks: a prior pattern scan alone did not detect that echo. Tracked research
+contains neither that value nor private fixture contents. The private redaction receipt records
+the changed artifact without reproducing the credential.
+
+Closure added 28 GETs, three authentication POSTs, two SSH observations and one SSH cleanup action;
+no Files API or unrelated mutation. Ten GETs/one auth were an unintended read-only imported-helper
+startup preflight, included in those totals. It refreshed a historical preflight report/JSON-baseline
+copy; original JSON request hashes and independent matching YAML baselines remain evidence, but
+byte-for-byte preservation of those refreshed artifacts is not claimed. The private provenance and
+traffic ledger records this explicitly; no settled Files experiment was repeated.
+
+Cumulative recorded Phase 10 totals are **201 GETs /17 authentication POSTs /10 authorized Files API
+mutations /0 unrelated API mutations**, plus **14 SSH observations /3 fixture actions**. Closure
+journal method/action counts were checked against recorded counters. Earlier totals include failed
+attempts; legacy counters are retained rather than represented as a new complete historical audit.
+Private parent-closure-traffic.json and before/action/after evidence support the closure. Sampled
+protected-state equality and zero unrelated mutation traffic do not prove every unobserved host path,
+mount or configuration. No Files runtime, write permission, publication or release change occurred
+during local closure. Subsequent authorization covers only docs/policy GitHub delivery and normal
+trusted-main development publication, not a release or additional VM work.
+
+The dated records below preserve earlier evidence boundaries and restrictions. Their pending,
+UNKNOWN and local-only states describe those historical passes; the consolidated outcome and
+verified closure above are the current disposition.
+
+## Historical Phase 10 behavioral research interrupted — local records only (2026-10-12)
+
+Parent-only continuation started at `ced98c1460b1b55de884e8670c88dc43aa0aedca`, preserving the
+authorized AGENTS designated-VM policy. Manager then stopped all experiments following a provider
+safety refusal. This closure reads existing local records only: no new VM/API/SSH/browser experiment,
+live preservation check, destructive cleanup or runtime implementation. Research remains incomplete.
+
+### Provider boundary and execution evidence
+
+Existing provider request dump records **`invalid_request` / `cyber_policy`** on a model-inference
+POST. Its last inputs are successful local helper-file writes, not a dispatched upload or extraction
+request. The research in progress was controlled fixture preparation for containment/link and
+upload/task observations. The provider refusal occurred before the next tool/action dispatch;
+**no experimental result is recorded from the refused request**. Prepared archive/fixture helpers
+exist, but no generated archive, fixture-batch report or corresponding VM request journal exists.
+Do not confuse these prepared files with executed experiments. No refusal retry, rephrasing bypass,
+alternate access/model/provider, Daybreak or child was used. The refusal is an execution constraint,
+not evidence of endpoint safety, success or product unsuitability. Raw provider payload/headers must
+remain private and are not copied into tracked documentation.
+
+### Completed behavioral evidence before refusal — OBSERVED ON TEST VM
+
+ZimaOS v1.7.1/current first-party Files module is the existing source baseline. These observations
+apply to the designated test account/instance, not every user, mount, race or future version.
+
+| Operation / question                                                                 | Existing result                                                                         | Interpretation / limitation                                                                        |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Protected four-app inventory/config/container baseline                               | Matched the earlier checkpoint before experiments                                       | Config fingerprints require the same YAML Accept representation; no final live comparison exists   |
+| SSH using existing designated account                                                | Connected as non-root; storage root not writable through SSH                            | No elevation or alternate account; SSH permissions differ from observed API effects                |
+| `GET /v2/local_storage/storages`                                                     | HTTP200, top-level array; descriptor maps to an existing SSH-observed storage directory | Not an opaque root grant or exhaustive allowed-root inventory                                      |
+| `GET /v2_1/files/file` with physical storage path and `/DATA`, index0/size1/name/asc | HTTP200, identical response hashes; one entry each                                      | Alias consistency observed, not canonical authorization or reliable pagination proof               |
+| Same GET with display-only alias or `/etc`                                           | HTTP400, `files.error.security_policy_blocked`, detail `invalid path`                   | Two representative rejections; no traversal/encoding/link guarantee                                |
+| Same GET with `/DATA/AppData`                                                        | HTTP200, application-area metadata returned                                             | Do not assume sensitive AppData is excluded; no private contents downloaded                        |
+| `POST /v2_1/files/folder`, JSON `{path: <new full sacrificial target>}`              | HTTP200; SSH confirms created directory, mode0755 UID0/GID0                             | Actual creation verified, not overwrite/containment/atomicity or privilege equivalence             |
+| SSH fixture setup                                                                    | Dispatched, exit1; no successful seed/file/link verification                            | Partial filesystem effects UNKNOWN; this was a pre-refusal setup failure, not the provider refusal |
+
+Two previously uncaptured, source-discovered public UI chunks were read (not executed):
+`/modules/icewhale_files/assets/Files-DNe8A2gK.js` and `Trash-PnMOT0Ci.js`.
+They establish current client create-folder full `path`, rename query path/body `new_path`, array
+deletion/Trash/restore inputs and raw_path/collision UI intent. Current module explicitly binds
+TaskApi to `/v2_1/files`: POST `/task/copy`, `/task/cut`, `/task/decompress`, GET `/tasks`, DELETE
+`/tasks` and POST `/task/retry` are source-backed current operations, not merely backup-family
+leads. UI uses `{src,dst,user_select,retain_src_file}` and `{task_list}` as applicable. These were
+NOT live-called; acknowledgement/completion/cancellation/retry remain unproven. This binding does
+not retroactively validate every dashboard backup wrapper under the Files prefix. Current module
+search-status wrapper uses GET/PUT `/file/search`, distinct from older status-path wording; no new
+search endpoint was called or query contract accepted. Raw upload UI uses sanitized filename/size
+or chunk markers, not a universal percent-encoded filename rule. Its initialized uploadV2 target
+can also be retargeted to another discovered interface by the UI; no alternate interface was used.
+
+### Failures, remaining gaps and preservation
+
+First preflight stopped on a false config-hash mismatch: JSON Accept versus prior YAML Accept,
+with identical app/container identities. Corrected YAML reads matched prior fingerprints. Second
+preflight stopped on assumed storage data-envelope shape; the actual top-level array was inspected
+from the saved response, then SSH preflight reused it without repeating the API batch. Both failed
+passes and their traffic remain preserved. SSH fixture setup subsequently failed; no privilege
+escalation was attempted. Prepared later fixture/upload/decompression helpers were not executed.
+
+Observed API-created research directory was left in place, not destructively cleaned up.
+Its last recorded existence is before refusal. Any partial SSH setup effect and current residual
+state are **UNKNOWN** without further observation; no new check is permitted in this local-only
+closure. Four protected apps/retained fixture configuration/container baseline matched before
+experiments; post-experiment preservation and final unrelated configuration comparison are
+**UNKNOWN**, not asserted from absence of an intended unrelated write. SSH config hashes exist
+only for the initial observation. No actual secret content was read for path-denial testing.
+
+Remaining: traversal/normalization, symlink/hardlink escape/races, broader mounts/root authority,
+bounded content/download/range/empty/missing/mismatch/pagination, upload landing/duplicate/overwrite,
+delete/Trash/restore/collision/cleanup and async completion/retry. Their behavioral evidence was
+not obtained; prior client-route evidence remains valid. Root authority/containment/link safety
+remain UNPROVEN; sensitive separation is PARTIAL with an observed AppData access concern; read
+boundary is PARTIAL; upload/overwrite/delete/Trash/async remain source-only PARTIAL or UNPROVEN.
+No secure public Files contract or new read/write feasibility acceptance is made. Refusal itself
+does not determine feasibility. Both read and write containment conclusions remain blocked by gaps.
+
+Continuation recorded **26 GETs, three auth POSTs, one authorized Files API mutation**, two SSH
+observations and one failed SSH fixture-setup attempt. Cumulative Phase 10: **123 GETs, eight auth
+POSTs, one authorized Files API mutation, zero unrelated API mutations**. The SSH attempt is
+separate from API traffic; possible partial fixture effects are not falsely counted as zero.
+One refused provider inference is not a VM request. No live request was made during interruption
+closure. Private evidence: active-profile `evidence/phase10/behavior-*-report-private.json`, SSH
+observations/protected baselines/source captures and `interruption-existing-records.json`.
+
+### Local disposition and future handoff
+
+Phase 10 is **RESEARCH-ONLY / INCOMPLETE / INTERRUPTED** pending manager direction. Preserve the
+existing directory and all artifacts; no automatic resume or reproduction of the refused action.
+The shortest handoff is these saved records and the unresolved root/link containment question,
+not another source-discovery restart or a filter workaround. Final live preservation/cleanup
+would require separate permitted work. No further SSH use is authorized by this closure; access
+may be disabled for this paused task. Runtime Files implementation/new permissions zero; tools21.
+
+## Phase 10 parent-only research recovery and checkpoint closure (2026-10-12)
+
+Recovered branch `feat/files-read-local`, starting commit
+`00ced76fbb63a5fdfc4fdba338a5d5f215488975`, with all three dirty documentation files preserved.
+**Research was INCOMPLETE at timeout:** raw multipart upload-target assignment and final required-area
+coverage audit were unresolved, in addition to closure/review/gates/reporting. Prior draft disposition
+was not final acceptance. The preserved TODO list was historical Phase 9; Phase 10's blocked receipt
+and durable source/research records supplied its actual remaining work. No research restart or child
+delegation occurred; this continuation is parent-only and forbids runtime implementation.
+
+Under new explicit authorization, parent directly viewed the saved public Files JavaScript as
+plaintext, without executing it or altering it. Exact target:
+`evidence/phase10/fileui-main-C-FLc10Q.js` in the private active-profile evidence directory.
+After source navigation finished loading, DOM-text offset 2538718 reads
+``let cM=`${Jg}/file/uploadV2` ``; previously verified `Jg="/v2_1/files"` gives the initialized raw
+multipart POST destination **`/v2_1/files/file/uploadV2`**. Payload uses the queue's path plus optional
+rename/chunkSize and encoded file-part names as recorded below. This resolves client assignment,
+NOT server target authorization, traversal/link handling, overwrite defaults or atomicity.
+The old timed-out inline command remained NOT RUN. The newly authorized direct read encountered
+no approval denial and used no denied-command bypass or retry loop. No VM request was needed.
+
+Parent audited every originally requested category: roots/shares/mounts/offline/identity/ownership;
+listing/metadata/type/hidden/sort/pagination/partial results; content/binary/ranges/encoding;
+native search/index; path/traversal/encoding/Unicode/case/links/aliases/TOCTOU; sensitivity/app data;
+create/append/replace/conflicts; delete/Trash/restore/retention; move/rename/copy/cross-filesystem;
+upload/chunk/resume/finalize/integrity/full/offline; authority and durability. The bounded research
+checkpoint is now complete with supported facts and explicit gap reasons, not invented guarantees.
+Unavailable current backend authority, unsafe escape/content probes or forbidden positive writes
+prevent settling the remaining guarantees. No new program, live probe or fixture was manufactured.
+Full category audit is preserved privately as `evidence/phase10/parent-resume-audit.md`.
+
+### Final security contract matrix
+
+| Contract                                                               | Evidence status     | What is / is not established                                                                                                                                 |
+| ---------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Canonical allowed roots / root identity                                | **UNPROVEN**        | One absolute storage descriptor and UI permission paths are not stable grant-bearing roots or equivalent authoritative binding                               |
+| Absolute/relative paths, aliases and mounted storage                   | **PARTIAL**         | Actual absolute metadata path and UI display aliases observed; relative acceptance, canonical equivalence, offline/mount identity and normalization unproven |
+| Path normalization / traversal / encoded dot segments / Unicode / case | **UNPROVEN**        | Query serialization/display rewrites are not server traversal defense; no unsafe test or local-normalizer substitute                                         |
+| Root containment                                                       | **UNPROVEN**        | No version-applicable rooted-open/authorization/no-follow contract; prefix matching cannot establish containment                                             |
+| Symlink handling / symlink escape / hardlinks / TOCTOU                 | **UNPROVEN**        | No decisive backend guarantee, safe fixture or atomic target binding; UI/client absence is not backend absence                                               |
+| Sensitive user/app/system/container paths                              | **PARTIAL / NO-GO** | App/remote-credential risks identified; exclusions not authoritatively enforced. Unrestricted host/container/secret exposure remains NO-GO                   |
+| Read/content/listing byte and item boundaries                          | **UNPROVEN**        | Client cursor/index/size and UI pageSize10000 observed; safe roots, response fields, server limits, Range/text/binary/partial semantics unverified           |
+| Upload/write target                                                    | **PARTIAL**         | Client initializes POST uploadV2 and forwards queue path; server destination authorization/canonicalization/escape/identity unknown                          |
+| Overwrite/conflict                                                     | **PARTIAL**         | Client rename and skip/rename/overwrite intent observed; default/fail-if-exists/atomicity/replay behavior unverified                                         |
+| Delete                                                                 | **PARTIAL**         | Distinct file/folder removal routes exist in current clients; permanent/recursive/rollback/root effects not tested                                           |
+| Trash/restore/empty                                                    | **PARTIAL**         | Separate route/UI raw_path/conflict/partial outcomes mapped; retention/mount applicability/restore collisions/recovery unverified                            |
+| Shell/socket/raw-host proxy/unsupported fallback                       | **NO-GO**           | Excluded by authorized architecture, not an evidence workaround                                                                                              |
+
+**Final parent disposition: KEEP RESEARCH ONLY — NEED MORE AUTHORITATIVE EVIDENCE BEFORE
+IMPLEMENTATION.** Runtime Files implementation zero, inventories 21, new permissions zero.
+No secure public Files contract is claimed; timeout did not cause this conclusion. Future reopening
+needs a supported version-applicable user-storage/root authorization model and canonical containment
+including traversal/encoding/link escapes and races, explicit sensitive-path exclusion, plus bounded
+current listing/content/error semantics. Writes additionally need exact target/conflict/overwrite/
+Trash/completion/idempotency/recovery semantics, manager-selected default-off authority/approval
+and separately authorized positive UAT. Root IDs are not mandatory if an equivalent supported
+authoritative binding exists; neither API labels nor another client prefix normalizer suffice.
+
+Resumption made **zero new VM calls**. Aggregate remains 97 GETs/five auth POSTs/zero non-auth
+mutations, with the latest preserved before/after comparison confirming all four apps/fixtures
+unchanged. No new live comparison is claimed. Research-only documentation gates/local checkpoint
+close this assignment; no runtime/build/UAT rerun or phase/release/publication action is authorized.
+
+## Phase 10 — file/storage research kickoff (2026-10-12)
+
+Baseline `ee59b27989bc64196c3bd922d9381f2ff61c0473`, stable v0.4.0/21 tools. Broad current
+supported API research precedes tool selection. Separate source classes: authoritative docs/spec,
+version-applicable first-party source/UI, fresh guarded read-only VM observations and inference.
+Root/share identity, containment/symlinks/sensitive scope, listing/metadata/download/search bounds
+and all write/conflict/Trash/upload/recovery leads must be preserved, including unsuccessful/unknown
+findings. Read implementation is conditional on proven useful safe contracts with no read permission;
+write authority remains undecided, writes forbidden. At kickoff no live request or new public tool existed.
+This section is a kickoff record, not evidence that a safe file API exists. Local only; no publication.
+
+### Initial fresh protection/static-UI pass — incomplete, preserved separately
+
+Guarded existing auth/app/config/container reads established a fresh private baseline and matched
+retained prior protection. GET `/` returned 200/1501 bytes, but the probe's exact absolute-index
+selector did not establish one unique script path; no file/storage API was called. This pass stopped
+with **10 GETs/one auth POST/zero active diagnostics/non-auth mutations**. Its report/baseline remain
+separate; final after comparison and fresh wrapper capture are pending a bounded corrected pass.
+This is a discovery-parser limitation, not proof that a file API or public UI is absent. No write,
+replay of a mutation or prototype implementation occurred.
+
+### Completed fresh baseline and version-applicable public wrapper capture
+
+A separate corrected static-discovery pass matched the initial and retained prior app baselines,
+then verified all four apps/config hashes/container identity/state/attachments unchanged afterward.
+Only quoted/unquoted/relative script-attribute parsing was broadened; auth/origin/method/byte/path
+guards remained enforced. Counts **23 GETs/one auth POST/zero active diagnostics/non-auth mutations**.
+Both reports remain distinct: aggregate initial research is **33 GETs/two auth POSTs/zero active
+diagnostics/non-auth mutations**. No file/storage target API or content read was called yet.
+
+Fresh same-origin public index/system SDK hashes exactly match the Phase 9 captures. A previously
+unexamined current file SDK is now retained privately: `/assets/vendor-api-files-CAznwRc3.js`,
+SHA-256 `048a2718aab997e63e897078e2f2cb352b65d5d5386091efa0565216ea55f7ea`.
+Public assets supply current route/request/model leads, not proof of backend containment or source
+revision equivalence. Baseline/captures/journals stay in owner-only durable `evidence/phase10`;
+no topology, fixture IDs, raw Compose or credentials enter tracked docs. Bounded public-source
+research is underway; no read contract or write policy is selected before broad research completes.
+
+### Bounded public-source research return — leads, not final contract acceptance
+
+The first public researcher completed 21 calls, within the 22-call retrieval budget, but exceeded
+the requested 20-minute elapsed bound (46m30s). Its durable report is private; it made no VM calls,
+credential access, repository edits or implementation. Its COMPLETE label applies only to that
+bounded subtask. Phase research remains incomplete, especially root/share/path and backend guarantees.
+
+Parent read the complete report and checked decisive public SDK/index contexts. The file bundle
+uses generated Axios clients; do not assume a server-side oapi-codegen implementation. It contains
+multiple API families/default bases (including backup), so class/operation base must be traced before
+forming full endpoints. Index binds FileApi/FolderApi/TrashApi/StorageApi/ShareApi through `dt`;
+separate StorageMethods/DiskMethods bind `/v2/local_storage`. Never borrow that unrelated prefix.
+Reported 97 operations/21 classes remain extraction claims, not independently accepted totals.
+
+Official guide was independently browser-read: exact package is **`@icewhale/zimaos-localstorage-openapi`**,
+NOT the report's inconsistent `@icewale/...` spelling. Guide example binds StorageMethodsApi to
+`/v2/local_storage` and cites `zimaos-local-storage/local_storage/openapi.yaml`; page claims MIT.
+That is not verification of every package/archive license or current File API backend behavior.
+Parent Git remote read independently confirms CasaOS-LocalStorage HEAD
+`a9b12800df6ae9b27ef44ce800b857aa5334f565`; report's inconsistent short `a9b2800` is rejected.
+Legacy Apache-2.0/source-path findings are supplementary leads, not deployed equivalence. Official
+spec/CasaOS-Files 404 observations and a one-page organization search do not prove product absence.
+
+Provisional current client routes below are **module-relative**, NOT yet approved live requests:
+
+| Area                                | Exact client route leads                                                                                                                                | Unsettled semantics / provisional disposition                                                                                                                                                                                                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Listing/metadata                    | GET `/file`, `/file/online`, `/folder`; POST `/file/stats`, `/mediainfo`; GET `/thumbnail`                                                              | Literal path input, root/share identity, symlink/traversal containment, fields/nulls/limits/pagination/hidden/error handling unknown. Thumbnail/stat/history effects must be verified rather than treating GET or a read-like name as passivity. **DEFER** pending broad security research |
+| Download                            | GET `/file/download?path=...`                                                                                                                           | Range is a possible header, not an asserted query parameter; no Range absence or bounded-text/encoding guarantee follows from client signatures. Binary/size/streaming and sensitive-root boundaries unknown. **DEFER**                                                                    |
+| Search                              | GET/PUT `/file/search`                                                                                                                                  | Client exposes search-service status enable/disable, not established query/result/root/pagination contract. No crawling substitute and no global absence claim. Read/search **DEFER**, PUT is future control only                                                                          |
+| History, storage/shares/connections | GET `/file/history`, `/share`, `/share/list`; StorageApi and connect/cloud clients                                                                      | Mixed user/app/system paths, secrets/root/offline/ownership/completeness unknown; full prefixes and selected projections unsettled. **DEFER** pending targeted evidence                                                                                                                    |
+| Create/rename                       | POST `/file`, `/folder`; PUT `/file`, `/folder`                                                                                                         | Body/query fields need corroboration; PUT/file must not be guessed to mean content overwrite. Parent has not accepted path/collision/atomicity/recovery semantics. **FUTURE WRITE — MANAGER REVIEW REQUIRED**                                                                              |
+| Upload                              | GET/POST `/file/upload`, POST `/file/uploadV2`, GET `/file/upload_info`                                                                                 | Chunk params path/relativePath/filename/chunkNumber/totalChunks and multipart path/modTime/file are client leads; finalization/temp state/overwrite/resume/integrity/storage-full/offline unknown. Even check/upload GET needs effect verification. **FUTURE WRITE — RESEARCH ONLY**       |
+| Move/copy/tasks                     | POST `/task`, `/task/cut`, `/task/copy`, `/task/duplicate`, `/task/import`, `/task/migrate`, `/task/decompress`, `/task/retry`; PUT/DELETE `/task/{id}` | Client skip/rename/overwrite and conflict/failed/processing/partial_success enums are not defaults, atomicity, safe retry or rollback. Backup error/task routes may use a different family. **FUTURE WRITE — RESEARCH ONLY**                                                               |
+| Trash/delete                        | DELETE `/file`, `/folder`, `/file/trash`; GET/POST/DELETE `/trash`, POST `/trash/empty`, GET `/trash/stats`                                             | Path bodies/filter all/operable are leads; restore target/conflicts, retention/mount limits, permanent-delete vs Trash behavior and metadata/recovery unknown. **FUTURE WRITE — RESEARCH ONLY**; reads **DEFER**                                                                           |
+| Storage/share controls              | DELETE `/file/storage`, POST `/file/storage/predelete`, POST `/web/path/check`; POST/PUT/DELETE share/Samba/cloud/connect operations                    | Force/reason/status leads do not prove effects, read-only preflight, root containment or recovery. Larger mount/service/network/remote exposure blast radius. **DEFER** controls outside a future narrowly approved file-write scope                                                       |
+
+No source establishes safe root containment merely because an endpoint accepts a path or a UI
+shows a storage label. No file content, symlink/traversal test, cache-generating thumbnail, upload
+check, metadata POST or write route has been called. Read flag remains forbidden; write policy
+undecided. A bounded follow-up traces current root/base/request semantics before any product decision.
+
+### Parent verification of follow-up and passive root/module metadata
+
+Second return reports 13 internal calls versus runtime 16 invocations (requested cap 14); do not
+claim exact compliance. Parent independently confirms index binding `dt="/v2_1/files"` at offset 154069. File/Folder/Trash/Share/StorageApi instances explicitly use this prefix, not their default
+`/v2`. The same bundle contains separate backup clients with default `/v2/backup` (offset 108482):
+the child's assertion that all 58 listed routes use the Files prefix is rejected. Its eight remaining
+unknowns are not resolved merely because its bounded subtask ended. Generated Axios helper names
+do not prove the claimed oapi-codegen generator/backend. Parent extraction finds a different count;
+no total/exhaustive public API inventory is accepted from regex alone.
+
+Further corrected request facts from current Files client:
+
+- GET `/v2_1/files/file`: required path; optional index/size/sfz/sort/direction. Pagination origin,
+  maximum page size, sfz meaning and hidden/link response fields remain unproven. No hidden-parameter
+  claim beyond the examined method. GET download's lack of a query Range parameter is not lack of
+  HTTP Range support.
+- POST `/v2_1/files/file/upload` IS present (offset 32469), contrary to follow-up: multipart fields
+  relativePath, filename, totalChunks, chunkNumber, path, file, chunkSize, currentChunkSize, totalSize,
+  identifier. POST `/v2_1/files/file/uploadV2` (33425) sends path/modTime/file. No overwrite, checksum,
+  resume/finalization/temp-cleanup/atomicity guarantee is established by those client fields.
+- PUT `/v2_1/files/file` (34517) sends a JSON body, NOT the initially suggested query rename fields.
+  Body schema and operation meaning remain unverified. Restore POST `/v2_1/files/trash` (101946)
+  sends a required JSON body; restore target/conflict semantics remain unknown. Task conflict enums
+  do not establish defaults or overwrite behavior of every write route.
+
+Parent guarded metadata pass: GET `/v2/local_storage/storages` returned 200, bare one-entry array
+with extensions/font/name/path/type. Path is absolute, not `/`, and outside the logical `/DATA`
+namespace; no grant-bearing opaque root ID established. GET `/v2/local_storage/storage/stats`
+returned 200 with sys_disk/sys_usb strings, not demonstrated capacity statistics. Do not normalize
+them into used/free bytes. The getStorageUsage call consumed by dashboard member/disk limits is
+`/storage/quota/usage`; UI current/limit defaults are not a capacity contract.
+
+GET `/v2/mod_management/modules` returned 200 with seven module descriptors. Routine Home moduleList
+and constructor corroborate the read; the file UI's source-backed public entry is
+`/modules/icewhale_files/index.html`. Module metadata is not a filesystem authority/health contract.
+All raw values remain private; only shape/classification is recorded. This pass used **21 GETs/one
+auth POST/zero active diagnostics/non-auth mutations**, before/after/prior comparison preserving all
+four apps/retained fixtures. Aggregate so far **54 GETs/three auth POSTs/zero non-auth mutations**.
+No file path/list/download/thumbnail/history/upload-check/write request occurred. Root bindings,
+aliases/link containment and sensitive app-data boundaries still need current file-UI/backend evidence.
+
+### Current Files UI — stronger root/sensitivity and write evidence
+
+Module entry advertised by the supported descriptor was fetched as static source, never executed
+as a browser app (no UI-triggered history/task/write). Initial bounded main-script fetch stopped
+after **11 GETs/one auth POST** before its after comparison; report is preserved. A distinct
+completion pass with an 8 MiB cap for public JS only fetched the main and 12 bounded import leads,
+then matched initial/prior/probe baselines and final all-app state. **32 GETs/one auth POST**, zero
+active diagnostics/non-auth mutations. Main public source `/modules/icewhale_files/assets/main-C-FLc10Q.js`
+SHA-256 `3415b05bac0cf2a2d309f7de4fb1a6703bc4de5d53ce5da08a490a2d2c8c9a9c`.
+The failed fetch is not evidence of file-download size/range failure; static research cap changes
+do not define product content limits. Four apps/retained fixtures remain unchanged. Combined Phase 10
+traffic including both failed passes is recorded separately from successful observations.
+
+Current File UI differs from dashboard's older client surface. Parent verified:
+
+- Main offset 2035479 maps `/DATA` to a display `/ZimaOS-HD` prefix and removes `/media` for
+  display. These are presentation aliases, not canonicalization/root-containment proof.
+- Offset 2820254: admin sidebar uses getPin/getDriverList/getAllStorages; non-admin calls
+  getUserPermission. Permission-list paths retain original fullPath and produce display aliases.
+  GET share-permission client lead exists (`/share/permission`, offset 635548); no native backend
+  grant/containment guarantee is established by UI role branching. Admin-configured API access must
+  not silently become unrestricted authenticated MCP file access.
+- Offset 2821437: remote-share connection is an explicit createConnect action with host/username/
+  password; passwords can be stored in UI localStorage. Do not read/pass through connection objects
+  or private app/browser state. Remote mounts are not equivalent to ordinary local roots.
+- Offset 2618521: restore client submits selected items, uses raw_path for the original directory and
+  handles success/failed/file-conflict/partial-success outcomes. This corroborates UI expectations of
+  per-item conflicts/partial completion, not actual tested restoration/atomicity or retry safety.
+- Current folder client adds POST `/folder/encrypt`, `/folder/lock`, `/folder/unlock`, GET
+  `/folder/unlock_retry_cooldown`. Encryption/lock/unlock are additional **FUTURE CONTROL — DEFER**:
+  confidential data/key/availability and retry/lockout effects require separate scope/approval and
+  source-backed recovery. Never invoke them or infer a safe unlocked-content read contract.
+
+No symlink/no-follow/realpath guarantee was established in the examined client/UI. A Vue route with
+path `/` is a UI router root, not proof that the filesystem API exposes `/`; that interpretation is
+explicitly rejected. Root membership/sensitivity/alias resolution and server-side containment remain
+unresolved. No unsafe traversal/symlink or arbitrary system-path/content probe was attempted.
+
+### Final parent read disposition and write-phase handoff
+
+**KEEP RESEARCH ONLY.** This is not proof that ZimaOS lacks file APIs, nor manager completion of
+Phase 10. Root/path/sensitivity requirements are not met by presently verified evidence; no read
+tool or placeholder, local runtime, file-read flag or assumed write permission is introduced.
+Public/local tool inventory remains 21. Bare storage labels/paths alone do not yield a coherent
+safe browsing surface and must not be exposed as grants enabling subsequent arbitrary access.
+
+Newer current Files main confirms its own File/Folder/Trash/Share instances use `/v2_1/files`
+(Jg/po at 882680/886362); default at 554217 agrees. Its list request includes **cursor**, not old
+dashboard **sfz**, alongside path/index/size/sort/direction. UI fileList state starts index 1,
+pageSize 10000; this is not a verified maximum, backend pagination origin or cursor-snapshot guarantee.
+No listing response/large-directory/empty/missing/offline/link behavior is fabricated. A byte cap
+alone does not prove pagination completeness; no crawling, recursive walk or guessed stat/read fallback.
+
+Current upload UI (2543670) directly builds multipart path, optional empty `rename`, optional
+chunkSize and a file part whose filename encodes relative name/chunk-number/total-chunks/size.
+This differs from older generated chunk clients. `needRename`/task skip-rename-overwrite are UI/client
+intent, NOT verified server default, fail-if-exists, safe overwrite, versioning, integrity or replay.
+No known current standalone append/atomic-replace/checksum contract was established; no global
+absence claim. Remote/offline mounts, hardlinks, case/Unicode normalization, percent decoding,
+dot/separator behavior, inode/alias stability and TOCTOU protection remain unverified. Root/share
+labels or display prefix rewrites cannot provide that security boundary. No permitted existing safe
+symlink/text fixture was established; creating one would violate this read-only assignment.
+
+| Investigated read                                                                                 | Classification / reason                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Storage/root/share discovery                                                                      | **READ-ONLY DEFER**: fixed metadata reads succeeded, but authority, sensitivity, stable user-root identity/offline completeness and useful safe follow-on contract remain unproven |
+| Directory listing/nested/hidden/type metadata                                                     | **READ-ONLY DEFER**: path/alias/link containment and current DTO/pagination/partial-error semantics lack decisive backend evidence                                                 |
+| File/folder stats/metadata/ownership/checksum                                                     | **READ-ONLY DEFER**: literal targets and POST/read-like effects insufficiently corroborated; no trustworthy link/no-follow/root identity semantics                                 |
+| Bounded content/download/ranges/text                                                              | **READ-ONLY DEFER**: containment/sensitivity first; binary/UTF-8/range/size/file-vs-directory/offline behavior unverified; no large/binary-to-context fallback                     |
+| Native query search                                                                               | **READ-ONLY DEFER**: service status present, query/index/freshness/root/result/pagination contract not established by examined sources; no recursive crawl substitute              |
+| Trash/history/thumbnail/encrypted-folder/remote data reads                                        | **READ-ONLY DEFER**: privacy, effects and availability/lock/link/root semantics unproven                                                                                           |
+| Unrestricted host/root filesystem, container internals/secrets, shell/socket/proxy/crawl fallback | **NO-GO** under this grant; no implementation or live experiment                                                                                                                   |
+
+Write-table paths below are relative to verified **`/v2_1/files`** for independently bound Files classes. Backup
+task/copy/error routes from other modules must NOT be assigned this prefix; their separate authority/
+request/target model remains unverified and DEFER. No endpoint below was executed. For EVERY row,
+same/cross-root/filesystem behavior, root/link safety, metadata/ownership effects, atomicity/partial
+failure, storage-full/offline behavior, idempotency and rollback/recovery need backend evidence;
+UI acknowledgments and enums do not settle them. No automatic replay after ambiguous submission.
+Manager must decide future mutation scope/authority/approval; no flag or final permission model
+is proposed or implemented. Signed exact target/action/content/conflict-mode approval appears
+appropriate for overwrite/upload/destructive/key-affecting operations, not a settled product requirement.
+
+| Write/control candidate and request evidence                                                                                  | Value / effects, conflicts and blast radius                                                                                                                                                                                                                 | Recommendation / positive-UAT prerequisite                                                                                                                  |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST `/file`, POST `/folder`: required JSON create request; PUT `/file`: JSON body; PUT `/folder`: path plus JSON rename body | Create/rename user data; fields/defaults/empty-file vs content semantics not settled. Collision/silent overwrite not approved; payload may affect app data or unexpected link targets                                                                       | **DEFER**; exact schema/eligible roots, fail-if-exists/conflicts, link behavior and missing/full/offline outcomes; dedicated separately authorized fixtures |
+| POST `/file/upload`, POST `/file/uploadV2`; GET `/file/upload`, `/file/upload_info` check leads                               | Multipart/chunk/resume leads and newer rename/filename encoding described above. Overwrite, concurrent upload, integrity, max sizes, staging/finalization/interruption and cleanup unknown; storage exhaustion and app-secret/data replacement blast radius | **DEFER**; rooted byte-bound submission, conflict/integrity/interruption/concurrency/full/offline/recovery UAT; no upload or check probe now                |
+| POST `/task`, PUT/DELETE `/task/{id}`; type copy/move/duplicate, task conflict option skip/rename/overwrite                   | Bulk copy/move can span roots/filesystems, overwrite or leave partial data. UI task states/conflicts imply workflow, not atomic completion/retry/rollback. Cancel is not restoration                                                                        | **DEFER**; exact source/destination binding, duplicates/conflicts, cross-filesystem large/partial moves, metadata/links and ambiguity/recovery UAT          |
+| DELETE `/file`, `/folder`                                                                                                     | Removal may be permanent; body target/count/recursive scope not established. No assumption that these route through Trash; wildcard/recursive targets could destroy user/app state                                                                          | **DEFER**; separate permanent-destructive scope decision, exact targets and explicit approval, disposable restoration/recovery evidence                     |
+| DELETE `/file/trash`: JSON items                                                                                              | Move-to-Trash route lead, preferable only if supported for the target root/mount. Retention, metadata, excluded/offline mounts and bypass/permanent behavior unknown                                                                                        | **DEFER**; verified root-specific Trash semantics, safe deletion/retention/restore and interrupted/ambiguous outcome UAT                                    |
+| POST `/trash`: JSON items; DELETE `/trash`; POST `/trash/empty`                                                               | Restore raw_path expectation and per-item conflicts/partial success observed in UI. Restore collision resolution/targets unverified; delete/empty can be irreversible and multi-root                                                                        | **DEFER**; explicit manager destructive scope, retention/metadata, collision/partial restore, empty/permanent-delete/recovery UAT                           |
+| POST `/file/compression`, generic task decompress leads                                                                       | Archive extraction may overwrite, exhaust disk or create traversal/symlink/zip-bomb effects; no safe archive/target/limit contract                                                                                                                          | **DEFER**; separate archive policy and target/expansion/link/conflict safeguards before any authorized positive test                                        |
+| POST `/folder/encrypt`, `/folder/lock`, `/folder/unlock`                                                                      | Keys/confidentiality/lockout/availability; body and cooldown are not safe retry/recovery proof. Existing locked app/user data must not be bypassed                                                                                                          | **DEFER** beyond ordinary writes; key lifecycle, exact action approval and separately authorized recoverable fixtures                                       |
+| Share/Samba/torrent/cloud/connect/pin/history/search-service/migration/storage controls, predelete/path-use checks            | Wider network/remote exposure, credentials, service/storage/app effects. Path-used/predelete names are not guarantees of read-only dry run or safe repair; history/pin changes are mutations too                                                            | **DEFER** outside a future narrowly scoped basic-write grant; exact endpoint-family scope/effects and authority before any UAT                              |
+| Arbitrary host/container/system targets, credential passthrough, caller-target proxy or shell/socket fallback                 | Crosses required supported-root/sensitivity and privileged-control boundaries                                                                                                                                                                               | **NO-GO**; not a workaround for missing guarantees                                                                                                          |
+
+Root model would need an explicitly accepted user-storage scope PLUS supported backend containment/
+no-follow/authorization guarantees before per-path reads could proceed. Merely approving a prefix
+or another local path normalizer would not resolve the technical gap. This is a genuine future
+product/security issue, not a request to approve routine DEFER decisions. Publication and any write
+phase require separate authorization; no backend account/permission/share was created or changed.
+
+Final traffic aggregation from five distinct reports: **97 GETs/five authentication POSTs/zero active
+diagnostics/zero non-auth mutations**. Latest completed app protection matches initial/prior and both
+interrupted passes. Private captures/source hashes/journals/rejected child claims remain durable under
+`evidence/phase10`; this section retains important successful/ambiguous/rejected/write findings in
+tracked research. No prototype/container/live content UAT exists because no read implementation qualified.
+
 ## Phase 9 — completed network research-only outcome (2026-10-12)
 
 **Final manager disposition: COMPLETE / RESEARCH-ONLY / NO PUBLIC TOOLS DELIVERED.**

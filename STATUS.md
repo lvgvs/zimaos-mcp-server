@@ -1,6 +1,163 @@
 # Status
 
-## Current execution — Phase 9 completed as research-only (2026-10-12)
+## Current state — Phase 10 research closure
+
+**RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** No defensible
+per-path read-only Files contract was established: controlled links crossed the intended subroot,
+and supported atomic rooted/no-follow or equivalent containment authority remains unproven.
+No Files implementation, write capability or new permission; local/public inventory remains 21.
+Research findings, source distinctions and unresolved questions are durable in RESEARCH.
+
+- Repository: https://github.com/lvgvs/zimaos-mcp-server.
+- Preparation branch: `feat/files-read-local`; accepted local closure checkpoint:
+  `4b7502a0d186c497fb3349ce0647cf6f4589d398`. Exact PR/check/merge/main identities are verified
+  in the delivery handoff and private receipt rather than embedded as a self-referential SHA.
+- Closure was Sol-only. No broad research or settled experiment was repeated. An imported helper
+  unexpectedly added a read-only storage/baseline preflight; its traffic and refreshed artifact
+  provenance are recorded privately, not omitted from totals.
+- Confirmed sacrificial cleanup: 18 harmless regular files, two controlled links and three
+  directories removed by exact-name operations; both research roots independently verified absent.
+  Three older recorded setup paths are also absent. Two failed local command-print helpers removed;
+  meaningful private evidence and research scripts retained. No uncertain target was deleted.
+- Privacy cleanup redacted one historical private credential echo while retaining its non-secret
+  permission evidence. No credential copy is retained in Phase 10 evidence; configured-secret and
+  pattern scans are both required, not treated as interchangeable guarantees.
+- Fresh before/after four-app inventory, YAML fingerprints, container identities/state/attachments
+  match the retained baseline; all four tracked configuration hashes match. Retained non-Phase 10
+  apps/fixtures remain unchanged in that sampled comparison. Unrelated mutation traffic is zero;
+  no claim of exhaustive host-wide state verification.
+- Closure traffic: 28 GETs, three auth POSTs, two SSH observations, one SSH cleanup action;
+  no Files API or unrelated mutation. Cumulative Phase 10: 201 GETs, 17 auth POSTs, 10 authorized
+  Files API mutations, 14 SSH observations, three fixture actions; unrelated mutations zero.
+- Documentation formatting, Markdown parse/render/link checks, privacy/private-value checks,
+  inventory/input-equality checks, diff-check and staged Gitleaks PASS. Private evidence Gitleaks
+  and complete-document/configured-secret comparisons PASS after the historical echo redaction.
+  Results and exact checkpoint identity are recorded in the final handoff/private receipt.
+  Prior regression evidence remains 844 mocked tests/48 files plus lint/types/build PASS;
+  no runtime/build/Docker/UAT rerun in this docs-only closure because inputs are unchanged.
+- The cumulative delivery changes only AGENTS/PROJECT/STATUS/RESEARCH. AGENTS carries the previously
+  authorized permanent designated-disposable-VM behavioral-research policy, preserved unchanged
+  from the accepted local checkpoint. Runtime/tests/config/dependencies, both READMEs, tool
+  reference, Docker/Compose and release inputs are unchanged; public inventory remains 21.
+- Parent-only docs/policy GitHub delivery is authorized under the protected Squash workflow and
+  exact-head CI/review-thread gates. Ordinary trusted-main development SHA/edge publication may
+  follow automatically; v0.4.0/version artifacts/stable/latest/Release remain unchanged. No new VM
+  experiment, credential rotation, Files implementation or later phase is authorized.
+- Phase 5 ON HOLD; Phase 9 COMPLETE / research-only. Files code remains deferred until materially
+  new authoritative/version-applicable containment evidence; writes require separate scope.
+
+## Historical execution — Phase 10 interruption checkpoint, local records only
+
+Manager stopped behavioral research after provider `invalid_request` / `cyber_policy` refusal at
+model inference, before the next tool dispatch. No result from the refused request, no retry/bypass/
+model switch/child. Archive/fixture helpers were prepared but not executed. Current task only
+preserves local records/docs; no new VM/SSH/API/browser/behavioral or live preservation check.
+
+Completed beforehand: matching four-app YAML/config/container baseline; non-root SSH connection
+with storage write denial; physical storage and `/DATA` one-item listings200; AppData metadata200;
+display alias and `/etc` listings400 security_policy_blocked; one POST folder200 with SSH-confirmed
+mode0755/root-owned new directory. Failed SSH setup exit1 has UNKNOWN partial effects; directory
+retained, not destructively cleaned up. Post-experiment protected apps/retained fixtures/config
+and current sacrificial state UNKNOWN from existing records, not claimed unchanged.
+
+Continuation26 GET/3auth/1Files API mutation; cumulative123 GET/8auth/1Files API mutation/0unrelated
+API mutations. Two SSH observations and one failed fixture-setup attempt counted separately.
+Traversal/links/content/pagination/upload/conflict/delete/Trash/task lifecycle and final cleanup/
+preservation incomplete. RESEARCH preserves successes/failures/source corrections/provider boundary
+and gap classifications; private evidence/phase10 preserves original journals and closure receipt.
+Scope remains parent-only RESEARCH / INCOMPLETE / INTERRUPTED; no public Files contract, runtime
+implementation or permissions; tools21/v0.4.0 unchanged. Authorized AGENTS VM-policy retained in
+this local checkpoint. Docs formatting/parse/local rendering/link/diff/privacy checks passed;
+staged-secret result is in the final handoff/receipt. No runtime/build/Docker/UAT rerun.
+No publication/main change or next phase. Phase5 ON HOLD; Phase9 COMPLETE. Final SHA is the
+containing checkpoint in Git/private receipt; final gate results in handoff.
+
+### Historical behavioral-research kickoff
+
+Starting `feat/files-read-local` at `ced98c1460b1b55de884e8670c88dc43aa0aedca`, preserving authorized
+dirty AGENTS VM-policy update. Manager permits sacrificial Files mutations and SSH observation;
+product architecture/clean-room/license requirements remain unchanged. No children, runtime Files
+implementation or publication. Establish protected baseline before experiments, preserve each batch
+and count intended Files/API and SSH fixture operations separately from unrelated mutations.
+Source/metadata research below is accepted baseline, not to be repeated without a specific need.
+Behavioral experiments and disposition pending; no positive safety guarantee claimed at kickoff.
+
+## Historical source-only checkpoint closure
+
+## Historical execution — Phase 10 parent-only source research checkpoint closure (2026-10-12)
+
+Resumed `feat/files-read-local` at `00ced76fbb63a5fdfc4fdba338a5d5f215488975`; three dirty
+PROJECT/STATUS/RESEARCH edits preserved. Pre-timeout research was incomplete: upload destination
+and final required-category audit remained, not just reporting. Normal quota at recovery (session
+69%/weekly35% remaining). No children, no restart of completed research and no runtime implementation.
+New explicit read-only authorization resolved saved plaintext `cM` initialization to
+POST `/v2_1/files/file/uploadV2`; original blocked command was not run/retried/bypassed. Parent audited
+the original category breadth and recorded unsupported/unsafe-to-test guarantees as gaps. No new
+VM call: aggregate remains 97 GETs/five auth POSTs/zero non-auth mutations, last all-four protection
+comparison preserved; no new comparison/UAT claim. No fixture created or file mutation attempted.
+
+**Final disposition KEEP RESEARCH ONLY / NEED MORE AUTHORITATIVE EVIDENCE BEFORE IMPLEMENTATION.**
+Canonical roots/containment/symlink escape/sensitive boundaries remain materially unproven; no
+secure public contract, File tool, placeholder, new permission or local runtime prototype. Local/
+published inventory of 21 and v0.4.0 unchanged. Root/path/upload/overwrite/delete/Trash security matrix,
+write/control leads, failures/rejected interpretations and concrete reopening conditions persist
+in RESEARCH; complete parent audit and raw provenance remain private. No phase completion declared.
+Scoped docs formatting, Markdown parse/render review, relative-link/anchor, inventory, diff and
+privacy/private-value checks passed. Staged Gitleaks and the containing local checkpoint identity
+are recorded in the final handoff; no full runtime/build/UAT rerun because inputs are unchanged. Canonical
+main remains `ee59b27989bc64196c3bd922d9381f2ff61c0473`. No push/PR/merge/image/tag/Release/version/
+deployment change. Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 RESEARCH / LOCAL CHECKPOINT ONLY.
+
+### Historical pre-timeout draft checkpoint
+
+**Parent disposition KEEP RESEARCH ONLY.** No coherent useful safe file read contract established:
+raw paths/UI aliases do not prove server root/symlink containment, sensitive app-data separation,
+root grants or snapshot behavior. No rootless metadata placeholder or speculative file tool delivered.
+Published/local inventories remain 21; no source/tests/permissions/dependencies/version/deployment/
+workflow/public README changes. Files base `/v2_1/files` independently confirmed; current Files UI
+has cursor pagination (older dashboard client sfz), encrypted-folder controls, share permissions,
+partial-conflict restore expectations and a different raw multipart-upload flow. Unknown backend
+guarantees are explicit, not erased. Full write/control handoff persists in RESEARCH; policy undecided.
+Complete guarded research traffic: **97 GETs/five auth POSTs/zero active diagnostics/non-auth mutations**;
+all four apps/retained fixtures compared unchanged, including reconciliation of failed static captures.
+No arbitrary file/system path, file content, unsafe traversal/symlink, thumbnail, metadata POST,
+upload-check or write call; static JS only, never UI execution. No read implementation/UAT candidate.
+Repository gates and exact local commit identities are recorded in the final handoff; normal public
+v0.4.0 release/development artifacts remain untouched. Main/origin stay at the kickoff baseline.
+Only PROJECT/STATUS/RESEARCH change locally on `feat/files-read-local`. No push/PR/merge/publication.
+Next manager choices: delivery of research, any future privileged file scope and later write authority/
+approval—not routine evidence-based deferrals. Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 remains
+RESEARCH / LOCAL CANDIDATE ONLY, not declared manager-complete. No later phase or v0.5.0.
+
+### Historical Phase 10 progress checkpoints
+
+Manager authorizes broad supported API/root/path/read/write research followed automatically by
+only justified useful safe LOCAL read-only implementation. No names/count fixed; no file-read
+permission, no assumed write flag/model, no write execution/implementation or publication.
+Started clean/synchronized `ee59b27989bc64196c3bd922d9381f2ff61c0473`;
+local branch `feat/files-read-local`, main/origin unchanged, integration secret file ignored.
+Initial quota NORMAL (session 76% / weekly 41% remaining). Read current permanent/project/state/
+research policies; preserved baseline is 21 tools/v0.4.0 and 844 tests/48 files. No Phase 10 test/UAT
+or runtime change. Fresh app/fixture baseline and after comparison now verify all four protected apps
+unchanged against initial/prior captures. First static index selector failed after 10 GETs/one auth;
+separate corrected 23-GET/one-auth pass completed; reports preserved, aggregate 33 GETs/two auth POSTs,
+zero active diagnostics/non-auth mutations. Current public file SDK captured; no file target read yet.
+Parser failure is not API absence. First public-source child report read/reviewed: 21 calls but
+elapsed bound exceeded; missing root/base/containment/body semantics prevent acceptance of a read
+contract. Parent verified exact official package spelling, first-party Git HEAD and current constructor
+contexts; provisional read/write route leads and rejected inferences persist in RESEARCH. Follow-up
+is bounded to current root/base/request semantics; no tool names, runtime, read flag or write model chosen.
+Follow-up inspected: exact Files base `/v2_1/files` confirmed; backup-base, absent-upload and JSON/query
+claims corrected, not accepted wholesale. Fixed storage/module metadata reads returned 200 and
+preserved all four apps/fixtures; no opaque containment root proved. Root metadata uses an absolute
+path outside logical `/DATA`; stats return device strings, not capacity. Aggregate 54 GETs/three auth
+POSTs/zero non-auth mutations. Current file-UI entry was discovered through supported module metadata;
+bounded static capture is next, not arbitrary file content or a write. No runtime decision yet.
+Record source classes, containment, sensitivity, read bounds and full write/conflict/Trash/recovery
+leads durably before deciding contracts. Normal bounded delegation resumes; parent owns security,
+evidence and delivery. Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 RESEARCH / LOCAL CANDIDATE ONLY.
+
+## Historical Phase 9 completed research-only closure (2026-10-12)
 
 **Phase 9 COMPLETE / RESEARCH-ONLY / NO PUBLIC TOOLS DELIVERED.** Manager rejects publication
 of the three local network-read prototypes: narrow reported settings/state do not establish the

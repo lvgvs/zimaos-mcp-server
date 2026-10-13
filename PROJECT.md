@@ -1569,9 +1569,11 @@ to implement it during the current phase. Historical phases keep their original 
   no public network runtime tools delivered. Useful API observations, limitations and future
   control/diagnostic leads are preserved in `docs/RESEARCH.md`. Public inventory remains 21 tools.
   Deferred capabilities do not automatically reopen the phase.
-- **Phase 10 — Files: APPROVED LATER / NOT STARTED.** Future file management requires its own
-  supported-API security design for path grants/canonicalization, read/write authority,
-  symlink/path escape and destructive behavior. No detailed contract or implementation now.
+- **Phase 10 — Files: RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.**
+  Controlled links crossed the intended subroot; supported atomic root-bound/no-follow or equivalent
+  containment authority was not established. No Files tools or permissions are implemented;
+  inventory remains 21. Research and cleanup are complete; docs/policy-only protected GitHub
+  delivery is authorized. Write capability and any further research require separate authorization.
 
 Later candidates, without implementation authorization or additional numbered phases: richer
 installed-app status/details; low-priority, uncommitted semantic app-settings helpers; later
@@ -1691,3 +1693,147 @@ publication after the docs merge is allowed; version artifacts, stable/latest an
 After verified protected Squash delivery and research preservation, remove the rejected local
 implementation branch without publishing it; retain private durable provenance. Phase 5 ON HOLD,
 Phases 6/7/8/9 COMPLETE, Phase 10 NOT STARTED. Stop after the final verification/handoff.
+
+# Phase 10 — Files research and conditional local reads (2026-10-12)
+
+## Current disposition and closure boundary
+
+**RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** The research
+established useful current route and behavioral evidence, but no defensible per-path Files MCP
+surface. Representative traversal rejection does not prove containment: controlled links were
+observed crossing the intended subroot into harmless sacrificial AppData. Lexical-prefix checks
+and sequential preflights cannot repair that observed boundary. No supported version-applicable
+authoritative rooted/no-follow or equivalent containment contract was established.
+
+No Files runtime tool, placeholder or permission is implemented; reads and writes remain deferred,
+with 21 existing tools. Reopening requires materially new authoritative, version-applicable
+root/sensitive-path/atomic containment contracts and the relevant bounded behavior, not repetition
+of settled experiments or a shell
+fallback. Remaining hardlink/race/mount/offline/large-directory and write-lifecycle questions are
+explicit unknowns in RESEARCH, not universal negative claims about ZimaOS.
+
+Parent-only local research closure and sacrificial cleanup are complete. The current assignment
+authorizes docs/policy-only protected GitHub delivery, exact-head checks and Squash merge; the
+permanent disposable-VM research policy is included without changing its substance. No further
+research, implementation, delegation, credential rotation, release/tag/stable/latest change or
+next phase is authorized. Existing trusted-main development publication may run automatically
+under repository policy; it is not release promotion. Delivery does not mean Files implementation
+is complete. Phase 5 stays ON HOLD; Phase 9 COMPLETE / research-only.
+
+## Historical initial authorization
+
+Manager starts Phase 10 from canonical `ee59b27989bc64196c3bd922d9381f2ff61c0473`;
+stable v0.4.0 and 21 public tools remain unchanged. Complete broad supported current file/storage
+research first and preserve every meaningful successful/rejected/deferred/ambiguous finding.
+If a coherent useful safe read-only set is established without a material unresolved product/security
+decision, parent proceeds automatically into local implementation; otherwise retain a research-only
+checkpoint. No predetermined tool names/count. Phase 9 stays COMPLETE, Phase 5 ON HOLD.
+
+Investigate roots/shares/disks/pools/volumes/user/media/app/system paths, opaque vs absolute/relative
+identity, stability/offline/network/removable storage and ownership. Map directory listing, file
+metadata, bounded download/text/binary/ranges/encoding, native search, ordering/pagination/limits,
+missing/inaccessible/partial responses and sequential-read atomicity. Critical containment research
+covers traversal, separators/dot segments, encoding/Unicode/case/aliases, mounts/symlinks/hardlinks
+and sensitive system/app state. Never silently use `/` or unrestricted host paths as user-storage.
+If only useful raw host-path APIs exist and safe containment cannot be proven, do not implement them;
+record the security/product blocker. API scope is not established by UI presentation alone.
+
+Accepted reads require normal authenticated MCP access and **NO separate file-read permission**;
+no `ALLOW_FILE_READ`, no mutation permission coupling. Strict closed inputs, proven roots/containment,
+bounded bytes/counts, credential-safe selected outputs, safe errors, malformed-data rejection,
+honest missing/unavailable/error vs empty, safe links and no unbounded recursion/content. Content
+reads require supported safe size/text/binary behavior; no multi-GB-to-context or invented streaming.
+No crawling/search fallback, SSH/shell, host scraping, `/proc`/`/sys`, socket/namespace/bind-mount
+escape, private guessed endpoint or unrestricted filesystem proxy. Clean-room exclusions remain.
+
+Research all write leads only: mkdir/create/upload/replace/append, rename/move/copy, conflicts,
+overwrite, Trash/restore/empty/permanent deletion. Preserve exact endpoint/request/source/target,
+same/cross-root/filesystem behavior, permissions/metadata/link effects, size/chunk/resume/integrity,
+temporary/finalization/interruption/storage-full/offline behavior, atomicity/partial failure,
+idempotency/retry ambiguity and rollback/recovery/blast radius. Silent overwrite is disfavored,
+not a settled contract. Write authority is undecided: no `ALLOW_FILE_WRITE` or assumed substitute;
+report options/approval/UAT requirements for later manager decision, never finalize or implement writes.
+
+Before any live pass, obtain a fresh all-app/retained-fixture baseline and after comparison. Allow
+only authentication POSTs and verified non-mutating supported reads; count traffic and require zero
+non-auth mutations. Never manufacture test files/directories or alter existing apps/files/deployment,
+network, ownership, device restart or OS update. Existing safe disposable state may be read only;
+if validation needs writes, DEFER it. Missing semantics defer an individual capability, not all research.
+
+Normal bounded Qwen/local delegation applies; Sol owns scope/security/containment/contracts,
+evidence acceptance, live interpretation, bilingual public docs and Git. Children get no secrets,
+live file mutations, publication or forbidden historical source. Substantial implementation requires
+independent read-only security review, parent disposition and traversal/link/size/error/mutation-negative
+tests, while preserving the baseline 844 mocked tests/48 files and existing 21 tools. Run full local
+format/lint/production+test types/tests/build/Docker/Compose/audits/docs-inventory-parity/privacy/Gitleaks.
+If implemented, paired README/usage updates remain local, human-facing/unreleased and preserve
+near-top AI disclosure. Exact disposable local non-root authenticated MCP UAT must cover every new
+read and existing reads with all mutation flags disabled, bounded outputs and protected state.
+
+Everything remains on a local branch, including checkpoint commits and durable findings. No push,
+PR/merge/main modification, external image/SHA/edge publication, tags/Releases/stable/latest movement,
+v0.5.0 or later phase. Stop task-wide for quota, uncertain protected state, fundamental phase-wide
+architecture/security conflict, necessary mutation or scope escape. Final consolidated A–L report
+covers research/security/read dispositions/contracts/Git/gates/UAT/write leads/gaps/durability/real
+manager choices/recommendation/state/quota; optional non-binding Parent Advice follows AGENTS.
+Separate explicit authorization is required for GitHub delivery and any write implementation.
+
+## Historical Phase 10 research-only checkpoint disposition
+
+Parent outcome **KEEP RESEARCH ONLY**: useful current file/storage route leads exist, but a coherent
+safe read set is not established. Files APIs/UI use path strings and display aliases; native opaque
+root grants, server containment/no-follow and app-sensitive boundaries are unproven. Do not invent
+prefix canonicalization or substitute a raw host-path proxy. Metadata-only root labels do not supply
+a useful browsing contract or establish safe follow-on access. All proposed file reads DEFER; no
+new tool/name/placeholder/read permission or runtime implementation. Existing surface remains 21.
+Write/Trash/upload/task/encryption/share-control leads and unknowns remain in RESEARCH for later
+manager scope/authority/approval decisions, without an assumed write model. This is a local research
+checkpoint, NOT manager closure of Phase 10. Phase 10 RESEARCH / LOCAL CANDIDATE ONLY; no next phase.
+
+## Historical Phase 10 research resume / closure authorizations
+
+### Historical behavioral-research continuation
+
+**Historical resume authorization (2026-10-13):** complete bounded behavioral research and decide
+read-only feasibility; normal useful delegation resumes. If defensible, define the exact safe
+contract and implement/test/review only read-only tools locally. No product writes or publication.
+First reconcile interrupted fixtures and protected state with read-only observation; preserve
+evidence before safe cleanup. Prior interruption-only instructions below are historical. Do not
+retry/bypass the provider-refused fixture operation; the refusal remains an evidence constraint.
+
+**Historical local disposition:** MORE EVIDENCE REQUIRED — NOT IMPLEMENTED. Preserved current-module
+and VM evidence demonstrates directory-link listing and file-link content access into controlled
+sacrificial AppData outside the intended subroot. No supported atomic root-bound/no-follow or
+equivalent containment contract is established. Prefix checks or sequential metadata preflights
+cannot repair that boundary; root-label-only placeholders are not a useful Files surface. No
+read/write tool or permission is added; inventory stays 21. Reopening needs version-applicable
+supported root/sensitivity/containment authority, not repetition of the settled escape experiment.
+The bounded source-audit correction did not finish; its missing artifact is a recorded blocker,
+not accepted evidence. This local checkpoint does not declare Phase 10 manager-complete.
+
+**Historical interruption-only authorization after provider safety refusal — LOCAL CHECKPOINT ONLY:**
+read existing project/evidence records, preserve completed facts and unknown state, document the
+refusal/incomplete questions and create one local docs/policy checkpoint. No VM/SSH/API/browser/
+filesystem/security-boundary experiment or live preservation/cleanup check, no refused-action
+retry/reproduction/substitution/bypass, no child/alternate model, implementation or publication.
+Phase 10 remains RESEARCH-ONLY / INCOMPLETE / INTERRUPTED pending separate manager direction.
+The positive-testing authorization below is historical, not permission to resume during closure.
+
+Manager now authorizes parent-only positive/negative Files experiments on the designated disposable
+VM/account, with SSH enabled for fixture setup and ground-truth observation. Investigate roots,
+containment, traversal, symlinks, sensitive paths, listing/content, upload/conflict and delete/Trash/
+async recovery. Preserve unrelated apps, retained Phase 5 fixtures and configuration. Count intended
+Files mutations separately; unrelated mutations must remain zero. SSH is research only, never a
+product fallback. No runtime implementation, children, publication or phase progression. Preserve
+the authorized VM-policy edit; finish with one local research/policy checkpoint and manager report.
+Earlier zero-mutation closure and gaps below are historical, not restrictions on this new grant.
+
+Manager authorizes recovery and completion of the existing research only, never runtime tools or
+new Files prototypes. The timeout did not establish completion. Parent recovered all dirty docs,
+resolved the remaining upload assignment under explicit new read-only authorization, audited the
+original breadth and retained unprovable backend guarantees as gaps. Research checkpoint is complete;
+parent retains KEEP RESEARCH ONLY / NEED MORE AUTHORITATIVE EVIDENCE, with no secure Files contract.
+Scope/reopen conditions and security matrix are in RESEARCH. No read/write flag or final write model.
+One local docs checkpoint, scoped docs/privacy/Gitleaks checks and final report only; no full runtime/
+build/UAT repeat when inputs unchanged. No children, live mutations, GitHub publication or main change.
+Phase 5 ON HOLD; Phase 9 COMPLETE; Phase 10 RESEARCH / LOCAL CHECKPOINT ONLY, not manager-complete.

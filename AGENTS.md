@@ -433,9 +433,34 @@ Rules:
 - verify it is ignored before the first commit that could include it;
 - do not create GitHub Actions secrets from these credentials.
 
-This VM is an authorized disposable integration environment. You may use it for live integration testing, including reversible and destructive application-level test actions when useful.
+### Designated disposable VM behavioral-research authority
 
-You may install/remove disposable test applications or change their configuration for test setup if needed. That permission is for test-environment setup only; it does NOT expand the MCP product scope defined in `PROJECT.md`.
+The manager-designated disposable ZimaOS VM and test account are an authorized behavioral-research
+laboratory. For authorized ZimaOS research/UAT, Sol may perform useful bounded experiments without
+separate manager approval for each action, subject to task scope and explicit task restrictions.
+
+- Use the designated account's existing access only; additional privilege requires separate manager
+  authorization. Existing credential-secrecy rules apply.
+- Experiments may include supported API reads/mutations, UI behavior, sacrificial files/folders/data,
+  uploads/overwrites/moves/renames/deletes/Trash, controlled symlink/path fixtures, app/container and
+  network/configuration operations, restart/recovery tests and other bounded experiments. Do not
+  stop at UNPROVEN solely because a useful positive or negative test mutates this disposable VM;
+  do not mutate merely for ceremony.
+- SSH/web-terminal/console and direct filesystem/configuration observation may establish ground
+  truth before/after an experiment. These are research evidence only, not permission for product
+  SSH/shell/filesystem/socket/host-namespace workarounds or unsupported fallback mechanisms.
+- Before disruption, define the question, use sacrificial state when practical and preserve an
+  interpretable baseline and unrelated active-task evidence. Afterward, record changes/results and
+  clean up when useful. Classify conclusions as OBSERVED ON TEST VM, SUPPORTED/CONTRACTUAL, INFERRED
+  or UNPROVEN; one test does not prove all paths, mounts, races, versions or configurations.
+- Product eligibility still requires supported, current/version-applicable contracts. First-party
+  UI/source and observed private/internal/unstable behavior are evidence, not automatically public
+  API authority; guessed endpoints are not product contracts. Existing clean-room/license rules
+  remain binding, including no inspection/search/clone/fetch/copy/comparison/derivation from the
+  forbidden historical repository and no copying or redistribution of proprietary source/code/binaries.
+- Sol owns experiment selection and interpretation. Existing delegation/manager-override rules
+  remain unchanged; this policy independently grants no child live-mutation authority. Laboratory
+  access does not expand product scope or authorize implementation, publication or another phase.
 
 Do not intentionally damage the base OS when a normal integration test is sufficient.
 
