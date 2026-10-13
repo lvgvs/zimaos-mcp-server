@@ -9,8 +9,9 @@ No Files implementation, write capability or new permission; local/public invent
 Research findings, source distinctions and unresolved questions are durable in RESEARCH.
 
 - Repository: https://github.com/lvgvs/zimaos-mcp-server.
-- Branch: `feat/files-read-local`; closure baseline HEAD: `e37798407f93580686129acf0196f1682a08e8a8`.
-  The containing local checkpoint is identified by Git and the private closure receipt.
+- Preparation branch: `feat/files-read-local`; accepted local closure checkpoint:
+  `4b7502a0d186c497fb3349ce0647cf6f4589d398`. Exact PR/check/merge/main identities are verified
+  in the delivery handoff and private receipt rather than embedded as a self-referential SHA.
 - Closure was Sol-only. No broad research or settled experiment was repeated. An imported helper
   unexpectedly added a read-only storage/baseline preflight; its traffic and refreshed artifact
   provenance are recorded privately, not omitted from totals.
@@ -34,12 +35,16 @@ Research findings, source distinctions and unresolved questions are durable in R
   Results and exact checkpoint identity are recorded in the final handoff/private receipt.
   Prior regression evidence remains 844 mocked tests/48 files plus lint/types/build PASS;
   no runtime/build/Docker/UAT rerun in this docs-only closure because inputs are unchanged.
-- Only PROJECT/STATUS/RESEARCH change. AGENTS, runtime/tests/config/dependencies, both READMEs,
-  tool reference, Docker/Compose and release inputs remain unchanged. v0.4.0 and existing public
-  GHCR/deployment readiness are unchanged; no image/deployment operation was performed.
-- No push, PR, merge, publication, tag/Release or alias change. Phase 5 ON HOLD; Phase 9 COMPLETE.
-  Next manager gate: discuss documentation before separately authorizing docs-only GitHub delivery.
-  Files code remains blocked on supported containment authority; writes require separate scope.
+- The cumulative delivery changes only AGENTS/PROJECT/STATUS/RESEARCH. AGENTS carries the previously
+  authorized permanent designated-disposable-VM behavioral-research policy, preserved unchanged
+  from the accepted local checkpoint. Runtime/tests/config/dependencies, both READMEs, tool
+  reference, Docker/Compose and release inputs are unchanged; public inventory remains 21.
+- Parent-only docs/policy GitHub delivery is authorized under the protected Squash workflow and
+  exact-head CI/review-thread gates. Ordinary trusted-main development SHA/edge publication may
+  follow automatically; v0.4.0/version artifacts/stable/latest/Release remain unchanged. No new VM
+  experiment, credential rotation, Files implementation or later phase is authorized.
+- Phase 5 ON HOLD; Phase 9 COMPLETE / research-only. Files code remains deferred until materially
+  new authoritative/version-applicable containment evidence; writes require separate scope.
 
 ## Historical execution — Phase 10 interruption checkpoint, local records only
 

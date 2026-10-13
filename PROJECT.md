@@ -1572,8 +1572,8 @@ to implement it during the current phase. Historical phases keep their original 
 - **Phase 10 — Files: RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.**
   Controlled links crossed the intended subroot; supported atomic root-bound/no-follow or equivalent
   containment authority was not established. No Files tools or permissions are implemented;
-  inventory remains 21. Research and cleanup are checkpointed locally for manager discussion;
-  write capability and GitHub delivery require separate authorization.
+  inventory remains 21. Research and cleanup are complete; docs/policy-only protected GitHub
+  delivery is authorized. Write capability and any further research require separate authorization.
 
 Later candidates, without implementation authorization or additional numbered phases: richer
 installed-app status/details; low-priority, uncommitted semantic app-settings helpers; later
@@ -1706,16 +1706,19 @@ and sequential preflights cannot repair that observed boundary. No supported ver
 authoritative rooted/no-follow or equivalent containment contract was established.
 
 No Files runtime tool, placeholder or permission is implemented; reads and writes remain deferred,
-with 21 existing tools. Reopening requires new supported root/sensitive-path/atomic containment
-authority and the relevant bounded behavior, not repetition of settled experiments or a shell
+with 21 existing tools. Reopening requires materially new authoritative, version-applicable
+root/sensitive-path/atomic containment contracts and the relevant bounded behavior, not repetition
+of settled experiments or a shell
 fallback. Remaining hardlink/race/mount/offline/large-directory and write-lifecycle questions are
 explicit unknowns in RESEARCH, not universal negative claims about ZimaOS.
 
-The current assignment is parent-only closure: preserve research, reconcile documentation, remove
-only confirmed Phase 10 sacrificial state, verify protected state and create one local docs-only
-checkpoint. No further research, implementation, delegation, push/PR/merge/publication, release/tag/
-alias change or next phase. Manager discussion precedes any docs-only GitHub delivery. Local
-closure does not mean Files implementation is complete. Phase 5 stays ON HOLD; Phase 9 COMPLETE.
+Parent-only local research closure and sacrificial cleanup are complete. The current assignment
+authorizes docs/policy-only protected GitHub delivery, exact-head checks and Squash merge; the
+permanent disposable-VM research policy is included without changing its substance. No further
+research, implementation, delegation, credential rotation, release/tag/stable/latest change or
+next phase is authorized. Existing trusted-main development publication may run automatically
+under repository policy; it is not release promotion. Delivery does not mean Files implementation
+is complete. Phase 5 stays ON HOLD; Phase 9 COMPLETE / research-only.
 
 ## Historical initial authorization
 

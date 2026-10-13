@@ -139,7 +139,13 @@ journal method/action counts were checked against recorded counters. Earlier tot
 attempts; legacy counters are retained rather than represented as a new complete historical audit.
 Private parent-closure-traffic.json and before/action/after evidence support the closure. Sampled
 protected-state equality and zero unrelated mutation traffic do not prove every unobserved host path,
-mount or configuration. No Files runtime, write permission, publication or release change occurred.
+mount or configuration. No Files runtime, write permission, publication or release change occurred
+during local closure. Subsequent authorization covers only docs/policy GitHub delivery and normal
+trusted-main development publication, not a release or additional VM work.
+
+The dated records below preserve earlier evidence boundaries and restrictions. Their pending,
+UNKNOWN and local-only states describe those historical passes; the consolidated outcome and
+verified closure above are the current disposition.
 
 ## Historical Phase 10 behavioral research interrupted — local records only (2026-10-12)
 
