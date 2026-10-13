@@ -25,6 +25,41 @@ Initial-development visibility requirements in the
 historical phase specifications below remain unchanged; product scope and safety boundaries
 are not altered by publication approval.
 
+## Current authorized work — application-management continuation (2026-10-13)
+
+Continue the existing Phase 1 application details/status/management surface from canonical
+`15384a1e2bc2a0b86eb49730951a82188cfa1ef7`, version 0.4.0 and 21 tools. This is a natural
+continuation, not a separate richer/advanced/extended/v2 family or a new numbered roadmap phase.
+Research current version-applicable app/runtime APIs and UI, inventory existing coverage, and
+produce a candidate matrix before selecting the smallest coherent useful scope. A valid outcome
+is research complete with no useful addition; do not manufacture a capability.
+
+Backward-compatible existing-tool extensions and distinct naturally named new tools are authorized
+locally. Read-only app information requires no new permission. Useful mutations are also authorized
+locally only with supported target/effect/lifecycle semantics, fail-closed ambiguity/retry behavior
+and correct existing risk-family gates; a new default-off permission requires a genuinely distinct
+security boundary. Preserve existing approvals, stale-state safeguards and acceptance-versus-
+completion distinctions. Do not duplicate logs, health, containers, Compose or existing lifecycle,
+installation, catalog and uninstall capabilities merely because another endpoint exists.
+
+Use normal bounded delegation and correction loops; Sol retains scope/contracts/security,
+permission decisions, acceptance, UAT interpretation, paired public README authoring and Git.
+The designated disposable-VM policy applies to necessary bounded experiments, with protected
+baselines, uniquely owned sacrificial state, cleanup and after-verification. SSH/direct observation
+are research aids only, never product fallbacks. Preserve provenance and classify contractual,
+observed, inferred and unproven evidence separately.
+
+Complete applicable mocks/full regression/static/build/Docker/Compose/security/privacy/inventory,
+documentation parity/rendering and useful live UAT gates; obtain independent read-only review
+where appropriate. Persist source findings, candidate dispositions, exact contracts, limitations,
+actual gates and UAT results. Finish with coherent local commits and a clean worktree for manager
+review. No push, PR, merge, publication, alias movement, version bump, tag, Release or release asset.
+
+Phase 5 update_app stays ON HOLD; Phase 9 stays COMPLETE / research-only; Phase 10 stays RESEARCH
+COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED. Do not resume them or begin OAuth,
+multi-client grants, semantic settings, system logs, generic notifications, OS update installation,
+ZVM or another roadmap phase. No v0.5.0 declaration or public delivery is authorized.
+
 # Phase 1
 
 ## Objective

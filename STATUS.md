@@ -1,6 +1,25 @@
 # Status
 
-## Current state — Phase 10 research closure
+## Current state — application-management continuation, local only
+
+Research and deepen the existing Phase 1 application surface; no artificial product family or
+later numbered phase. Current milestone: bounded current-source/API coverage research and
+candidate matrix; implementation has not started and no capability is preselected.
+
+- Repository: https://github.com/lvgvs/zimaos-mcp-server.
+- Branch: `feat/app-management-local`; canonical/start baseline:
+  `15384a1e2bc2a0b86eb49730951a82188cfa1ef7`; clean main recovered before branch creation.
+- Starting quota remaining: session 71%, weekly 93%, NORMAL; later checkpoints apply the permanent
+  independent-window rules. Baseline version 0.4.0/public and local tools 21.
+- Read-only extensions/new tools and sufficiently defensible app mutations are authorized locally,
+  subject to evidence, existing permissions/approvals, bounds and parent contract acceptance.
+- Normal Qwen/local bounded delegation and correction loops apply. README authorship, decisions,
+  secrets, Git and final acceptance remain parent-owned. No new live experiment has run.
+- No push/PR/merge/GHCR/edge/stable/latest/version/tag/Release action. Phase 5 ON HOLD; Phase 9
+  COMPLETE / research-only; Phase 10 research complete to current evidence boundary / implementation
+  deferred. Their reopening and all separate future roadmap work remain out of scope.
+
+## Historical state — Phase 10 research closure
 
 **RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** No defensible
 per-path read-only Files contract was established: controlled links crossed the intended subroot,
