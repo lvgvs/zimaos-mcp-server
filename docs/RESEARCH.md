@@ -1,5 +1,50 @@
 # ZimaOS API Research
 
+## Application-management continuation — source checkpoint (2026-10-13)
+
+**IN PROGRESS / NO IMPLEMENTATION SELECTED.** Continue the existing application surface locally
+from `15384a1e2bc2a0b86eb49730951a82188cfa1ef7`; version 0.4.0 and 21 tools are unchanged.
+This investigation does not reopen update_app, network, Files or another roadmap phase.
+
+### Saved-source provenance and limits
+
+- Existing supported application list/container/health/Compose/control/install/catalog operations
+  remain covered by the product. `get_app` currently selects a normalized list entry, not a separate
+  detailed configuration projection. Containers already expose image/state/health/published ports.
+- The saved `appmgmt-v2.yaml` is from
+  <https://github.com/DeniskaAbr/IceWhale-OpenAPI>, a community fork of
+  `SociOS-Linux/IceWhale-OpenAPI`, not a verified official mirror or current backend contract.
+  Its metadata lacks a pinned revision/license for that copy. Treat its localized `title`, `main`
+  service and launch-metadata definitions as structural leads only; do not incorporate its code.
+- The first-party asset `/assets/vendor-api-apps-D8CV56Gp.js` was served at the saved 2026-10-12
+  capture, not freshly verified by this checkpoint. Its SHA-256 is
+  `c82a4275213b5bfb577c7e0e50b531da9da898c7b8eeb6ab3cff4fd07e4362e7`, independently checked
+  against the saved bytes. Multiple generated client families coexist; operation inventories
+  corroborate route leads, not response DTOs or a blanket base assignment.
+- Bounded client analysis identifies `ContainerMethodsApi.getAppUsageList`, GET `/usage`, with
+  the client default-path lead `/v2/app_management/usage`. This remains **INFERRED / UNPROVEN**:
+  no concrete UI caller, effective caller override, current backend contract, passivity, sampling
+  units, container-to-app mapping or response bounds are established. No usage endpoint was called.
+  The older `/installed/container/usage` client is a separate lead, not a substitute contract.
+
+### Provisional capability assessment
+
+| Lead                                                                     | Existing coverage / possible fit                                              | Current disposition                                                                                    |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Installed display metadata and configured catalog association            | Natural existing-app projection; association is not installation-origin proof | Candidate only; current fields and meaning need corroboration                                          |
+| Main-service relationships                                               | Possible existing app/container output extension                              | Candidate only; reported metadata must not become invented runtime authority                           |
+| Runtime image/state/health/ports; logs/Compose/lifecycle/install/catalog | Already covered                                                               | Reject duplicate wrappers/views                                                                        |
+| Per-app/container resource readings                                      | Potentially distinct useful concept                                           | Defer selection; current contract, identity mapping, units and bounds unproven                         |
+| Container-read availability in app health                                | Existing health output currently catches container failures as an empty array | Evaluate an honest backward-compatible availability indication                                         |
+| Launch metadata                                                          | Possible app-information extension, partly overlaps published ports           | Candidate only; no automatic URL fetch or reachability claim                                           |
+| Auto-start, install recovery and container recreation                    | Client mutation leads                                                         | Defer selection pending supported target/effect/lifecycle/ambiguity evidence and permission assessment |
+| update_app                                                               | Phase 5 remains ON HOLD                                                       | Excluded from this investigation                                                                       |
+
+No permission or tool design is decided from these leads. Private source/matrix and bounded-binding
+notes are preserved under active-profile `evidence/app-management-continuation/`. A guarded fresh
+app-metadata/public-source pass is dispatched with protected before/after comparison; its outcome
+is pending, not live evidence claimed here. No runtime implementation or publication has occurred.
+
 ## Phase 10 Files — consolidated research outcome (2026-10-13)
 
 **RESEARCH COMPLETE TO CURRENT EVIDENCE BOUNDARY / IMPLEMENTATION DEFERRED.** No defensible
