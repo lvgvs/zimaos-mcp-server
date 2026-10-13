@@ -19,19 +19,17 @@ The server is the only component that holds ZimaOS credentials. It does not expo
 arbitrary shell execution, the Docker socket, privileged container access, or direct
 ZimaOS internal-file/database manipulation.
 
-**Current release: [v0.4.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.4.0).**
-The release includes all 21 tools below, including guarded device restart, system resource and
-OS-update reads, plus the canonical runtime version in `/health`.
-
-**Development source:** the application-read refinements described below are not part of
-the published v0.4.0 release.
+**Version: 0.4.1.** This source includes all 21 tools below, with refined application names,
+reported main-service relationships and explicit container-read status in health output.
+Use the [GitHub Release records](https://github.com/lvgvs/zimaos-mcp-server/releases) for
+published images and exact installation assets.
 
 ## Capabilities
 
 - **Inspect installed applications:** list Compose apps and read normalized app details,
   containers/services, available health information and bounded recent app logs.
-  Development source also resolves localized names, reports declared main-service relationships
-  and distinguishes failed container reads from successful empty results.
+  Application reads also resolve localized names, report declared main-service relationships
+  and distinguish failed container reads from successful empty results.
 - **Discover and install from the App Store:** search trusted registered catalogs, inspect
   exact repository/app entries and install directly from supported registered entries.
 - **Work with Compose:** install applications from caller-provided Compose, read existing
@@ -125,27 +123,27 @@ Authorization: Bearer <MCP_AUTH_TOKEN>
 
 ## Tool reference
 
-| Tool                                     | Mutation? | Notes                                                                                               |
-| ---------------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
-| `list_apps`                              | no        | Installed Compose apps; development source adds localized names and optional declared main service. |
-| `get_app`                                | no        | Normalized details for one app; same development-source metadata as the list.                       |
-| `search_app_store`                       | no        | Bounded search of enabled registered v2 HTTP Compose catalogs.                                      |
-| `get_app_store_details`                  | no        | Public metadata for one exact trusted repository/app pair.                                          |
-| `get_app_health`                         | no        | Available app/container health; development source explicitly reports container-read status.        |
-| `get_app_logs`                           | no        | Bounded recent logs; default 100 lines, max 500.                                                    |
-| `list_app_containers`                    | no        | App containers/services and ports; development source adds optional declared main-service flags.    |
-| `get_system_info`                        | no        | Small normalized ZimaOS system summary.                                                             |
-| `get_system_resources`                   | no        | Available sampled CPU/memory/system-filesystem metrics; no network or health verdict.               |
-| `get_os_update_status`                   | no        | OS release versions, notice classification, installer state and beta subscription.                  |
-| `restart_device`                         | yes       | Requires `ALLOW_SYSTEM_CONTROL=true`; one restart request, acknowledgment is not completion.        |
-| `validate_app_compose`                   | no        | Local risk analysis + official ZimaOS dry run.                                                      |
-| `get_app_compose`                        | no        | Reads interpolated Compose + SHA-256 fingerprint. Treat output as sensitive.                        |
-| `validate_app_compose_change`            | no        | Validates a proposed change, including risk delta and stale-base checks.                            |
-| `start_app` / `stop_app` / `restart_app` | yes       | Requires `ALLOW_APP_CONTROL=true`.                                                                  |
-| `install_app_from_compose`               | yes       | Requires `ALLOW_APP_INSTALL=true`; risky changes require approval.                                  |
-| `install_app_from_store`                 | yes       | Same install permission; registered catalog identities only, controlled one-shot install.           |
-| `uninstall_app`                          | yes       | Requires `ALLOW_APP_UNINSTALL=true`; sends `delete_config_folder=false`.                            |
-| `edit_app_compose`                       | yes       | Requires `ALLOW_APP_EDIT=true`; uses optimistic base-fingerprint checks.                            |
+| Tool                                     | Mutation? | Notes                                                                                        |
+| ---------------------------------------- | --------- | -------------------------------------------------------------------------------------------- |
+| `list_apps`                              | no        | Lists installed Compose apps with localized names and optional reported main service.        |
+| `get_app`                                | no        | Normalized details for one app, including the same reported metadata as the list.            |
+| `search_app_store`                       | no        | Bounded search of enabled registered v2 HTTP Compose catalogs.                               |
+| `get_app_store_details`                  | no        | Public metadata for one exact trusted repository/app pair.                                   |
+| `get_app_health`                         | no        | Available app/container health and explicit container-read status.                           |
+| `get_app_logs`                           | no        | Bounded recent logs; default 100 lines, max 500.                                             |
+| `list_app_containers`                    | no        | App containers/services and ports with optional reported main-service flags.                 |
+| `get_system_info`                        | no        | Small normalized ZimaOS system summary.                                                      |
+| `get_system_resources`                   | no        | Available sampled CPU/memory/system-filesystem metrics; no network or health verdict.        |
+| `get_os_update_status`                   | no        | OS release versions, notice classification, installer state and beta subscription.           |
+| `restart_device`                         | yes       | Requires `ALLOW_SYSTEM_CONTROL=true`; one restart request, acknowledgment is not completion. |
+| `validate_app_compose`                   | no        | Local risk analysis + official ZimaOS dry run.                                               |
+| `get_app_compose`                        | no        | Reads interpolated Compose + SHA-256 fingerprint. Treat output as sensitive.                 |
+| `validate_app_compose_change`            | no        | Validates a proposed change, including risk delta and stale-base checks.                     |
+| `start_app` / `stop_app` / `restart_app` | yes       | Requires `ALLOW_APP_CONTROL=true`.                                                           |
+| `install_app_from_compose`               | yes       | Requires `ALLOW_APP_INSTALL=true`; risky changes require approval.                           |
+| `install_app_from_store`                 | yes       | Same install permission; registered catalog identities only, controlled one-shot install.    |
+| `uninstall_app`                          | yes       | Requires `ALLOW_APP_UNINSTALL=true`; sends `delete_config_folder=false`.                     |
+| `edit_app_compose`                       | yes       | Requires `ALLOW_APP_EDIT=true`; uses optimistic base-fingerprint checks.                     |
 
 ## Permissions and security
 
@@ -179,7 +177,7 @@ process-local and is lost on server restart.
 
 ## Important usage
 
-### Application information (development source)
+### Application information
 
 `list_apps` and `get_app` keep stable identifiers and existing status/update/uncontrolled fields.
 Localized names prefer valid `en_us`, then `en`, then lexical locale order; new localized labels
@@ -314,7 +312,7 @@ testing is separate and never depends on committed credentials.
 
 ## Documentation
 
-- [Releases](https://github.com/lvgvs/zimaos-mcp-server/releases) and [v0.4.0 notes](docs/RELEASE-NOTES-v0.4.0.md).
+- [Releases](https://github.com/lvgvs/zimaos-mcp-server/releases) and [v0.4.1 notes](docs/RELEASE-NOTES-v0.4.1.md).
 - [Tool usage and safety semantics](docs/TOOL-USAGE.md).
 - [Contributing](CONTRIBUTING.md) — setup, checks and pull request guidance for contributors.
 - [Security policy](SECURITY.md) — vulnerability reporting and maintenance policy.

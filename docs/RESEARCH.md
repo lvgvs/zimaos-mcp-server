@@ -2,8 +2,9 @@
 
 ## Application-management continuation — source checkpoint (2026-10-13)
 
-**RESEARCH COMPLETE / SELECTED LOCAL IMPLEMENTATION VERIFIED.** Continue the existing application surface locally
-from `15384a1e2bc2a0b86eb49730951a82188cfa1ef7`; version 0.4.0 and 21 tools are unchanged.
+**RESEARCH COMPLETE / ACCEPTED APPLICATION-READ IMPLEMENTATION.** Research and local verification
+started from `15384a1e2bc2a0b86eb49730951a82188cfa1ef7` at version 0.4.0 with 21 tools.
+The manager accepted the candidate; PR #41 delivered it for the authorized v0.4.1 patch release.
 This investigation does not reopen update_app, network, Files or another roadmap phase.
 
 ### Saved-source provenance and limits
@@ -88,7 +89,8 @@ publishers. No fixture, SSH, disruption or cleanup was needed; no exhaustive hos
 Multi-service relationships remain synthetic-test-proven only; metadata is not runtime authority.
 
 Private source/matrix, binding and observed evidence remain under active-profile
-`evidence/app-management-continuation/`. Runtime changes exist locally only; no publication occurred.
+`evidence/app-management-continuation/`. The local-only verification records above are historical;
+protected delivery/release identity and exact-artifact acceptance are separate records, not new API authority.
 
 ## Phase 10 Files — consolidated research outcome (2026-10-13)
 

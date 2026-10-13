@@ -20,19 +20,17 @@ ZimaOS kimlik bilgilerini tutan tek bileşen bu sunucudur. Ürün; keyfî shell 
 Docker socket erişimi, ayrıcalıklı container erişimi veya ZimaOS'un dahili
 dosya/veritabanlarının doğrudan değiştirilmesini sunmaz.
 
-**Güncel sürüm: [v0.4.0](https://github.com/lvgvs/zimaos-mcp-server/releases/tag/v0.4.0).**
-Sürüm, aşağıdaki 21 aracın tamamını; korumalı cihaz yeniden başlatmayı, sistem kaynakları ve
-işletim sistemi güncelleme okumalarını ve `/health` içinde kanonik çalışma zamanı sürümünü içerir.
-
-**Geliştirme kaynak kodu:** aşağıda açıklanan uygulama okuma iyileştirmeleri yayımlanan
-v0.4.0 sürümünün parçası değildir.
+**Sürüm: 0.4.1.** Bu kaynak kod aşağıdaki 21 aracın tamamını; iyileştirilmiş uygulama adlarını,
+bildirilen ana service ilişkilerini ve sağlık çıktısında açık container okuma durumunu içerir.
+Yayımlanan imajlar ve tam kurulum dosyaları için
+[GitHub sürüm kayıtlarını](https://github.com/lvgvs/zimaos-mcp-server/releases) kullanın.
 
 ## Yetenekler
 
 - **Kurulu uygulamaları inceleme:** Compose uygulamalarını listeleme; normalize edilmiş
   uygulama ayrıntılarını, container/service bilgilerini, mevcut sağlık bilgilerini ve
   sınırlandırılmış son uygulama loglarını okuma.
-  Geliştirme kaynak kodu ayrıca yerelleştirilmiş adları çözümler, bildirilen ana service ilişkilerini
+  Uygulama okumaları ayrıca yerelleştirilmiş adları çözümler, bildirilen ana service ilişkilerini
   sunar ve başarısız container okumalarını başarılı boş sonuçlardan ayırır.
 - **App Store'dan keşif ve kurulum:** güvenilir kayıtlı kataloglarda arama, tam depo/uygulama
   girdilerini inceleme ve desteklenen kayıtlı girdilerden doğrudan uygulama kurma.
@@ -128,27 +126,27 @@ Authorization: Bearer <MCP_AUTH_TOKEN>
 
 ## Araç referansı
 
-| Araç                                     | Değişiklik yapar mı? | Not                                                                                                                        |
-| ---------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `list_apps`                              | hayır                | Kurulu Compose uygulamaları; geliştirme kaynak kodunda yerelleştirilmiş adlar ve isteğe bağlı bildirilen ana service.      |
-| `get_app`                                | hayır                | Tek uygulamanın normalize edilmiş ayrıntıları; listedekiyle aynı geliştirme metadata'sı.                                   |
-| `search_app_store`                       | hayır                | Etkin kayıtlı v2 HTTP Compose kataloglarında sınırlı arama.                                                                |
-| `get_app_store_details`                  | hayır                | Güvenilir tam depo/uygulama çifti için herkese açık metadata.                                                              |
-| `get_app_health`                         | hayır                | Mevcut uygulama/container sağlık bilgisi; geliştirme kaynak kodunda açık container okuma durumu.                           |
-| `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.                                                           |
-| `list_app_containers`                    | hayır                | Uygulamanın container/service ve port bilgileri; geliştirme kaynak kodunda isteğe bağlı bildirilen ana service işaretleri. |
-| `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                                                               |
-| `get_system_resources`                   | hayır                | Mevcut örneklenmiş CPU/bellek/sistem dosya sistemi ölçümleri; ağ veya sağlık kararı yoktur.                                |
-| `get_os_update_status`                   | hayır                | İşletim sistemi sürümleri, bildirim sınıfı, kurucu durumu ve beta aboneliği.                                               |
-| `restart_device`                         | evet                 | `ALLOW_SYSTEM_CONTROL=true` gerekir; tek yeniden başlatma isteği, kabul tamamlanma değildir.                               |
-| `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                                                                 |
-| `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin.                                              |
-| `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.                                                     |
-| `start_app` / `stop_app` / `restart_app` | evet                 | `ALLOW_APP_CONTROL=true` gerekir.                                                                                          |
-| `install_app_from_compose`               | evet                 | `ALLOW_APP_INSTALL=true` gerekir; riskli değişiklikler onay ister.                                                         |
-| `install_app_from_store`                 | evet                 | Aynı kurulum izni; yalnızca kayıtlı katalog kimlikleriyle kontrollü, tek denemelik kurulum.                                |
-| `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                                                 |
-| `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.                                              |
+| Araç                                     | Değişiklik yapar mı? | Not                                                                                                       |
+| ---------------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------- |
+| `list_apps`                              | hayır                | Kurulu Compose uygulamalarını yerelleştirilmiş adlar ve isteğe bağlı bildirilen ana service ile listeler. |
+| `get_app`                                | hayır                | Tek uygulamanın normalize edilmiş ayrıntıları; listedekiyle aynı bildirilen metadata.                     |
+| `search_app_store`                       | hayır                | Etkin kayıtlı v2 HTTP Compose kataloglarında sınırlı arama.                                               |
+| `get_app_store_details`                  | hayır                | Güvenilir tam depo/uygulama çifti için herkese açık metadata.                                             |
+| `get_app_health`                         | hayır                | Mevcut uygulama/container sağlık bilgisi ve açık container okuma durumu.                                  |
+| `get_app_logs`                           | hayır                | Sınırlandırılmış son loglar; varsayılan 100, maksimum 500 satır.                                          |
+| `list_app_containers`                    | hayır                | Uygulamanın container/service ve port bilgileri ile isteğe bağlı bildirilen ana service işaretleri.       |
+| `get_system_info`                        | hayır                | Küçük normalize edilmiş ZimaOS sistem özeti.                                                              |
+| `get_system_resources`                   | hayır                | Mevcut örneklenmiş CPU/bellek/sistem dosya sistemi ölçümleri; ağ veya sağlık kararı yoktur.               |
+| `get_os_update_status`                   | hayır                | İşletim sistemi sürümleri, bildirim sınıfı, kurucu durumu ve beta aboneliği.                              |
+| `restart_device`                         | evet                 | `ALLOW_SYSTEM_CONTROL=true` gerekir; tek yeniden başlatma isteği, kabul tamamlanma değildir.              |
+| `validate_app_compose`                   | hayır                | Yerel risk analizi + resmi ZimaOS dry run.                                                                |
+| `get_app_compose`                        | hayır                | Interpolate edilmiş Compose + SHA-256 fingerprint. Çıktıyı hassas kabul edin.                             |
+| `validate_app_compose_change`            | hayır                | Önerilen değişikliği risk delta ve stale-base kontrolleriyle doğrular.                                    |
+| `start_app` / `stop_app` / `restart_app` | evet                 | `ALLOW_APP_CONTROL=true` gerekir.                                                                         |
+| `install_app_from_compose`               | evet                 | `ALLOW_APP_INSTALL=true` gerekir; riskli değişiklikler onay ister.                                        |
+| `install_app_from_store`                 | evet                 | Aynı kurulum izni; yalnızca kayıtlı katalog kimlikleriyle kontrollü, tek denemelik kurulum.               |
+| `uninstall_app`                          | evet                 | `ALLOW_APP_UNINSTALL=true` gerekir; `delete_config_folder=false` gönderir.                                |
+| `edit_app_compose`                       | evet                 | `ALLOW_APP_EDIT=true` gerekir; optimistic base-fingerprint kontrolü kullanır.                             |
 
 ## İzinler ve güvenlik
 
@@ -181,7 +179,7 @@ Bekleyen onay durumu process-local'dır ve sunucu yeniden başlatıldığında k
 
 ## Önemli kullanım bilgileri
 
-### Uygulama bilgileri (geliştirme kaynak kodu)
+### Uygulama bilgileri
 
 `list_apps` ve `get_app`, sabit kimlikleri ve mevcut durum/güncelleme/uncontrolled alanlarını korur.
 Yerelleştirilmiş adlar geçerli `en_us`, ardından `en`, ardından leksikografik locale sırasıyla seçilir;
@@ -326,7 +324,7 @@ entegrasyon testleri ayrıdır ve commit edilmiş kimlik bilgilerine bağlı de�
 
 ## Belgeler
 
-- [Sürümler](https://github.com/lvgvs/zimaos-mcp-server/releases) ve [v0.4.0 notları](docs/RELEASE-NOTES-v0.4.0.md).
+- [Sürümler](https://github.com/lvgvs/zimaos-mcp-server/releases) ve [v0.4.1 notları](docs/RELEASE-NOTES-v0.4.1.md).
 - [Araç kullanımı ve güvenlik semantiği](docs/TOOL-USAGE.tr.md).
 - [Katkıda bulunma](CONTRIBUTING.md) — katkıda bulunanlar için kurulum, kontroller ve pull request yönergeleri.
 - [Güvenlik politikası](SECURITY.md) — güvenlik açığı bildirimi ve bakım politikası.

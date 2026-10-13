@@ -25,7 +25,19 @@ Initial-development visibility requirements in the
 historical phase specifications below remain unchanged; product scope and safety boundaries
 are not altered by publication approval.
 
-## Current authorized work — application-management continuation (2026-10-13)
+## Current authorized work — v0.4.1 delivery and release (2026-10-13)
+
+The manager accepted local candidate `c80d5670c655c54e5c0e517853d2d90a88d26402` and authorized
+parent-only feature delivery and a v0.4.1 patch release through protected Squash PRs and established
+build-once promotion. The feature is on canonical main via PR #41 at
+`5030e939a34102468cfcbbf951c7e7258a4f115d`. Release preparation changes only version metadata,
+notes/changelog and appropriate documentation; it does not expand the accepted product scope.
+Use exact-source CI and exact immutable-artifact UAT before tagging/alias promotion. Preserve
+v0.4.0 and older releases. No new tool, permission, request path or mutation; tools remain 21.
+No child/reviewer delegation, OAuth or other roadmap work. Stop after verified publication and
+clean synchronized main. Published identities are authoritative in Git/Release/registry records.
+
+## Historical authorized work — application-management continuation (2026-10-13)
 
 Continue the existing Phase 1 application details/status/management surface from canonical
 `15384a1e2bc2a0b86eb49730951a82188cfa1ef7`, version 0.4.0 and 21 tools. This is a natural
