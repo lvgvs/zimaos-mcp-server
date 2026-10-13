@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-13
+
+### Fixed
+
+- Deterministic bounded localized application names in existing list/detail reads,
+  preserving legacy plain-string names and identifier fallback.
+- Explicit container-read success/failure status in application health, preserving the
+  legacy empty-on-failure array and returning sanitized codes rather than exception text.
+
+### Changed
+
+- Optional reported main-service relationships on app/container reads; no inferred first/sole
+  service and no runtime-primacy, origin or health guarantee.
+- Credential exclusion for newly surfaced metadata, including percent-escaped UTF-8, and
+  explicit read-only annotations. The surface remains 21 tools with unchanged permissions,
+  request paths and write capabilities. Resource/version/origin/launch/recovery leads remain deferred.
+
 ## [0.4.0] - 2026-10-11
 
 ### Added

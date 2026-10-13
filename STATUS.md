@@ -1,6 +1,30 @@
 # Status
 
-## Current state — application-management continuation, local only
+## Current release line — v0.4.1
+
+The manager accepted application-read candidate `c80d5670c655c54e5c0e517853d2d90a88d26402` and
+authorized parent-only protected delivery and the v0.4.1 patch release. Feature
+[PR #41](https://github.com/lvgvs/zimaos-mcp-server/pull/41) was Squash merged at
+`5030e939a34102468cfcbbf951c7e7258a4f115d`; its tree equals the checked accepted candidate.
+All required exact-head CI checks passed; no review threads were unresolved.
+
+- Preparation branch: `release/v0.4.1`; package/lockfile select 0.4.1, public tools remain 21.
+- No new tool, permission, request path or write capability; no future-phase work. Resource,
+  version/origin/launch/recovery leads remain deferred. All five mutation flags stay default-off.
+- Accepted feature gates: 890 mocked tests/53 files, full static/build/audit/privacy/Compose/docs
+  gates; accepted final compiled UAT is `06-parent-final-uat.mjs`. Version-specific release gates
+  and exact registry-image UAT are required on the selected release source, not inferred from that
+  earlier artifact. Preserve four-app configuration/container projections and separate mock-only
+  multi-service/failure evidence from ordinary live read results.
+- Established promotion moves stable/latest on tag push, so exact trusted-main digest UAT must
+  succeed before annotated tagging. Preserve v0.4.0 tag/Release/assets/digest immutably.
+- Publication identity and final source/digest/UAT/asset/checkpoint results are authoritative in
+  Git, GitHub Release/GHCR records and the final handoff/private receipt, not this preparation record.
+  Selected release metadata is not a claim that publication has already occurred.
+- Phase 5 ON HOLD; Phase 9 COMPLETE/research-only; Phase 10 research complete/implementation deferred.
+  No children or delegated review; no new roadmap work after release without manager authorization.
+
+## Historical state — application-management continuation, local only
 
 **LOCAL IMPLEMENTATION COMPLETE / READY FOR MANAGER REVIEW.** The existing Phase 1 application
 surface now resolves bounded localized names, exposes optional declared main-service metadata and

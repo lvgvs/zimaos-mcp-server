@@ -33,8 +33,9 @@ password/access-token values, including percent-escaped UTF-8. Unsafe new values
 fall back to another valid locale/id, without changing legacy plain-string behavior. The pure
 normalizer receives a predicate; credentials remain inside the API client and are never exported.
 
-Delivery remains local-only. Parent review and local gates/UAT establish a local candidate, not
-manager acceptance or authorization to publish.
+At the local checkpoint, delivery remained local-only. The manager subsequently accepted that
+candidate and authorized parent-only protected delivery and the v0.4.1 patch release; established
+exact-source CI, exact-artifact UAT and immutable promotion gates still apply. No scope expansion.
 
 ## 2026-09-26 — MCP transport: Streamable HTTP over a single authenticated endpoint
 

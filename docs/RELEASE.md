@@ -5,11 +5,12 @@ apply only to the recorded source/image, not every later build. For user install
 configuration, follow the [README](../README.md#zimaos-installation); for contribution setup,
 follow [CONTRIBUTING.md](../CONTRIBUTING.md). Agent ownership/governance belongs in AGENTS.md.
 
-`v0.4.0` is the current published release; package and lockfile versions are `0.4.0`.
-It includes system diagnostics, guarded device restart and canonical `/health` version reporting.
-Public notes are in [v0.4.0 notes](RELEASE-NOTES-v0.4.0.md).
+`v0.4.1` is the selected stable release line; package and lockfile versions are `0.4.1`.
+It refines existing application reads without changing the 21-tool surface or permissions.
+Public notes are in [v0.4.1 notes](RELEASE-NOTES-v0.4.1.md). Git/Release/registry records below
+remain authoritative for publication state; selecting this source does not itself publish it.
 `v0.1.0` remains the first stable release, dated 2026-10-09 in the changelog;
-v0.1.0/v0.2.0/v0.3.0 artifacts remain immutable historical releases.
+v0.1.0/v0.2.0/v0.3.0/v0.4.0 artifacts remain immutable historical releases.
 Publication state is authoritative in Git tags, GitHub Releases
 and GHCR version/alias readback. This document records the verified publication checkpoint below
 and the reusable release-process contract; later docs-only main commits do not change release identity.
@@ -23,7 +24,7 @@ Public v0.3.0 notes are in [release notes](RELEASE-NOTES-v0.3.0.md); retain the
 visibility, delete registry versions/tags or create a final Git tag/GitHub Release without the
 corresponding explicit maintainer approval.
 
-## Completed v0.4.0 publication checkpoint (2026-10-11)
+## Historical completed v0.4.0 publication checkpoint (2026-10-11)
 
 - Parent-only release preparation [PR #35](https://github.com/lvgvs/zimaos-mcp-server/pull/35)
   was Squash merged at `c4909c474345fd331ec5fdfd8bf2cc9e334659f6`, the immutable release source.
